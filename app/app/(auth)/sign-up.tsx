@@ -1,7 +1,7 @@
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Image, Alert } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TextInput, Button, HelperText } from "react-native-paper";
+import { TextInput, Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import { Link } from "expo-router";
@@ -16,15 +16,6 @@ const SignUp = () => {
     confirmPassword: "",
     role: "",
   });
-  const [errors, setErrors] = useState({
-    name: false,
-    email: false,
-    phone: false,
-    password: false,
-    confirmPassword: false,
-    role: false,
-  });
-
   const renderLabel = () => {
     if (formData.role || isFocus) {
       return (
@@ -54,150 +45,103 @@ const SignUp = () => {
     const passwordError = formData.password.length < 6;
     const confirmPasswordError = formData.password !== formData.confirmPassword;
     const roleError = !formData.role;
-    setErrors({
-      name: nameError,
-      email: emailError,
-      phone: phoneError,
-      password: passwordError,
-      confirmPassword: confirmPasswordError,
-      role: roleError,
-    });
-
     if (
-      !nameError &&
-      !emailError &&
-      !phoneError &&
-      !passwordError &&
-      !confirmPasswordError &&
-      !roleError
-    ) {
-      console.log("Register", formData);
-    }
+      nameError ||
+      emailError ||
+      phoneError ||
+      passwordError ||
+      confirmPasswordError ||
+      roleError
+    )
+      return Alert.alert("Error", "Please fill in all fields");
   };
 
   return (
     <LinearGradient colors={["#fff", "#E9F8FF"]} style={{ flex: 1 }}>
       <SafeAreaView className="container flex-1">
-        <View className="flex-1 justify-center items-center">
+        <ScrollView contentContainerClassName="flex-1 justify-center">
           <Image
             source={require("../../assets/images/logo.png")}
             className="w-full h-44"
             resizeMode="contain"
           />
           <View className="w-full gap-3">
-            <View className="w-full">
-              <TextInput
-                label="Name"
-                mode="outlined"
-                style={{
-                  width: "100%",
-                  backgroundColor: "transparent",
-                }}
-                activeOutlineColor="#A82F39"
-                theme={{
-                  roundness: 10,
-                }}
-                value={formData.name}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, name: text })
-                }
-              />
-              {errors.name && (
-                <HelperText type="error">Please enter your name.</HelperText>
-              )}
-            </View>
-            <View className="w-full">
-              <TextInput
-                label="Email"
-                mode="outlined"
-                style={{
-                  width: "100%",
-                  backgroundColor: "transparent",
-                }}
-                activeOutlineColor="#A82F39"
-                theme={{
-                  roundness: 10,
-                }}
-                value={formData.email}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, email: text })
-                }
-              />
-              {errors.email && (
-                <HelperText type="error">
-                  Please enter a valid email address.
-                </HelperText>
-              )}
-            </View>
-            <View className="w-full">
-              <TextInput
-                label="Phone"
-                mode="outlined"
-                style={{
-                  width: "100%",
-                  backgroundColor: "transparent",
-                }}
-                activeOutlineColor="#A82F39"
-                theme={{
-                  roundness: 10,
-                }}
-                value={formData.phone}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, phone: text })
-                }
-              />
-              {errors.phone && (
-                <HelperText type="error">
-                  Please enter a valid phone number.
-                </HelperText>
-              )}
-            </View>
-            <View className="w-full">
-              <TextInput
-                label="Password"
-                mode="outlined"
-                secureTextEntry
-                style={{
-                  width: "100%",
-                  backgroundColor: "transparent",
-                }}
-                activeOutlineColor="#A82F39"
-                theme={{
-                  roundness: 10,
-                }}
-                value={formData.password}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, password: text })
-                }
-              />
-              {errors.password && (
-                <HelperText type="error">
-                  Password must be at least 6 characters long.
-                </HelperText>
-              )}
-            </View>
-            <View className="w-full">
-              <TextInput
-                label="Confirm Password"
-                mode="outlined"
-                secureTextEntry
-                style={{
-                  width: "100%",
-                  backgroundColor: "transparent",
-                }}
-                activeOutlineColor="#A82F39"
-                theme={{
-                  roundness: 10,
-                }}
-                value={formData.confirmPassword}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, confirmPassword: text })
-                }
-              />
-              {errors.confirmPassword && (
-                <HelperText type="error">Passwords do not match.</HelperText>
-              )}
-            </View>
+            <TextInput
+              label="Name"
+              mode="outlined"
+              style={{
+                width: "100%",
+                backgroundColor: "transparent",
+              }}
+              activeOutlineColor="#A82F39"
+              theme={{
+                roundness: 10,
+              }}
+              value={formData.name}
+              onChangeText={(text) => setFormData({ ...formData, name: text })}
+            />
+            <TextInput
+              label="Email"
+              mode="outlined"
+              style={{
+                width: "100%",
+                backgroundColor: "transparent",
+              }}
+              activeOutlineColor="#A82F39"
+              theme={{
+                roundness: 10,
+              }}
+              value={formData.email}
+              onChangeText={(text) => setFormData({ ...formData, email: text })}
+            />
+            <TextInput
+              label="Phone"
+              mode="outlined"
+              style={{
+                width: "100%",
+                backgroundColor: "transparent",
+              }}
+              activeOutlineColor="#A82F39"
+              theme={{
+                roundness: 10,
+              }}
+              value={formData.phone}
+              onChangeText={(text) => setFormData({ ...formData, phone: text })}
+            />
+            <TextInput
+              label="Password"
+              mode="outlined"
+              secureTextEntry
+              style={{
+                width: "100%",
+                backgroundColor: "transparent",
+              }}
+              activeOutlineColor="#A82F39"
+              theme={{
+                roundness: 10,
+              }}
+              value={formData.password}
+              onChangeText={(text) =>
+                setFormData({ ...formData, password: text })
+              }
+            />
+            <TextInput
+              label="Confirm Password"
+              mode="outlined"
+              secureTextEntry
+              style={{
+                width: "100%",
+                backgroundColor: "transparent",
+              }}
+              activeOutlineColor="#A82F39"
+              theme={{
+                roundness: 10,
+              }}
+              value={formData.confirmPassword}
+              onChangeText={(text) =>
+                setFormData({ ...formData, confirmPassword: text })
+              }
+            />
             <View className="w-full">
               {renderLabel()}
               <Dropdown
@@ -224,9 +168,6 @@ const SignUp = () => {
                   setIsFocus(false);
                 }}
               />
-              {errors.role && (
-                <HelperText type="error">Please select a role.</HelperText>
-              )}
             </View>
           </View>
           <Button
@@ -243,13 +184,10 @@ const SignUp = () => {
               Register
             </Text>
           </Button>
-          <Link
-            href="/(auth)/sign-in"
-            className="text-center text-xl font-light mt-4"
-          >
+          <Link href="/sign-in" className="text-center text-xl font-light mt-4">
             <Text>Sign In</Text>
           </Link>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   );

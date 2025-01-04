@@ -1,5 +1,11 @@
 import React from "react";
-import { SafeAreaView, ScrollView, View, TouchableOpacity } from "react-native";
+import {
+  FlatList,
+  SafeAreaView,
+  ScrollView,
+  View,
+  TouchableOpacity,
+} from "react-native";
 import { Text, Card, Divider } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LineChart, XAxis, Line } from "recharts";
@@ -113,41 +119,43 @@ const Dashboard = () => {
     <SafeAreaView className="flex-1">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        className="flex-1 w-full container"
-        contentContainerStyle={{ paddingBottom: 24 }}
+        className="flex-1 w-full container my-6"
       >
         <View className="flex-row justify-between items-center mb-8">
           <View>
-            <Text className="text-sm mb-1">Welcome back</Text>
-            <Text className="text-2xl font-bold">Dashboard</Text>
+            <Text className="text-2xl font-pmedium mb-1">Dashboard</Text>
+            <Text className="text-gray-600">Welcome back, Admin</Text>
           </View>
-          <TouchableOpacity className="p-3 bg-white rounded-xl">
-            <MaterialIcons name="menu" size={24} color="#4b5563" />
+          <TouchableOpacity className="p-3 bg-primary/80 rounded-xl">
+            <MaterialIcons name="menu" size={24} color="white" />
           </TouchableOpacity>
         </View>
-
-        <ScrollView
+        <FlatList
+          data={[
+            {
+              title: "Active Projects",
+              value: summaryData.projects,
+              icon: "folder-open",
+            },
+            {
+              title: "Total Complaints",
+              value: summaryData.complaints,
+              icon: "report-gmailerrorred",
+            },
+            {
+              title: "Pending Invoices",
+              value: summaryData.invoices,
+              icon: "receipt-long",
+            },
+          ]}
+          renderItem={({ item }) => (
+            <StatCard title={item.title} value={item.value} icon={item.icon} />
+          )}
+          keyExtractor={(item) => item.title}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerClassName="flex-row gap-4 mb-8 w-full py-1"
-        >
-          <StatCard
-            title="Active Projects"
-            value={summaryData.projects}
-            icon="folder-open"
-          />
-          <StatCard
-            title="Total Complaints"
-            value={summaryData.complaints}
-            icon="report-gmailerrorred"
-          />
-
-          <StatCard
-            title="Pending Invoices"
-            value={summaryData.invoices}
-            icon="receipt-long"
-          />
-        </ScrollView>
+          contentContainerClassName="mb-8 p-1 gap-2"
+        />
 
         <Card>
           <Card.Content className="p-6 bg-white rounded-2xl">

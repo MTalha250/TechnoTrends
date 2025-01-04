@@ -1,10 +1,10 @@
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, Alert, ScrollView } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TextInput, Button, HelperText } from "react-native-paper";
+import { TextInput, Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 
 const SignIn = () => {
   const [isFocus, setIsFocus] = useState(false);
@@ -12,11 +12,6 @@ const SignIn = () => {
     email: "",
     password: "",
     role: "",
-  });
-  const [errors, setErrors] = useState({
-    email: false,
-    password: false,
-    role: false,
   });
 
   const renderLabel = () => {
@@ -45,21 +40,22 @@ const SignIn = () => {
     const emailError = !formData.email.includes("@");
     const passwordError = formData.password.length < 6;
     const roleError = !formData.role;
-    setErrors({
-      email: emailError,
-      password: passwordError,
-      role: roleError,
-    });
+    if (emailError || passwordError || roleError)
+      return Alert.alert("Error", "Please fill in all fields");
 
-    if (!emailError && !passwordError) {
-      console.log("Sign In", formData);
+    if (formData.role === "admin") {
+      router.replace("/dashboard");
+    } else if (formData.role === "head") {
+      router.replace("/dashboard");
+    } else {
+      router.replace("/dashboard");
     }
   };
 
   return (
     <LinearGradient colors={["#fff", "#E9F8FF"]} style={{ flex: 1 }}>
       <SafeAreaView className="container flex-1">
-        <View className="flex-1 justify-center items-center">
+        <ScrollView contentContainerClassName="flex-1 justify-center">
           <Image
             source={require("../../assets/images/logo.png")}
             className="w-full h-44"
@@ -92,57 +88,38 @@ const SignIn = () => {
                   setIsFocus(false);
                 }}
               />
-              {errors.role && (
-                <HelperText type="error">Please select a role.</HelperText>
-              )}
             </View>
-            <View className="w-full">
-              <TextInput
-                label="Email"
-                mode="outlined"
-                style={{
-                  width: "100%",
-                  backgroundColor: "transparent",
-                }}
-                activeOutlineColor="#A82F39"
-                theme={{
-                  roundness: 10,
-                }}
-                value={formData.email}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, email: text })
-                }
-              />
-              {errors.email && (
-                <HelperText type="error">
-                  Please enter a valid email address.
-                </HelperText>
-              )}
-            </View>
-            <View className="w-full">
-              <TextInput
-                label="Password"
-                mode="outlined"
-                secureTextEntry
-                style={{
-                  width: "100%",
-                  backgroundColor: "transparent",
-                }}
-                activeOutlineColor="#A82F39"
-                theme={{
-                  roundness: 10,
-                }}
-                value={formData.password}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, password: text })
-                }
-              />
-              {errors.password && (
-                <HelperText type="error">
-                  Password must be at least 6 characters long.
-                </HelperText>
-              )}
-            </View>
+            <TextInput
+              label="Email"
+              mode="outlined"
+              style={{
+                width: "100%",
+                backgroundColor: "transparent",
+              }}
+              activeOutlineColor="#A82F39"
+              theme={{
+                roundness: 10,
+              }}
+              value={formData.email}
+              onChangeText={(text) => setFormData({ ...formData, email: text })}
+            />
+            <TextInput
+              label="Password"
+              mode="outlined"
+              secureTextEntry
+              style={{
+                width: "100%",
+                backgroundColor: "transparent",
+              }}
+              activeOutlineColor="#A82F39"
+              theme={{
+                roundness: 10,
+              }}
+              value={formData.password}
+              onChangeText={(text) =>
+                setFormData({ ...formData, password: text })
+              }
+            />
           </View>
           <Button
             onPress={handleSubmit}
@@ -158,13 +135,10 @@ const SignIn = () => {
               Log In
             </Text>
           </Button>
-          <Link
-            href="/(auth)/sign-up"
-            className="text-center text-xl font-light mt-4"
-          >
+          <Link href="/sign-up" className="text-center text-xl font-light mt-4">
             <Text>Register</Text>
           </Link>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   );

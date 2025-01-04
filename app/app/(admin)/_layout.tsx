@@ -31,7 +31,7 @@ const AdminLayout = () => {
     >
       {/* Dashboard Tab */}
       <Tabs.Screen
-        name="index"
+        name="dashboard"
         options={{
           title: "Dashboard",
           tabBarIcon: ({ color }) => (
