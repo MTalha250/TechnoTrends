@@ -11,6 +11,7 @@ const AdminLayout = () => {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: "#A82F39",
+        tabBarInactiveTintColor: "#A0A0A0",
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -25,6 +26,7 @@ const AdminLayout = () => {
             paddingHorizontal: 16,
             backgroundColor: "white",
             borderTopWidth: 1,
+            height: 60,
           },
         }),
       }}

@@ -1,13 +1,14 @@
 import React from "react";
 import {
-  SafeAreaView,
   FlatList,
   View,
   TouchableOpacity,
   ScrollView,
+  Text,
 } from "react-native";
-import { Text, Card } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 interface Complaint {
   id: string;
@@ -36,44 +37,42 @@ const Complaints = () => {
   ];
 
   const ComplaintCard = ({ complaint }: { complaint: Complaint }) => (
-    <Card className="border-l-4 border-primary">
-      <Card.Content className="p-6 bg-white rounded-2xl">
-        <View className="flex-row justify-between items-start mb-4">
-          <View className="flex-1 pr-4">
-            <Text className="text-lg font-bold mb-1">{complaint.title}</Text>
-            <View className="flex-row items-center gap-2">
-              <MaterialIcons name="business" size={16} color="#6b7280" />
-              <Text className="text-gray-600">{complaint.department}</Text>
-            </View>
+    <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm">
+      <View className="flex-row justify-between items-start mb-4">
+        <View className="flex-1 pr-4">
+          <Text className="text-lg font-bold mb-1">{complaint.title}</Text>
+          <View className="flex-row items-center gap-2">
+            <MaterialIcons name="business" size={16} color="#6b7280" />
+            <Text className="text-gray-600">{complaint.department}</Text>
           </View>
-          <View
-            className={`px-4 py-2 rounded-xl ${
+        </View>
+        <View
+          className={`px-4 py-2 rounded-xl ${
+            complaint.status === "Pending"
+              ? "bg-yellow-100"
+              : complaint.status === "In Progress"
+              ? "bg-blue-100"
+              : "bg-green-100"
+          }`}
+        >
+          <Text
+            className={
               complaint.status === "Pending"
-                ? "bg-yellow-100"
+                ? "text-yellow-600"
                 : complaint.status === "In Progress"
-                ? "bg-blue-100"
-                : "bg-green-100"
-            }`}
+                ? "text-blue-600"
+                : "text-green-600"
+            }
           >
-            <Text
-              className={
-                complaint.status === "Pending"
-                  ? "text-yellow-600"
-                  : complaint.status === "In Progress"
-                  ? "text-blue-600"
-                  : "text-green-600"
-              }
-            >
-              {complaint.status}
-            </Text>
-          </View>
+            {complaint.status}
+          </Text>
         </View>
-        <View className="flex-row items-center gap-2">
-          <MaterialIcons name="schedule" size={16} color="#A82F39" />
-          <Text className="text-gray-600">{complaint.date}</Text>
-        </View>
-      </Card.Content>
-    </Card>
+      </View>
+      <View className="flex-row items-center gap-2">
+        <MaterialIcons name="schedule" size={16} color="#A82F39" />
+        <Text className="text-gray-600">{complaint.date}</Text>
+      </View>
+    </View>
   );
 
   return (
@@ -83,12 +82,15 @@ const Complaints = () => {
           <View>
             <View className="flex-row justify-between items-center mb-8">
               <View>
-                <Text className="text-2xl mb-1">Complaints</Text>
+                <Text className="text-2xl font-bold mb-1">Complaints</Text>
                 <Text className="text-gray-600">
                   {complaints.length} active complaints
                 </Text>
               </View>
-              <TouchableOpacity className="flex-row items-center gap-2 bg-primary/80 px-4 py-3 rounded-xl">
+              <TouchableOpacity
+                onPress={() => router.push("/createComplaint")}
+                className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
+              >
                 <MaterialIcons name="add" size={20} color="white" />
                 <Text className="font-medium" style={{ color: "#fff" }}>
                   New Complaint
@@ -101,8 +103,8 @@ const Complaints = () => {
               className="mb-6"
             >
               <View className="flex-row gap-2 p-1">
-                <TouchableOpacity className="px-6 py-3 bg-primary/10 rounded-xl shadow-sm">
-                  <Text className="text-primary font-medium">All</Text>
+                <TouchableOpacity className="px-6 py-3 bg-primary rounded-xl shadow-sm">
+                  <Text className="text-white font-medium">All</Text>
                 </TouchableOpacity>
                 <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
                   <Text className="text-gray-600">Pending</Text>

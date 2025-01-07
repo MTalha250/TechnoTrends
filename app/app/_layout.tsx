@@ -45,6 +45,10 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="createProject" options={{ headerShown: false }} />
+        <Stack.Screen name="createComplaint" options={{ headerShown: false }} />
+        <Stack.Screen name="createInvoice" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(admin)" options={{ headerShown: false }} />
       </Stack>

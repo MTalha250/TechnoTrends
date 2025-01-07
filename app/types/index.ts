@@ -3,7 +3,7 @@ type Admin = {
   name: string;
   email: string;
   phone: string;
-  approved: boolean;
+  status: "Pending" | "Approved" | "Rejected";
   created_at: string;
   updated_at: string;
 };
@@ -14,7 +14,7 @@ type Head = {
   email: string;
   phone: string;
   department: string; // Name of the department
-  approved: boolean;
+  status: "Pending" | "Approved" | "Rejected";
   assignedComplaints: Complaint[]; // Complaints Array
   assignedProjects: Project[]; // Projects Array
   created_at: string;
@@ -27,7 +27,7 @@ type User = {
   email: string;
   phone: string;
   head: Head; // Head Object
-  approved: boolean;
+  status: "Pending" | "Approved" | "Rejected";
   assignedComplaints: Complaint[]; // Complaints Array
   assignedProjects: Project[]; // Projects Array
   created_at: string;
@@ -60,6 +60,8 @@ type Complaint = {
   assignedWorkers: User[]; // Users Array
   jcReference: string;
   photos: string[];
+  priority: "Low" | "Medium" | "High";
+  dueDate: string;
   remarks: string;
   status: "Pending" | "In Progress" | "Resolved";
   created_at: string;

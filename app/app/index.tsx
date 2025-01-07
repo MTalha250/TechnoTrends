@@ -18,12 +18,13 @@ const LandingScreen = () => {
 
           <View className="w-full gap-10">
             <Text className="text-3xl font-bold text-center text-gray-800">
-              Manage Your Projects, Anytime, Anywhere
+              Manage Your Projects, {"\n"}Anytime, Anywhere
             </Text>
-            <Text className="text-center font-pregular text-2xl text-gray-500">
-              Easily create, assign, and track tasks to stay on top of deadlines
+            <Text className="text-center text-2xl text-gray-500">
+              Easily create, assign, and track {"\n"}tasks to stay on top of
+              deadlines
             </Text>
-            <Link href="/sign-in" className="bg-primary rounded-full p-5">
+            <Link href="/dashboard" className="bg-primary rounded-full p-5">
               <View className="w-full flex-row items-center justify-center gap-2">
                 <Text className="text-center text-xl font-light text-white">
                   Get Started

@@ -1,14 +1,17 @@
 import React from "react";
 import {
   FlatList,
-  SafeAreaView,
   ScrollView,
   View,
   TouchableOpacity,
+  Text,
 } from "react-native";
-import { Text, Card, Divider } from "react-native-paper";
+import { Card, Divider } from "react-native-paper";
+import { router } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { LineChart, XAxis, Line } from "recharts";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface StatCardProps {
   title: string;
@@ -62,72 +65,71 @@ const Dashboard = () => {
   ];
 
   const StatCard = ({ title, value, icon }: StatCardProps) => (
-    <Card>
-      <Card.Content className="bg-white p-6 rounded-2xl justify-center items-center gap-3">
-        <MaterialIcons name={icon as any} size={24} color="#A82F39" />
-        <Text>{title}</Text>
-        <Text className="text-4xl font-bold">{value}</Text>
-      </Card.Content>
-    </Card>
+    <View className="bg-white p-6 rounded-2xl justify-center items-center gap-3 shadow-sm">
+      <MaterialIcons name={icon as any} size={24} color="#A82F39" />
+      <Text>{title}</Text>
+      <Text className="text-4xl font-semibold">{value}</Text>
+    </View>
   );
 
   const ComplaintCard = ({ item }: { item: Complaint }) => (
-    <Card className="border-l-4 border-primary">
-      <Card.Content className="p-6 bg-white rounded-2xl">
-        <View className="flex-row justify-between items-start mb-4">
-          <View>
-            <Text className="text-xl font-bold mb-2">{item.title}</Text>
-            <Text>{item.description}</Text>
-          </View>
-          <View
-            className={`px-4 py-2 rounded-xl ${
-              item.status === "Pending" ? "bg-red-100" : "bg-yellow-100"
-            }`}
+    <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm">
+      <View className="flex-row justify-between items-start mb-4">
+        <View>
+          <Text className="text-xl font-bold mb-2">{item.title}</Text>
+          <Text>{item.description}</Text>
+        </View>
+        <View
+          className={`px-4 py-2 rounded-xl ${
+            item.status === "Pending" ? "bg-red-100" : "bg-yellow-100"
+          }`}
+        >
+          <Text
+            className={
+              item.status === "Pending" ? "text-red-600" : "text-yellow-700"
+            }
           >
-            <Text
-              className={
-                item.status === "Pending" ? "text-red-600" : "text-yellow-700"
-              }
-            >
-              {item.status}
-            </Text>
-          </View>
+            {item.status}
+          </Text>
         </View>
+      </View>
 
+      <View className="flex-row items-center gap-2">
+        <MaterialIcons name="person" size={16} color="#A82F39" />
+        <Text>{item.assignedTo}</Text>
+      </View>
+
+      <Divider className="my-4" />
+
+      <View className="flex-row justify-between items-center">
         <View className="flex-row items-center gap-2">
-          <MaterialIcons name="person" size={16} color="#A82F39" />
-          <Text>{item.assignedTo}</Text>
+          <MaterialIcons name="calendar-today" size={20} color="#4b5563" />
+          <Text>{item.date}</Text>
         </View>
-
-        <Divider className="my-4" />
-
-        <View className="flex-row justify-between items-center">
-          <View className="flex-row items-center gap-2">
-            <MaterialIcons name="calendar-today" size={20} color="#4b5563" />
-            <Text>{item.date}</Text>
-          </View>
-          <TouchableOpacity className="flex-row items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg">
-            <Text>Details</Text>
-            <MaterialIcons name="arrow-forward" size={16} color="#A82F39" />
-          </TouchableOpacity>
-        </View>
-      </Card.Content>
-    </Card>
+        <TouchableOpacity className="flex-row items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg">
+          <Text>Details</Text>
+          <MaterialIcons name="arrow-forward" size={16} color="#A82F39" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
     <SafeAreaView className="flex-1">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        className="flex-1 w-full container my-6"
+        className="flex-1 w-full container py-6"
       >
         <View className="flex-row justify-between items-center mb-8">
           <View>
-            <Text className="text-2xl font-pmedium mb-1">Dashboard</Text>
+            <Text className="text-2xl font-bold">Dashboard</Text>
             <Text className="text-gray-600">Welcome back, Admin</Text>
           </View>
-          <TouchableOpacity className="p-3 bg-primary/80 rounded-xl">
-            <MaterialIcons name="menu" size={24} color="white" />
+          <TouchableOpacity
+            onPress={() => router.push("/profile")}
+            className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
+          >
+            <FontAwesome5 name="user-alt" size={20} color="white" />
           </TouchableOpacity>
         </View>
         <FlatList
@@ -154,38 +156,36 @@ const Dashboard = () => {
           keyExtractor={(item) => item.title}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerClassName="mb-8 p-1 gap-2"
+          contentContainerClassName="mb-8 p-1 gap-4"
         />
 
-        <Card>
-          <Card.Content className="p-6 bg-white rounded-2xl">
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-xl font-bold">Activity Overview</Text>
-              <View className="flex-row gap-2">
-                <TouchableOpacity className="px-4 py-2 bg-primary/20 rounded-lg">
-                  <Text>Weekly</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="px-4 py-2">
-                  <Text>Monthly</Text>
-                </TouchableOpacity>
-              </View>
+        <View className="p-6 bg-white rounded-2xl shadow-sm">
+          <View className="flex-row justify-between items-center mb-6">
+            <Text className="text-xl font-bold">Activity Overview</Text>
+            <View className="flex-row gap-2">
+              <TouchableOpacity className="px-4 py-2 bg-primary/20 rounded-lg">
+                <Text>Weekly</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="px-4 py-2">
+                <Text>Monthly</Text>
+              </TouchableOpacity>
             </View>
-            <View className="h-64">
-              <LineChart
-                data={chartData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-              >
-                <XAxis dataKey="name" />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#2563eb"
-                  strokeWidth={3}
-                />
-              </LineChart>
-            </View>
-          </Card.Content>
-        </Card>
+          </View>
+          <View className="h-64">
+            <LineChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+            >
+              <XAxis dataKey="name" />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#2563eb"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </View>
+        </View>
 
         <View className="my-6 flex-row justify-between items-center">
           <Text className="text-xl font-bold">Recent Complaints</Text>
