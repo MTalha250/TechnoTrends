@@ -26,7 +26,7 @@ const InputField: React.FC<InputFieldProps> = ({
 }) => (
   <View className="mb-6">
     <Text className="text-gray-600 font-medium mb-2 text-sm uppercase tracking-wide">
-      {label} {required && <Text className="text-primary">*</Text>}
+      {label} {required && <Text className="text-red-500">*</Text>}
     </Text>
     <View
       className="flex-row items-center bg-white rounded-xl"

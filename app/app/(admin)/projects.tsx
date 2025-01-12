@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 
 interface Project {
   id: string;
@@ -37,7 +37,10 @@ const Projects = () => {
   ];
 
   const ProjectCard = ({ project }: { project: Project }) => (
-    <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm">
+    <Link
+      href={`../screens/admin/project/${project.id}`}
+      className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm"
+    >
       <View className="flex-row justify-between items-start mb-4">
         <View className="flex-1 pr-4">
           <Text className="text-lg font-bold mb-1">{project.title}</Text>
@@ -72,7 +75,7 @@ const Projects = () => {
         <MaterialIcons name="schedule" size={16} color="#A82F39" />
         <Text className="text-gray-600">{project.deadline}</Text>
       </View>
-    </View>
+    </Link>
   );
 
   return (
@@ -88,7 +91,7 @@ const Projects = () => {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/createProject")}
+                onPress={() => router.push("/screens/admin/createProject")}
                 className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
               >
                 <MaterialIcons name="add" size={20} color="white" />

@@ -126,7 +126,7 @@ const Dashboard = () => {
             <Text className="text-gray-600">Welcome back, Admin</Text>
           </View>
           <TouchableOpacity
-            onPress={() => router.push("/profile")}
+            onPress={() => router.push("/screens/profile")}
             className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
           >
             <FontAwesome5 name="user-alt" size={20} color="white" />

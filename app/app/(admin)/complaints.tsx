@@ -88,7 +88,7 @@ const Complaints = () => {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/createComplaint")}
+                onPress={() => router.push("/screens/admin/createComplaint")}
                 className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
               >
                 <MaterialIcons name="add" size={20} color="white" />

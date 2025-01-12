@@ -13,10 +13,10 @@ type Head = {
   name: string;
   email: string;
   phone: string;
-  department: string; // Name of the department
+  department: string;
   status: "Pending" | "Approved" | "Rejected";
-  assignedComplaints: Complaint[]; // Complaints Array
-  assignedProjects: Project[]; // Projects Array
+  assignedComplaints: Complaint[];
+  assignedProjects: Project[];
   created_at: string;
   updated_at: string;
 };
@@ -26,42 +26,53 @@ type User = {
   name: string;
   email: string;
   phone: string;
-  head: Head; // Head Object
+  head: Head;
   status: "Pending" | "Approved" | "Rejected";
-  assignedComplaints: Complaint[]; // Complaints Array
-  assignedProjects: Project[]; // Projects Array
+  assignedComplaints: Complaint[];
+  assignedProjects: Project[];
   created_at: string;
   updated_at: string;
 };
 
 type Project = {
   id: number;
-  poNumber: string; // Project Order Number
+  title: string;
+  description: string;
+  poNumber: string;
+  poImage: string;
   clientName: string;
   clientPhone: string;
   surveyPhotos: string[];
-  quotationReference: string; // quotation number
-  jcReference: string; // job completion number
-  dcReference: string; // delivery challan number
+  quotationReference: string;
+  quotationImage: string;
+  jcReference: string;
+  jcImage: string;
+  dcReference: string;
+  dcImage: string;
   status: "Pending" | "In Progress" | "On Hold" | "Completed";
-  assignedBy: Admin; // Admin Object
-  assignedHead: Head; // Head Object
-  assignedWorkers: User[]; // Users array
+  assignedBy: Admin;
+  assignedHead: Head;
+  assignedWorkers: User[];
+  remarks: string;
+  dueDate: Date | null;
   created_at: string;
   updated_at: string;
 };
 
 type Complaint = {
   id: number;
+  complaintReference: string;
+  complaintImage: string;
   title: string;
   description: string;
-  createdBy: Admin; // Admin Object
-  assignedHead: Head; // Head Object
-  assignedWorkers: User[]; // Users Array
+  dueDate: Date | null;
+  createdBy: Admin;
+  assignedHead: Head;
+  assignedWorkers: User[];
   jcReference: string;
+  jcImage: string;
   photos: string[];
   priority: "Low" | "Medium" | "High";
-  dueDate: string;
   remarks: string;
   status: "Pending" | "In Progress" | "Resolved";
   created_at: string;
@@ -71,11 +82,12 @@ type Complaint = {
 type Invoice = {
   id: number;
   invoiceReference: string;
-  linkedProject: Project; // Project Object
-  amount: number;
+  invoiceImage: string;
+  amount: string;
   paymentTerms: "Cash" | "Credit";
-  creditDays?: number;
-  dueDate: string;
+  creditDays?: string;
+  dueDate: Date | null;
+  linkedProject: Project;
   status: "Paid" | "Unpaid" | "In Progress";
   created_at: string;
   updated_at: string;

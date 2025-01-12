@@ -96,7 +96,7 @@ const Invoices = () => {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/createInvoice")}
+                onPress={() => router.push("/screens/admin/createInvoice")}
                 className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
               >
                 <MaterialIcons name="add" size={20} color="white" />
