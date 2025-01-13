@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Laravel\Sanctum\HasApiTokens;
 
 class Admin extends Model
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens;
 
     protected $table = 'admin';
 
@@ -22,4 +23,14 @@ class Admin extends Model
     protected $hidden = [
         'password',
     ];
+    public function complaints()
+{
+    return $this->hasMany(Complaint::class, 'createdByAdmin');
+}
+
+public function projects()
+{
+    return $this->hasMany(Project::class, 'assigned_by_admin');
+}
+
 }

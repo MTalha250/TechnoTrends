@@ -8,6 +8,12 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\AuthController;
+Route::post('/login', [AuthController::class, 'login']); // Create admin
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/get/by-token', [AuthController::class, 'user']);
+});
+
 Route::get('/admin', [AdminController::class, 'index']); // Get all admins
 Route::post('/admin', [AdminController::class, 'store']); // Create admin
 Route::get('/admin/{id}', [AdminController::class, 'show']); // Get admin by ID
