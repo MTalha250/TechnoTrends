@@ -4,7 +4,7 @@ import { View, TextInput, Text, KeyboardTypeOptions } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface InputFieldProps {
-  label: string;
+  label?: string;
   value: string;
   onChangeText: (text: string) => void;
   icon: keyof typeof MaterialIcons.glyphMap;
@@ -25,9 +25,11 @@ const InputField: React.FC<InputFieldProps> = ({
   readonly = false,
 }) => (
   <View className="mb-6">
-    <Text className="text-gray-600 font-medium mb-2 text-sm uppercase tracking-wide">
-      {label} {required && <Text className="text-red-500">*</Text>}
-    </Text>
+    {label && (
+      <Text className="text-gray-600 font-medium mb-2 text-sm uppercase tracking-wide">
+        {label} {required && <Text className="text-red-500">*</Text>}
+      </Text>
+    )}
     <View
       className="flex-row items-center bg-white rounded-xl"
       style={{ borderWidth: 1, borderColor: "#D1D5DB" }}
@@ -44,7 +46,7 @@ const InputField: React.FC<InputFieldProps> = ({
         className="flex-1 p-4 text-black"
         keyboardType={keyboardType}
         placeholderTextColor="#9CA3AF"
-        placeholder={placeholder || `Enter ${label.toLowerCase()}`}
+        placeholder={placeholder || ""}
         readOnly={readonly}
       />
     </View>

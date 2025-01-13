@@ -49,7 +49,7 @@ type Project = {
   jcImage: string;
   dcReference: string;
   dcImage: string;
-  status: "Pending" | "In Progress" | "On Hold" | "Completed";
+  status: "Pending" | "In Progress" | "On Hold" | "Completed" | "Cancelled";
   assignedBy: Admin;
   assignedHead: Head;
   assignedWorkers: User[];
@@ -63,6 +63,8 @@ type Complaint = {
   id: number;
   complaintReference: string;
   complaintImage: string;
+  clientName: string;
+  clientPhone: string;
   title: string;
   description: string;
   dueDate: Date | null;
@@ -74,7 +76,7 @@ type Complaint = {
   photos: string[];
   priority: "Low" | "Medium" | "High";
   remarks: string;
-  status: "Pending" | "In Progress" | "Resolved";
+  status: "Pending" | "In Progress" | "Resolved" | "Closed";
   created_at: string;
   updated_at: string;
 };
@@ -87,8 +89,8 @@ type Invoice = {
   paymentTerms: "Cash" | "Credit";
   creditDays?: string;
   dueDate: Date | null;
-  linkedProject: Project;
-  status: "Paid" | "Unpaid" | "In Progress";
+  linkedProject: Partial<Project>;
+  status: "Paid" | "Unpaid" | "In Progress" | "Overdue" | "Cancelled";
   created_at: string;
   updated_at: string;
 };

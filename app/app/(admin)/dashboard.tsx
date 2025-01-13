@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Text,
 } from "react-native";
-import { Card, Divider } from "react-native-paper";
+import { Divider } from "react-native-paper";
 import { router } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";

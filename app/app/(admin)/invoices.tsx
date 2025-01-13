@@ -1,84 +1,112 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FlatList,
   View,
   TouchableOpacity,
   ScrollView,
   Text,
+  RefreshControl,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-
-interface Invoice {
-  id: string;
-  title: string;
-  client: string;
-  dueDate: string;
-  amount: string;
-  status: "Pending" | "Paid" | "Overdue";
-}
+import { Divider } from "react-native-paper";
+import InputField from "@/components/inputField";
 
 const Invoices = () => {
-  const invoices: Invoice[] = [
+  const allInvoices: Partial<Invoice>[] = [
     {
-      id: "1",
-      title: "Website Redesign Invoice",
-      client: "Tech Corp",
-      dueDate: "Jan 15, 2025",
-      amount: "$1,500",
-      status: "Pending",
+      id: 1,
+      invoiceReference: "INV-001",
+      amount: "5000",
+      paymentTerms: "Cash",
+      dueDate: new Date("2024-12-23"),
+      linkedProject: {
+        id: 1,
+        title: "Website Redesign",
+      },
+      status: "Paid",
     },
     {
-      id: "2",
-      title: "Mobile App Development Invoice",
-      client: "StartUp Inc",
-      dueDate: "Dec 20, 2024",
-      amount: "$3,200",
-      status: "Overdue",
+      id: 2,
+      invoiceReference: "INV-002",
+      amount: "10000",
+      paymentTerms: "Credit",
+      creditDays: "30",
+      dueDate: new Date("2024-12-23"),
+      linkedProject: {
+        id: 2,
+        title: "Mobile App Development",
+      },
+      status: "Unpaid",
     },
   ];
 
-  const InvoiceCard = ({ invoice }: { invoice: Invoice }) => (
+  const [searchText, setSearchText] = useState("");
+  const [filteredInvoices, setFilteredInvoices] = useState(allInvoices);
+
+  const handleSearch = (text: string) => {
+    setSearchText(text);
+    const filtered = allInvoices.filter(
+      (invoice) =>
+        invoice.invoiceReference?.toLowerCase().includes(text.toLowerCase()) ||
+        invoice.linkedProject?.title?.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredInvoices(filtered);
+  };
+
+  const InvoiceCard = ({ item }: { item: Partial<Invoice> }) => (
     <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm">
       <View className="flex-row justify-between items-start mb-4">
-        <View className="flex-1 pr-4">
-          <Text className="text-lg font-bold mb-1">{invoice.title}</Text>
-          <View className="flex-row items-center gap-2">
-            <MaterialIcons name="business" size={16} color="#6b7280" />
-            <Text className="text-gray-600">{invoice.client}</Text>
-          </View>
+        <View>
+          <Text className="text-xl font-bold mb-2">
+            {item.invoiceReference}
+          </Text>
+          <Text>Amount: ${item.amount}</Text>
         </View>
         <View
           className={`px-4 py-2 rounded-xl ${
-            invoice.status === "Pending"
-              ? "bg-yellow-100"
-              : invoice.status === "Paid"
+            item.status === "Paid"
               ? "bg-green-100"
-              : "bg-red-100"
+              : item.status === "Unpaid"
+              ? "bg-red-100"
+              : "bg-blue-100"
           }`}
         >
           <Text
             className={
-              invoice.status === "Pending"
-                ? "text-yellow-600"
-                : invoice.status === "Paid"
-                ? "text-green-600"
-                : "text-red-600"
+              item.status === "Paid"
+                ? "text-green-700"
+                : item.status === "Unpaid"
+                ? "text-red-700"
+                : "text-blue-700"
             }
           >
-            {invoice.status}
+            {item.status}
           </Text>
         </View>
       </View>
+
+      <View className="flex-row items-center gap-2">
+        <MaterialIcons name="folder" size={16} color="#A82F39" />
+        <Text>{item.linkedProject?.title || "No Project Linked"}</Text>
+      </View>
+
+      <Divider className="my-4" />
+
       <View className="flex-row justify-between items-center">
         <View className="flex-row items-center gap-2">
-          <MaterialIcons name="schedule" size={16} color="#A82F39" />
-          <Text className="text-gray-600">{invoice.dueDate}</Text>
+          <MaterialIcons name="calendar-today" size={20} color="#4b5563" />
+          <Text>{item.dueDate?.toLocaleDateString() || "No Due Date"}</Text>
         </View>
-        <Text className="text-lg font-bold text-gray-800">
-          {invoice.amount}
-        </Text>
+        <TouchableOpacity
+          // onPress={() => router.push(`/screens/admin/invoice/${item.id}`)}
+          className="flex-row items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg"
+        >
+          <Text>Details</Text>
+          <MaterialIcons name="arrow-forward" size={16} color="#A82F39" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -92,7 +120,7 @@ const Invoices = () => {
               <View>
                 <Text className="text-2xl font-bold mb-1">Invoices</Text>
                 <Text className="text-gray-600">
-                  {invoices.length} active invoices
+                  {filteredInvoices.length} active invoices
                 </Text>
               </View>
               <TouchableOpacity
@@ -105,11 +133,13 @@ const Invoices = () => {
                 </Text>
               </TouchableOpacity>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mb-6"
-            >
+            <InputField
+              placeholder="Search by invoice reference or project title"
+              value={searchText}
+              onChangeText={handleSearch}
+              icon="search"
+            />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-2 p-1">
                 <TouchableOpacity className="px-6 py-3 bg-primary rounded-xl shadow-sm">
                   <Text className="text-white font-medium">All</Text>
@@ -121,15 +151,21 @@ const Invoices = () => {
                   <Text className="text-gray-600">Paid</Text>
                 </TouchableOpacity>
                 <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
+                  <Text className="text-gray-600">Un Paid</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
                   <Text className="text-gray-600">Overdue</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
           </View>
         }
-        data={invoices}
-        renderItem={({ item }) => <InvoiceCard invoice={item} />}
-        keyExtractor={(item) => item.id}
+        data={filteredInvoices}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={() => {}} />
+        }
+        renderItem={({ item }) => <InvoiceCard item={item} />}
+        keyExtractor={(item) => item.id?.toString() || ""}
         contentContainerClassName="container my-6 gap-6"
         showsVerticalScrollIndicator={false}
       />

@@ -1,76 +1,120 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FlatList,
   View,
   TouchableOpacity,
   ScrollView,
   Text,
+  TextInput,
 } from "react-native";
+import { Divider } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-
-interface Complaint {
-  id: string;
-  title: string;
-  department: string;
-  date: string;
-  status: "Pending" | "Resolved" | "In Progress";
-}
+import InputField from "@/components/inputField";
 
 const Complaints = () => {
-  const complaints: Complaint[] = [
+  const allComplaints: Partial<Complaint>[] = [
     {
-      id: "1",
-      title: "Network Connectivity Issue",
-      department: "IT Support",
-      date: "Dec 28, 2024",
+      id: 1,
+      title: "Delayed Project",
+      clientName: "Client A",
+      dueDate: new Date("2024-12-23"),
       status: "Pending",
+      description: "Project timeline exceeded by 2 weeks",
     },
     {
-      id: "2",
-      title: "Broken Air Conditioner",
-      department: "Facilities",
-      date: "Dec 20, 2024",
+      id: 2,
+      title: "Budget Exceeded",
+      clientName: "Client B",
+      dueDate: new Date("2024-12-23"),
       status: "In Progress",
+      description: "Budget overrun by 15%",
+    },
+    {
+      id: 3,
+      title: "Delayed Project",
+      clientName: "Client A",
+      dueDate: new Date("2024-12-23"),
+      status: "Resolved",
+      description: "Project timeline exceeded by 2 weeks",
+    },
+    {
+      id: 4,
+      title: "Budget Exceeded",
+      clientName: "Client B",
+      dueDate: new Date("2024-12-23"),
+      status: "Closed",
+      description: "Budget overrun by 15%",
     },
   ];
 
-  const ComplaintCard = ({ complaint }: { complaint: Complaint }) => (
+  const [searchText, setSearchText] = useState("");
+  const [filteredComplaints, setFilteredComplaints] = useState(allComplaints);
+
+  const handleSearch = (text: string) => {
+    setSearchText(text);
+    const filtered = allComplaints.filter(
+      (complaint) =>
+        complaint.title?.toLowerCase().includes(text.toLowerCase()) ||
+        complaint.description?.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredComplaints(filtered);
+  };
+
+  const ComplaintCard = ({ item }: { item: Partial<Complaint> }) => (
     <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm">
       <View className="flex-row justify-between items-start mb-4">
-        <View className="flex-1 pr-4">
-          <Text className="text-lg font-bold mb-1">{complaint.title}</Text>
-          <View className="flex-row items-center gap-2">
-            <MaterialIcons name="business" size={16} color="#6b7280" />
-            <Text className="text-gray-600">{complaint.department}</Text>
-          </View>
+        <View>
+          <Text className="text-xl font-bold mb-2">{item.title}</Text>
+          <Text>{item.description}</Text>
         </View>
         <View
           className={`px-4 py-2 rounded-xl ${
-            complaint.status === "Pending"
+            item.status === "Pending"
               ? "bg-yellow-100"
-              : complaint.status === "In Progress"
+              : item.status === "In Progress"
               ? "bg-blue-100"
-              : "bg-green-100"
+              : item.status === "Resolved"
+              ? "bg-green-100"
+              : "bg-red-100"
           }`}
         >
           <Text
             className={
-              complaint.status === "Pending"
-                ? "text-yellow-600"
-                : complaint.status === "In Progress"
-                ? "text-blue-600"
-                : "text-green-600"
+              item.status === "Pending"
+                ? "text-yellow-700"
+                : item.status === "In Progress"
+                ? "text-blue-700"
+                : item.status === "Resolved"
+                ? "text-green-700"
+                : "text-red-700"
             }
           >
-            {complaint.status}
+            {item.status}
           </Text>
         </View>
       </View>
+
       <View className="flex-row items-center gap-2">
-        <MaterialIcons name="schedule" size={16} color="#A82F39" />
-        <Text className="text-gray-600">{complaint.date}</Text>
+        <MaterialIcons name="business" size={16} color="#A82F39" />
+        <Text>{item.clientName}</Text>
+      </View>
+
+      <Divider className="my-4" />
+
+      <View className="flex-row justify-between items-center">
+        <View className="flex-row items-center gap-2">
+          <MaterialIcons name="calendar-today" size={20} color="#4b5563" />
+          <Text>{item.dueDate?.toLocaleDateString()}</Text>
+        </View>
+        <TouchableOpacity
+          // Add your navigation logic for complaint details here
+          className="flex-row items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg"
+        >
+          <Text>Details</Text>
+          <MaterialIcons name="arrow-forward" size={16} color="#A82F39" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -84,7 +128,7 @@ const Complaints = () => {
               <View>
                 <Text className="text-2xl font-bold mb-1">Complaints</Text>
                 <Text className="text-gray-600">
-                  {complaints.length} active complaints
+                  {filteredComplaints.length} active complaints
                 </Text>
               </View>
               <TouchableOpacity
@@ -97,11 +141,14 @@ const Complaints = () => {
                 </Text>
               </TouchableOpacity>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mb-6"
-            >
+            <InputField
+              placeholder="Search by title or description"
+              value={searchText}
+              onChangeText={handleSearch}
+              icon="search"
+            />
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-2 p-1">
                 <TouchableOpacity className="px-6 py-3 bg-primary rounded-xl shadow-sm">
                   <Text className="text-white font-medium">All</Text>
@@ -119,10 +166,10 @@ const Complaints = () => {
             </ScrollView>
           </View>
         }
-        data={complaints}
-        renderItem={({ item }) => <ComplaintCard complaint={item} />}
-        keyExtractor={(item) => item.id}
-        contentContainerClassName="container my-6 gap-6"
+        data={filteredComplaints}
+        renderItem={({ item }) => <ComplaintCard item={item} />}
+        keyExtractor={(item) => item.id?.toString() || ""}
+        contentContainerClassName="container my-6 pb-20 gap-6"
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>

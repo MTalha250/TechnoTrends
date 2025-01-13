@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Text,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -31,6 +32,7 @@ const Approvals = () => {
   const [filter, setFilter] = useState<
     "All" | "Pending" | "Approved" | "Rejected"
   >("All");
+  const [searchText, setSearchText] = useState("");
 
   const updateHeadStatus = (
     id: number,
@@ -41,9 +43,14 @@ const Approvals = () => {
     );
   };
 
-  const filteredHeads = heads.filter(
-    (head) => filter === "All" || head.status === filter
-  );
+  const filteredHeads = heads.filter((head) => {
+    const matchesFilter = filter === "All" || head.status === filter;
+    const matchesSearch =
+      head.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      head.phone?.toLowerCase().includes(searchText.toLowerCase()) ||
+      head.department?.toLowerCase().includes(searchText.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   const HeadCard = ({ head }: { head: Partial<Head> }) => (
     <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm">
@@ -122,6 +129,18 @@ const Approvals = () => {
                 </Text>
               </View>
             </View>
+
+            {/* Search Bar */}
+            <View className="bg-white rounded-xl px-4 py-3 mb-6 shadow-sm flex-row items-center">
+              <TextInput
+                placeholder="Search by name, phone, or department"
+                value={searchText}
+                onChangeText={setSearchText}
+                className="flex-1 text-gray-800"
+              />
+            </View>
+
+            {/* Filter Buttons */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}

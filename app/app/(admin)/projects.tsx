@@ -1,81 +1,106 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FlatList,
   View,
   TouchableOpacity,
   ScrollView,
   Text,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Link, router } from "expo-router";
-
-interface Project {
-  id: string;
-  title: string;
-  client: string;
-  deadline: string;
-  status: "In Progress" | "On Hold" | "Completed";
-}
+import { router } from "expo-router";
+import { Divider } from "react-native-paper";
+import InputField from "@/components/inputField";
 
 const Projects = () => {
-  const projects: Project[] = [
+  const allProjects: Partial<Project>[] = [
     {
-      id: "1",
+      id: 1,
       title: "Website Redesign",
-      client: "Tech Corp",
-      deadline: "Jan 15, 2025",
+      description: "Redesign the company website",
+      clientName: "Tech Corp",
+      dueDate: new Date("2024-12-23"),
       status: "In Progress",
     },
     {
-      id: "2",
+      id: 2,
       title: "Mobile App Development",
-      client: "StartUp Inc",
-      deadline: "Feb 28, 2025",
+      description: "Develop a mobile app for the client",
+      clientName: "App Solutions",
+      dueDate: new Date("2024-12-23"),
       status: "On Hold",
     },
   ];
 
-  const ProjectCard = ({ project }: { project: Project }) => (
-    <Link
-      href={`../screens/admin/project/${project.id}`}
-      className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm"
-    >
+  const [searchText, setSearchText] = useState("");
+  const [filteredProjects, setFilteredProjects] = useState(allProjects);
+
+  const handleSearch = (text: string) => {
+    setSearchText(text);
+    const filtered = allProjects.filter(
+      (project) =>
+        project.title?.toLowerCase().includes(text.toLowerCase()) ||
+        project.description?.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredProjects(filtered);
+  };
+
+  const ProjectCard = ({ item }: { item: Partial<Project> }) => (
+    <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm">
       <View className="flex-row justify-between items-start mb-4">
-        <View className="flex-1 pr-4">
-          <Text className="text-lg font-bold mb-1">{project.title}</Text>
-          <View className="flex-row items-center gap-2">
-            <MaterialIcons name="business" size={16} color="#6b7280" />
-            <Text className="text-gray-600">{project.client}</Text>
-          </View>
+        <View>
+          <Text className="text-xl font-bold mb-2">{item.title}</Text>
+          <Text>{item.description}</Text>
         </View>
         <View
           className={`px-4 py-2 rounded-xl ${
-            project.status === "In Progress"
-              ? "bg-blue-100"
-              : project.status === "On Hold"
+            item.status === "Pending"
               ? "bg-yellow-100"
-              : "bg-green-100"
+              : item.status === "In Progress"
+              ? "bg-blue-100"
+              : item.status === "Completed"
+              ? "bg-green-100"
+              : "bg-red-100"
           }`}
         >
           <Text
             className={
-              project.status === "In Progress"
-                ? "text-blue-600"
-                : project.status === "On Hold"
-                ? "text-yellow-600"
-                : "text-green-600"
+              item.status === "Pending"
+                ? "text-yellow-700"
+                : item.status === "In Progress"
+                ? "text-blue-700"
+                : item.status === "Completed"
+                ? "text-green-700"
+                : "text-red-700"
             }
           >
-            {project.status}
+            {item.status}
           </Text>
         </View>
       </View>
+
       <View className="flex-row items-center gap-2">
-        <MaterialIcons name="schedule" size={16} color="#A82F39" />
-        <Text className="text-gray-600">{project.deadline}</Text>
+        <MaterialIcons name="business" size={16} color="#A82F39" />
+        <Text>{item.clientName}</Text>
       </View>
-    </Link>
+
+      <Divider className="my-4" />
+
+      <View className="flex-row justify-between items-center">
+        <View className="flex-row items-center gap-2">
+          <MaterialIcons name="calendar-today" size={20} color="#4b5563" />
+          <Text>{item.dueDate?.toLocaleDateString()}</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => router.push(`/screens/admin/project/${item.id}`)}
+          className="flex-row items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg"
+        >
+          <Text>Details</Text>
+          <MaterialIcons name="arrow-forward" size={16} color="#A82F39" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -87,7 +112,7 @@ const Projects = () => {
               <View>
                 <Text className="text-2xl font-bold mb-1">Projects</Text>
                 <Text className="text-gray-600">
-                  {projects.length} active projects
+                  {filteredProjects.length} active projects
                 </Text>
               </View>
               <TouchableOpacity
@@ -100,11 +125,14 @@ const Projects = () => {
                 </Text>
               </TouchableOpacity>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mb-6"
-            >
+            <InputField
+              placeholder="Search by project title or description"
+              value={searchText}
+              onChangeText={handleSearch}
+              icon="search"
+            />
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-2 p-1">
                 <TouchableOpacity className="px-6 py-3 bg-primary rounded-xl shadow-sm">
                   <Text className="text-white font-medium">All</Text>
@@ -122,9 +150,9 @@ const Projects = () => {
             </ScrollView>
           </View>
         }
-        data={projects}
-        renderItem={({ item }) => <ProjectCard project={item} />}
-        keyExtractor={(item) => item.id}
+        data={filteredProjects}
+        renderItem={({ item }) => <ProjectCard item={item} />}
+        keyExtractor={(item) => item.id?.toString() || ""}
         contentContainerClassName="container my-6 gap-6"
         showsVerticalScrollIndicator={false}
       />
