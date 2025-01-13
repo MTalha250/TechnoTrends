@@ -90,6 +90,101 @@ class AuthController extends Controller
     
         return response()->json($user);
     }
-    
+
+
+    public function register(Request $request)
+    {
+        // Validate the role field
+        $validator = Validator::make($request->all(), [
+            'role' => 'required|string|in:admin,head,user',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $role = $request->input('role');
+        $data = $request->all();
+
+        switch ($role) {
+            case 'admin':
+                $validator = Validator::make($data, [
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|email|unique:admin,email',
+                    'password' => 'required|string|min:6',
+                    'phone' => 'required|string|max:15',
+                    'status' => 'nullable|string|max:50',
+                ]);
+                if ($validator->fails()) {
+                    return response()->json(['error' => $validator->errors()], 422);
+                }
+
+                $admin = Admin::create([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                    'phone' => $data['phone'],
+                    'status' => 'pending',
+                ]);
+                return response()->json(['message' => 'Admin created. Waiting for approval.', 'admin' => $admin], 201);
+
+            case 'head':
+                $validator = Validator::make($data, [
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|string|email|unique:head,email',
+                    'password' => 'required|string|min:6',
+                    'phone' => 'required|string|max:15',
+                    'department' => 'required|string',
+                    'status' => 'nullable|string',
+                ]);
+                if ($validator->fails()) {
+                    return response()->json(['error' => $validator->errors()], 422);
+                }
+
+                $head = Head::create([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                    'phone' => $data['phone'],
+                    'department' => $data['department'],
+                    'status' => 'pending',
+                ]);
+                return response()->json(['message' => 'Head created. Waiting for approval.', 'head' => $head], 201);
+
+            case 'user':
+                $validator = Validator::make($data, [
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|string|email|unique:user,email',
+                    'password' => 'required|string|min:6',
+                    'head_id' => 'required|exists:head,id',
+                    'phone' => 'required|string|max:15',
+                    'status' => 'nullable|string',
+                ]);
+                if ($validator->fails()) {
+                    return response()->json(['error' => $validator->errors()], 422);
+                }
+
+                $user = User::create([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                    'head_id' => $data['head_id'],
+                    'phone' => $data['phone'],
+                    'status' => 'pending',
+                ]);
+                return response()->json(['message' => 'User created. Waiting for approval.', 'user' => $user], 201);
+
+            default:
+                return response()->json(['error' => 'Invalid role provided.'], 400);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['message' => 'User logged out successfully.'], 200);
+    }
+
     
 }

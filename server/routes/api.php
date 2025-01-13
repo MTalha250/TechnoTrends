@@ -10,8 +10,10 @@ use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AuthController;
 Route::post('/login', [AuthController::class, 'login']); // Create admin
+Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/get/by-token', [AuthController::class, 'user']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 Route::get('/admin', [AdminController::class, 'index']); // Get all admins
