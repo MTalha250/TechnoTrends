@@ -21,8 +21,8 @@ class Project extends Model
         'dcReference',
         'dcImage',
         'status',
-        'assigned_by_admin',
-        'assigned_by_head',
+        'assignedBy',
+        'assignedHead',
         'remarks',
         'dueDate',
     ];
@@ -34,12 +34,12 @@ class Project extends Model
 
     public function admin()
     {
-        return $this->belongsTo(Admin::class, 'assigned_by_admin');
+        return $this->belongsTo(Admin::class, 'assignedBy');
     }
 
     public function head()
     {
-        return $this->belongsTo(Head::class, 'assigned_by_head');
+        return $this->belongsTo(Head::class, 'assignedHead');
     }
 
     public function users()

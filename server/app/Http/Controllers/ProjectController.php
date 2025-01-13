@@ -31,8 +31,8 @@ class ProjectController extends Controller
             'dcReference' => 'required|string',
             'dcImage' => 'required|string',
             'status' => 'required|string|in:Pending,In Progress,On Hold,Completed,Cancelled',
-            'assigned_by_admin' => 'required|exists:admin,id',
-            'assigned_by_head' => 'nullable|exists:head,id',
+            'assignedBy' => 'required|exists:admin,id',
+            'assignedHead' => 'nullable|exists:head,id',
             'remarks' => 'nullable|string',
             'dueDate' => 'nullable|date',
         ]);
@@ -69,8 +69,8 @@ class ProjectController extends Controller
             'dcReference' => 'sometimes|string',
             'dcImage' => 'sometimes|string',
             'status' => 'sometimes|string|in:Pending,In Progress,On Hold,Completed,Cancelled',
-            'assigned_by_admin' => 'sometimes|exists:admin,id',
-            'assigned_by_head' => 'sometimes|exists:head,id',
+            'assignedBy' => 'sometimes|exists:admin,id',
+            'assignedHead' => 'sometimes|exists:head,id',
             'remarks' => 'sometimes|string',
             'dueDate' => 'sometimes|date',
         ]);

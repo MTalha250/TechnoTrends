@@ -17,7 +17,7 @@ class Complaint extends Model
         'title',
         'description',
         'dueDate',
-        'createdByAdmin',
+        'createdBy',
         'assignedHead',
         'jcReference',
         'jcImage',
@@ -34,7 +34,7 @@ class Complaint extends Model
 
     public function admin()
     {
-        return $this->belongsTo(Admin::class, 'createdByAdmin');
+        return $this->belongsTo(Admin::class, 'createdBy');
     }
 
     public function head()
