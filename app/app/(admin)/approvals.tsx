@@ -1,3 +1,5 @@
+import InputField from "@/components/inputField";
+import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -7,6 +9,7 @@ import {
   Text,
   TextInput,
 } from "react-native";
+import { Divider } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Approvals = () => {
@@ -54,11 +57,22 @@ const Approvals = () => {
 
   const HeadCard = ({ head }: { head: Partial<Head> }) => (
     <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm">
-      <View className="flex-row justify-between mb-4">
-        <View>
-          <Text className="text-lg font-bold">{head.name}</Text>
-          <Text className="text-gray-600">{head.phone}</Text>
-          <Text className="text-gray-600">Department: {head.department}</Text>
+      <View className="flex-row justify-between">
+        <View className="gap-2">
+          <Text className="text-xl font-bold">{head.name}</Text>
+
+          <View className="flex-row items-center gap-2">
+            <MaterialIcons name="email" size={16} color="#A82F39" />
+            <Text>{head.email}</Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <MaterialIcons name="phone" size={16} color="#A82F39" />
+            <Text>{head.phone}</Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <MaterialIcons name="business" size={16} color="#A82F39" />
+            <Text>{head.department}</Text>
+          </View>
         </View>
         <View
           className={`px-4 py-2 rounded-xl h-10 ${
@@ -82,6 +96,7 @@ const Approvals = () => {
           </Text>
         </View>
       </View>
+      <Divider className="my-4" />
       <View className="flex-row gap-4">
         {head.status === "Pending" ? (
           <>
@@ -89,7 +104,7 @@ const Approvals = () => {
               onPress={() =>
                 head.id !== undefined && updateHeadStatus(head.id, "Approved")
               }
-              className="flex-1 bg-green-500 rounded-xl p-4 items-center"
+              className="flex-1 bg-green-600 rounded-xl p-4 items-center"
             >
               <Text className="text-white font-semibold">Approve</Text>
             </TouchableOpacity>
@@ -97,7 +112,7 @@ const Approvals = () => {
               onPress={() =>
                 head.id !== undefined && updateHeadStatus(head.id, "Rejected")
               }
-              className="flex-1 bg-red-500 rounded-xl p-4 items-center"
+              className="flex-1 bg-red-600 rounded-xl p-4 items-center"
             >
               <Text className="text-white font-semibold">Reject</Text>
             </TouchableOpacity>
@@ -123,29 +138,21 @@ const Approvals = () => {
           <View>
             <View className="flex-row justify-between items-center mb-8">
               <View>
-                <Text className="text-2xl font-bold mb-1">Approvals</Text>
+                <Text className="text-2xl font-bold">Approvals</Text>
                 <Text className="text-gray-600">
                   Manage department head approvals
                 </Text>
               </View>
             </View>
-
-            {/* Search Bar */}
-            <View className="bg-white rounded-xl px-4 py-3 mb-6 shadow-sm flex-row items-center">
-              <TextInput
-                placeholder="Search by name, phone, or department"
-                value={searchText}
-                onChangeText={setSearchText}
-                className="flex-1 text-gray-800"
-              />
-            </View>
+            <InputField
+              placeholder="Search by name, phone, or department"
+              value={searchText}
+              onChangeText={setSearchText}
+              icon="search"
+            />
 
             {/* Filter Buttons */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mb-6"
-            >
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-2 p-1">
                 {["All", "Pending", "Approved", "Rejected"].map((status) => (
                   <TouchableOpacity

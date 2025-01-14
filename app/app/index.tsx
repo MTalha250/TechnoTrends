@@ -11,7 +11,7 @@ const LandingScreen = () => {
       <SafeAreaView className="container flex-1">
         <View className="flex-1 justify-center gap-20">
           <Image
-            source={require("../assets/images/logo.png")}
+            source={require("@/assets/images/logo.png")}
             className="w-full h-44"
             resizeMode="contain"
           />
@@ -24,7 +24,7 @@ const LandingScreen = () => {
               Easily create, assign, and track {"\n"}tasks to stay on top of
               deadlines
             </Text>
-            <Link href="/dashboard" className="bg-primary rounded-full p-5">
+            <Link href="/sign-in" className="bg-primary rounded-full p-5">
               <View className="w-full flex-row items-center justify-center gap-2">
                 <Text className="text-center text-xl font-light text-white">
                   Get Started

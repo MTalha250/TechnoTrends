@@ -1,0 +1,245 @@
+import React, { useState, useMemo } from "react";
+import { View, Text, Dimensions } from "react-native";
+import Svg, { Path, Circle, Line, Text as SvgText } from "react-native-svg";
+import { Dropdown } from "react-native-element-dropdown";
+
+interface DataPoint {
+  created_at: string;
+}
+
+interface ChartProps {
+  projects: DataPoint[];
+  complaints: DataPoint[];
+}
+
+// Utility function to get year from date
+const getYear = (date: string) => new Date(date).getFullYear();
+const getMonth = (date: string) => new Date(date).getMonth(); // 0-based (Jan = 0)
+
+const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
+
+  // Get all available years from the data
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    projects.concat(complaints).forEach((item) => {
+      years.add(getYear(item.created_at));
+    });
+    return Array.from(years).sort((a, b) => a - b);
+  }, [projects, complaints]);
+
+  // Group data by year and month
+  const groupByYearAndMonth = (data: DataPoint[]) => {
+    return data.reduce(
+      (acc: Record<string, { projects: number; complaints: number }>, item) => {
+        const year = getYear(item.created_at);
+        const month = getMonth(item.created_at);
+        const key = `${year}-${month}`;
+
+        if (!acc[key]) {
+          acc[key] = { projects: 0, complaints: 0 };
+        }
+        if (data === projects) {
+          acc[key].projects += 1;
+        } else {
+          acc[key].complaints += 1;
+        }
+
+        return acc;
+      },
+      {}
+    );
+  };
+
+  // Processed data for the selected year
+  const processedData = useMemo(() => {
+    const groupedProjects = groupByYearAndMonth(projects);
+    const groupedComplaints = groupByYearAndMonth(complaints);
+    const combinedData: Record<
+      string,
+      { projects: number; complaints: number; monthLabel: string }
+    > = {};
+
+    // Combine projects and complaints for each month-year
+    Object.keys(groupedProjects).forEach((key) => {
+      const [year, month] = key.split("-");
+      const monthLabel = new Date(+year, +month).toLocaleString("default", {
+        month: "long",
+      });
+
+      combinedData[key] = {
+        projects: groupedProjects[key].projects,
+        complaints: groupedComplaints[key]
+          ? groupedComplaints[key].complaints
+          : 0,
+        monthLabel,
+      };
+    });
+
+    return Object.values(combinedData);
+  }, [projects, complaints, selectedYear]);
+
+  // Chart dimensions
+  const screenWidth = Dimensions.get("window").width;
+  const chartWidth = screenWidth - 48; // Padding
+  const chartHeight = 200;
+  const paddingHorizontal = 40;
+  const paddingVertical = 20;
+
+  // Calculate scales
+  const maxValue = Math.max(
+    ...processedData.map((d) => Math.max(d.projects, d.complaints))
+  );
+
+  // Helper functions for positioning
+  const getX = (index: number) =>
+    paddingHorizontal +
+    (index * (chartWidth - 2 * paddingHorizontal)) /
+      Math.max(processedData.length - 1, 1);
+  const getY = (value: number) =>
+    chartHeight -
+    paddingVertical -
+    (value / maxValue) * (chartHeight - 2 * paddingVertical);
+
+  // Create smooth path
+  const createPath = (values: number[]): string => {
+    if (values.length === 0) return "";
+    if (values.length === 1) {
+      const x = getX(0);
+      const y = getY(values[0]);
+      return `M ${x},${y} L ${x},${y}`;
+    }
+
+    return values.reduce((path, value, index) => {
+      const x = getX(index);
+      const y = getY(value);
+
+      if (index === 0) return `M ${x},${y}`;
+
+      const prevX = getX(index - 1);
+      const prevY = getY(values[index - 1]);
+      const cp1x = prevX + (x - prevX) / 2;
+
+      return `${path} C ${cp1x},${prevY} ${cp1x},${y} ${x},${y}`;
+    }, "");
+  };
+
+  return (
+    <View className="p-6 bg-white rounded-lg">
+      {/* Header */}
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-xl font-bold text-gray-800">
+          Activity Overview
+        </Text>
+        <View>
+          {/* <Dropdown
+            data={availableYears.map((year) => ({
+              label: `${year}`,
+              value: year,
+            }))}
+            value={{ label: `${selectedYear}`, value: selectedYear }}
+            onChange={(item) => setSelectedYear(item.value)}
+            labelField="label"
+            valueField="value"
+          /> */}
+        </View>
+      </View>
+
+      {/* Chart */}
+      <Svg width={chartWidth} height={chartHeight}>
+        {/* Grid lines */}
+        {Array.from({ length: 5 }).map((_, i) => {
+          const y =
+            paddingVertical + (i * (chartHeight - 2 * paddingVertical)) / 4;
+          return (
+            <Line
+              key={`grid-${i}`}
+              x1={paddingHorizontal}
+              y1={y}
+              x2={chartWidth - paddingHorizontal}
+              y2={y}
+              stroke="#E5E5E5"
+              strokeWidth="1"
+            />
+          );
+        })}
+
+        {/* Axis labels */}
+        {processedData.map((item, i) => (
+          <SvgText
+            key={`label-${i}`}
+            x={getX(i)}
+            y={chartHeight - 5}
+            fontSize="10"
+            fill="#666666"
+            textAnchor="middle"
+          >
+            {item.monthLabel}
+          </SvgText>
+        ))}
+
+        {/* Y-axis labels */}
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SvgText
+            key={`y-label-${i}`}
+            x={paddingHorizontal - 5}
+            y={paddingVertical + (i * (chartHeight - 2 * paddingVertical)) / 4}
+            fontSize="10"
+            fill="#666666"
+            textAnchor="end"
+          >
+            {Math.round(maxValue - (i * maxValue) / 4)}
+          </SvgText>
+        ))}
+
+        {/* Lines */}
+        <Path
+          d={createPath(processedData.map((d) => d.projects))}
+          stroke="#2196F3"
+          strokeWidth="2"
+          fill="none"
+        />
+        <Path
+          d={createPath(processedData.map((d) => d.complaints))}
+          stroke="#F44336"
+          strokeWidth="2"
+          fill="none"
+        />
+
+        {/* Data points */}
+        {processedData.map((item, i) => (
+          <React.Fragment key={`points-${i}`}>
+            <Circle
+              cx={getX(i)}
+              cy={getY(item.projects)}
+              r="4"
+              fill="#2196F3"
+            />
+            <Circle
+              cx={getX(i)}
+              cy={getY(item.complaints)}
+              r="4"
+              fill="#F44336"
+            />
+          </React.Fragment>
+        ))}
+      </Svg>
+
+      {/* Legend */}
+      <View className="flex-row justify-center gap-4 mt-4">
+        <View className="flex-row items-center">
+          <View className="w-3.5 h-3.5 rounded-full bg-blue-500 mr-2" />
+          <Text className="text-gray-600">Projects</Text>
+        </View>
+        <View className="flex-row items-center">
+          <View className="w-3.5 h-3.5 rounded-full bg-red-500 mr-2" />
+          <Text className="text-gray-600">Complaints</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export default ActivityChart;

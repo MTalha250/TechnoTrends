@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { TextInput, Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import axios from "axios";
 
 const SignUp = () => {
   const [isFocus, setIsFocus] = useState(false);
@@ -15,6 +16,8 @@ const SignUp = () => {
     password: "",
     confirmPassword: "",
     role: "",
+    department: "",
+    head: "",
   });
   const renderLabel = () => {
     if (formData.role || isFocus) {
@@ -32,28 +35,81 @@ const SignUp = () => {
     return null;
   };
 
+  const renderLabel2 = () => {
+    if (formData.head || isFocus) {
+      return (
+        <Text
+          className={
+            `absolute bg-[#f6fcff] left-3 -translate-y-1/2 top-0 z-10 px-2 text-sm text-gray-700 ` +
+            (isFocus ? "text-[#A82F39]" : "")
+          }
+        >
+          Head
+        </Text>
+      );
+    }
+    return null;
+  };
+
   const roles = [
     { label: "Admin", value: "admin" },
     { label: "Department Head", value: "head" },
     { label: "Worker", value: "user" },
   ];
 
-  const handleSubmit = () => {
-    const nameError = formData.name.trim() === "";
-    const emailError = !formData.email.includes("@");
-    const phoneError = formData.phone.length < 10;
-    const passwordError = formData.password.length < 6;
-    const confirmPasswordError = formData.password !== formData.confirmPassword;
-    const roleError = !formData.role;
+  const handleSubmit = async () => {
     if (
-      nameError ||
-      emailError ||
-      phoneError ||
-      passwordError ||
-      confirmPasswordError ||
-      roleError
-    )
-      return Alert.alert("Error", "Please fill in all fields");
+      !formData.name ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.role
+    ) {
+      Alert.alert("Error", "Please fill all the fields");
+      return;
+    }
+    if (!formData.email.includes("@") || !formData.email.includes(".")) {
+      Alert.alert("Error", "Invalid email");
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      Alert.alert("Error", "Password does not match");
+      return;
+    }
+    if (formData.role === "head" && !formData.department) {
+      Alert.alert("Error", "Please fill all the fields");
+      return;
+    }
+    if (formData.role === "user" && !formData.head) {
+      Alert.alert("Error", "Please fill all the fields");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/register`,
+        formData
+      );
+      Alert.alert("Success", response.data.message);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        role: "",
+        department: "",
+        head: "",
+      });
+      router.push("/sign-in");
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        Alert.alert("Error", "Email already exists");
+        return;
+      }
+      Alert.alert("Error", "Something went wrong");
+      console.error(error);
+    }
   };
 
   return (
@@ -61,7 +117,7 @@ const SignUp = () => {
       <SafeAreaView className="container flex-1">
         <ScrollView contentContainerClassName="flex-1 justify-center">
           <Image
-            source={require("../../assets/images/logo.png")}
+            source={require("@/assets/images/logo.png")}
             className="w-full h-44"
             resizeMode="contain"
           />
@@ -169,6 +225,53 @@ const SignUp = () => {
                 }}
               />
             </View>
+            {formData.role === "head" && (
+              <TextInput
+                label="Department"
+                mode="outlined"
+                style={{
+                  width: "100%",
+                  backgroundColor: "transparent",
+                }}
+                activeOutlineColor="#A82F39"
+                theme={{
+                  roundness: 10,
+                }}
+                value={formData.department}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, department: text })
+                }
+              />
+            )}
+            {formData.role === "user" && (
+              <View className="w-full">
+                {renderLabel2()}
+                <Dropdown
+                  style={[
+                    {
+                      width: "100%",
+                      backgroundColor: "transparent",
+                      borderColor: "#87858e",
+                      borderRadius: 10,
+                      padding: 14,
+                      borderWidth: 1,
+                    },
+                    isFocus && { borderColor: "#A82F39" },
+                  ]}
+                  data={roles}
+                  labelField="label"
+                  valueField="value"
+                  placeholder={!isFocus ? "Head" : ""}
+                  value={formData.head}
+                  onFocus={() => setIsFocus(true)}
+                  onBlur={() => setIsFocus(false)}
+                  onChange={(item) => {
+                    setFormData({ ...formData, head: item.value });
+                    setIsFocus(false);
+                  }}
+                />
+              </View>
+            )}
           </View>
           <Button
             onPress={handleSubmit}

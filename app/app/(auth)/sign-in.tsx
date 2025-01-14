@@ -5,6 +5,7 @@ import { TextInput, Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import { Link, router } from "expo-router";
+import axios from "axios";
 
 const SignIn = () => {
   const [isFocus, setIsFocus] = useState(false);
@@ -36,19 +37,20 @@ const SignIn = () => {
     { label: "Worker", value: "user" },
   ];
 
-  const handleSubmit = () => {
-    const emailError = !formData.email.includes("@");
-    const passwordError = formData.password.length < 6;
-    const roleError = !formData.role;
-    if (emailError || passwordError || roleError)
-      return Alert.alert("Error", "Please fill in all fields");
-
-    if (formData.role === "admin") {
-      router.replace("/dashboard");
-    } else if (formData.role === "head") {
-      router.replace("/dashboard");
-    } else {
-      router.replace("/dashboard");
+  const handleSubmit = async () => {
+    if (!formData.email || !formData.password || !formData.role) {
+      Alert.alert("Error", "Please fill all fields");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/login`,
+        formData
+      );
+      console.log(response.data);
+    } catch (error) {
+      Alert.alert("Error", "Something went wrong");
+      console.error(error);
     }
   };
 
@@ -57,7 +59,7 @@ const SignIn = () => {
       <SafeAreaView className="container flex-1">
         <ScrollView contentContainerClassName="flex-1 justify-center">
           <Image
-            source={require("../../assets/images/logo.png")}
+            source={require("@/assets/images/logo.png")}
             className="w-full h-44"
             resizeMode="contain"
           />

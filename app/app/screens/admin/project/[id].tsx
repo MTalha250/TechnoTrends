@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Dropdown } from "react-native-element-dropdown";
-import InputField from "../../../../components/inputField";
+import InputField from "@/components/inputField";
 import { Modal, Portal, Button } from "react-native-paper";
 import { router } from "expo-router";
 
