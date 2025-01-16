@@ -5,7 +5,7 @@ import { TextInput, Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import { Link, router } from "expo-router";
-import axios from "axios";
+import { login } from "@/hooks/auth";
 
 const SignIn = () => {
   const [isFocus, setIsFocus] = useState(false);
@@ -43,11 +43,12 @@ const SignIn = () => {
       return;
     }
     try {
-      const response = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/login`,
-        formData
+      const data = await login(
+        formData.email.toLowerCase(),
+        formData.password,
+        formData.role
       );
-      console.log(response.data);
+      console.log(data);
     } catch (error) {
       Alert.alert("Error", "Something went wrong");
       console.error(error);

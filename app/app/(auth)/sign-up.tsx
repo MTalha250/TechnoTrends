@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import { Link, router } from "expo-router";
 import axios from "axios";
+import { register } from "@/hooks/auth";
 
 const SignUp = () => {
   const [isFocus, setIsFocus] = useState(false);
@@ -86,11 +87,11 @@ const SignUp = () => {
       return;
     }
     try {
-      const response = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/register`,
-        formData
-      );
-      Alert.alert("Success", response.data.message);
+      const { message } = await register({
+        ...formData,
+        email: formData.email.toLowerCase(),
+      });
+      Alert.alert("Success", message);
       setFormData({
         name: "",
         email: "",
