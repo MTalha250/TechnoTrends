@@ -31,7 +31,7 @@ class Head extends Model
 
 public function projects()
 {
-    return $this->hasMany(Project::class, 'assigned_by_head');
+    return $this->hasMany(Project::class, 'assignedHead');
 }
 
 }

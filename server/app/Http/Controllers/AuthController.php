@@ -47,6 +47,9 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json(['error' => 'Invalid email or role'], 404);
         }
+        if($user->status != 'approved') {
+            return response()->json(['error' => 'User is not approved yet'], 401);
+        }
     
         if (!Hash::check($password, $user->password)) {
             return response()->json(['error' => 'Invalid password'], 401);

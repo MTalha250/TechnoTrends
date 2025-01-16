@@ -25,12 +25,12 @@ class Admin extends Model
     ];
     public function complaints()
 {
-    return $this->hasMany(Complaint::class, 'createdByAdmin');
+    return $this->hasMany(Complaint::class, 'createdBy');
 }
 
 public function projects()
 {
-    return $this->hasMany(Project::class, 'assigned_by_admin');
+    return $this->hasMany(Project::class, 'assignedBy');
 }
 
 }
