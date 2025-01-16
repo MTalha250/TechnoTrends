@@ -6,6 +6,8 @@ import {
   Text,
   Alert,
   Image,
+  Modal as RNModal,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -20,7 +22,7 @@ const project = {
   description: "Project Description",
   clientName: "Client Name",
   clientPhone: "Client Phone",
-  status: "Pending", // Change this for testing other statuses
+  status: "Completed",
   dueDate: new Date().toISOString(),
   assignedHead: {
     id: 1,
@@ -33,16 +35,16 @@ const project = {
   ],
   poNumber: "PO12345",
   poImage:
-    "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg", // Example image URL
+    "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg",
   quotationReference: "Q12345",
   quotationImage:
-    "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg", // Example image URL
+    "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg",
   jcReference: "JC12345",
   jcImage:
-    "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg", // Example image URL
+    "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg",
   dcReference: "DC12345",
   dcImage:
-    "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg", // Example image URL
+    "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg",
   surveyPhotos: [
     "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg",
     "https://res.cloudinary.com/dewqsghdi/image/upload/v1736707892/Techno/by02wk2bpua5qrfjfl3t.jpg",
@@ -55,207 +57,374 @@ const heads = [
   { id: 3, name: "Head 3" },
 ];
 
+// Utility functions
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase();
+};
+
+const getAvatarColor = (name: string) => {
+  const colors = [
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-indigo-500",
+    "bg-red-500",
+    "bg-teal-500",
+  ];
+  const index = name
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[index % colors.length];
+};
+
 const ProjectDetail = () => {
+  // State management
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedHead, setSelectedHead] = useState<string | null>(
+  const [editMode, setEditMode] = useState(false);
+  const [selectedHead, setSelectedHead] = useState(
     project.assignedHead?.id?.toString() || null
   );
-  const [remarks, setRemarks] = useState(project.remarks || "");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [formData, setFormData] = useState({
+    title: project.title,
+    description: project.description,
+    clientName: project.clientName,
+    clientPhone: project.clientPhone,
+    dueDate: project.dueDate,
+    remarks: project.remarks,
+    poNumber: project.poNumber,
+    quotationReference: project.quotationReference,
+    jcReference: project.jcReference,
+    dcReference: project.dcReference,
+  });
 
-  const handleAssignHead = () => {
-    if (!selectedHead) {
-      Alert.alert("Error", "Please select a head to assign");
-      return;
-    }
-    console.log(
-      `Assigning Head ID ${selectedHead} to Project ID ${project.id}`
+  const screenWidth = Dimensions.get("window").width;
+  const screenHeight = Dimensions.get("window").height;
+
+  // Components
+  const Avatar = ({
+    name,
+    size = "medium",
+  }: {
+    name: string;
+    size?: "small" | "medium" | "large";
+  }) => {
+    const initials = getInitials(name);
+    const backgroundColor = getAvatarColor(name);
+
+    const sizeClasses = {
+      small: "w-8 h-8 text-sm",
+      medium: "w-12 h-12 text-base",
+      large: "w-16 h-16 text-lg",
+    };
+
+    return (
+      <View
+        className={`${backgroundColor} ${sizeClasses[size]} rounded-full items-center justify-center`}
+      >
+        <Text className="text-white font-semibold">{initials}</Text>
+      </View>
     );
-    setModalVisible(false);
   };
 
-  const handleDeassignHead = () => {
-    if (project.status === "Completed") {
-      Alert.alert(
-        "Error",
-        "You cannot deassign the head for a completed project."
-      );
-      return;
-    }
-    console.log(
-      `Deassigning Head ID ${project.assignedHead.id} from Project ID ${project.id}`
+  const ImageViewerModal = ({
+    visible,
+    imageUrl,
+    onClose,
+  }: {
+    visible: boolean;
+    imageUrl: string;
+    onClose: () => void;
+  }) => (
+    <RNModal
+      animationType="fade"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black">
+        <TouchableOpacity
+          onPress={onClose}
+          className="absolute top-12 right-4 z-10 p-2 bg-black/50 rounded-full"
+        >
+          <MaterialIcons name="close" size={24} color="white" />
+        </TouchableOpacity>
+
+        <View className="flex-1 items-center justify-center">
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: screenWidth, height: screenHeight * 0.8 }}
+            resizeMode="contain"
+          />
+        </View>
+      </View>
+    </RNModal>
+  );
+
+  const ImageThumbnail = ({
+    imageUrl,
+    label,
+    size = "full",
+  }: {
+    imageUrl: string;
+    label?: string;
+    size?: "full" | "thumbnail";
+  }) => {
+    const sizeClasses = {
+      full: "w-full h-48",
+      thumbnail: "w-32 h-32",
+    };
+
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          setSelectedImage(imageUrl);
+          setImageModalVisible(true);
+        }}
+        className={`relative ${size === "thumbnail" ? "mr-2" : "mb-4"}`}
+      >
+        {label && <Text className="font-medium mb-2">{label}:</Text>}
+        <Image
+          source={{ uri: imageUrl }}
+          className={`${sizeClasses[size]} rounded-lg`}
+          resizeMode="cover"
+        />
+        <View className="absolute bottom-2 right-2 bg-black/50 rounded-full p-2">
+          <MaterialIcons name="fullscreen" size={20} color="white" />
+        </View>
+      </TouchableOpacity>
     );
-    setSelectedHead(null);
   };
 
-  const handleSaveRemarks = () => {
-    console.log(`Saving remarks: ${remarks} for Project ID ${project.id}`);
+  // Helper functions
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return "bg-yellow-200 text-yellow-800";
+      case "completed":
+        return "bg-green-200 text-green-800";
+      case "in progress":
+        return "bg-blue-200 text-blue-800";
+      default:
+        return "bg-gray-200 text-gray-800";
+    }
   };
+
+  const handleSaveChanges = () => {
+    console.log("Saving changes:", formData);
+    setEditMode(false);
+    Alert.alert("Success", "Changes saved successfully");
+  };
+
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Section Components
+  const AssignedPersonnelSection = () => (
+    <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+      <Text className="text-lg font-bold mb-4">Assigned Personnel</Text>
+
+      {/* Assigned Head */}
+      <View className="mb-6">
+        <Text className="font-medium mb-3">Head:</Text>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <Avatar
+              name={project.assignedHead?.name || "Not Assigned"}
+              size="medium"
+            />
+            <View className="ml-3">
+              <Text className="font-semibold">
+                {project.assignedHead?.name || "Not assigned"}
+              </Text>
+              <Text className="text-gray-500 text-sm">Project Head</Text>
+            </View>
+          </View>
+          {project.status !== "Completed" && (
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              className="bg-primary px-4 py-2 rounded-lg"
+            >
+              <Text className="text-white">Change Head</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Assigned Workers */}
+      <View>
+        <Text className="font-medium mb-3">Workers:</Text>
+        <View className="gap-4">
+          {project.assignedWorkers.map((worker) => (
+            <View key={worker.id} className="flex-row items-center">
+              <Avatar name={worker.name} size="medium" />
+              <View className="ml-3">
+                <Text className="font-semibold">{worker.name}</Text>
+                <Text className="text-gray-500 text-sm">Worker</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+
+  const ImagesSection = () => (
+    <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+      <Text className="text-lg font-bold mb-4">Project Documents</Text>
+
+      {/* Document Images */}
+      {[
+        { label: "PO Image", image: project.poImage },
+        { label: "Quotation Image", image: project.quotationImage },
+        { label: "JC Image", image: project.jcImage },
+        { label: "DC Image", image: project.dcImage },
+      ].map((doc, index) => (
+        <ImageThumbnail
+          key={index}
+          imageUrl={doc.image}
+          label={doc.label}
+          size="full"
+        />
+      ))}
+
+      {/* Survey Photos */}
+      <Text className="font-medium mb-2">Survey Photos:</Text>
+      <ScrollView horizontal className="gap-4">
+        {project.surveyPhotos.map((photo, index) => (
+          <ImageThumbnail key={index} imageUrl={photo} size="thumbnail" />
+        ))}
+      </ScrollView>
+    </View>
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <ScrollView className="flex-1 container my-6">
-        <View className="flex-row items-center mb-8">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="bg-white p-2 rounded-full shadow-sm mr-4"
-          >
-            <MaterialIcons name="arrow-back" size={24} color="#374151" />
-          </TouchableOpacity>
-          <View>
-            <Text className="text-2xl font-bold text-gray-800">
-              Project Details
-            </Text>
-            <Text className="text-gray-600">
-              View details of the selected project
-            </Text>
-          </View>
-        </View>
-
-        {/* Project Details */}
-        <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <Text className="text-xl font-bold text-gray-800 mb-4">
-            {project.title}
-          </Text>
-          <Text className="text-gray-600 mb-2">{project.description}</Text>
-          <Text className="text-gray-600 mb-2">
-            Client: {project.clientName} ({project.clientPhone})
-          </Text>
-          <Text className="text-gray-600 mb-2">
-            Status: <Text className="font-bold">{project.status}</Text>
-          </Text>
-          <Text className="text-gray-600 mb-2">
-            Due Date:{" "}
-            {project.dueDate
-              ? new Date(project.dueDate).toLocaleDateString()
-              : "Not Set"}
-          </Text>
-
-          {/* PO, Quotation, JC, DC */}
-          <View className="mb-6">
-            <Text className="text-gray-600 mb-2">
-              PO Number: {project.poNumber}
-            </Text>
-            {project.poImage && (
-              <Image
-                source={{ uri: project.poImage }}
-                style={{ width: 150, height: 150, marginBottom: 8 }}
-                resizeMode="cover"
-              />
-            )}
-            <Text className="text-gray-600 mb-2">
-              Quotation Reference: {project.quotationReference}
-            </Text>
-            {project.quotationImage && (
-              <Image
-                source={{ uri: project.quotationImage }}
-                style={{ width: 150, height: 150, marginBottom: 8 }}
-                resizeMode="cover"
-              />
-            )}
-            <Text className="text-gray-600 mb-2">
-              JC Reference: {project.jcReference}
-            </Text>
-            {project.jcImage && (
-              <Image
-                source={{ uri: project.jcImage }}
-                style={{ width: 150, height: 150, marginBottom: 8 }}
-                resizeMode="cover"
-              />
-            )}
-            <Text className="text-gray-600 mb-2">
-              DC Reference: {project.dcReference}
-            </Text>
-            {project.dcImage && (
-              <Image
-                source={{ uri: project.dcImage }}
-                style={{ width: 150, height: 150, marginBottom: 8 }}
-                resizeMode="cover"
-              />
-            )}
-          </View>
-
-          {/* Assigned Head */}
-          {project.assignedHead ? (
-            <>
-              <Text className="text-gray-600 mb-2">
-                Assigned Head: {project.assignedHead.name}
-              </Text>
-              {project.status !== "Completed" && (
-                <TouchableOpacity
-                  onPress={handleDeassignHead}
-                  className="bg-red-500 rounded-2xl p-2 justify-center items-center"
-                >
-                  <Text className="text-white">Deassign Head</Text>
-                </TouchableOpacity>
-              )}
-            </>
-          ) : (
-            <Text className="text-gray-600 mb-2">No Assigned Head</Text>
-          )}
-
-          {/* Assigned Workers */}
-          {project.assignedWorkers.length > 0 && (
-            <>
-              <Text className="text-gray-600 mb-2">Assigned Workers:</Text>
-              {project.assignedWorkers.map((worker) => (
-                <Text key={worker.id} className="text-gray-600 mb-2">
-                  {worker.name}
-                </Text>
-              ))}
-            </>
-          )}
-
-          {/* Survey Photos */}
-          {project.surveyPhotos.length > 0 && (
-            <>
-              <Text className="text-gray-600 mb-2">Survey Photos:</Text>
-              <ScrollView horizontal>
-                {project.surveyPhotos.map((photo, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: photo }}
-                    style={{ width: 150, height: 150, marginRight: 8 }}
-                    resizeMode="cover"
-                  />
-                ))}
-              </ScrollView>
-            </>
-          )}
-        </View>
-
-        {/* Remarks Field (Visible if Project Status is Completed) */}
-        {project.status === "Completed" && (
-          <View className="bg-white rounded-2xl p-6 shadow-md mb-6">
-            <InputField
-              label="Remarks"
-              value={remarks}
-              onChangeText={setRemarks}
-              icon="comment"
-              required
-            />
+        {/* Header with Back Button and Status Badge */}
+        <View className="flex-row items-center justify-between mb-6">
+          <View className="flex-row items-center">
             <TouchableOpacity
-              onPress={handleSaveRemarks}
-              className="bg-primary rounded-2xl p-4 justify-center items-center mt-4"
+              onPress={() => router.back()}
+              className="bg-white p-2 rounded-full shadow-sm mr-4"
             >
-              <Text className="text-lg font-semibold text-white">
-                Save Remarks
-              </Text>
+              <MaterialIcons name="arrow-back" size={24} color="#374151" />
             </TouchableOpacity>
+            <View>
+              <Text className="text-2xl font-bold text-gray-800">
+                Project Details
+              </Text>
+              <Text className="text-gray-600">
+                View details of the selected project
+              </Text>
+            </View>
           </View>
-        )}
-
-        {/* Assign Project Button */}
-        {project.status !== "Completed" && (
-          <TouchableOpacity
-            onPress={() => setModalVisible(true)}
-            className="bg-primary rounded-2xl p-4 justify-center items-center"
+          <View
+            className={`px-3 py-1 rounded-full ${getStatusColor(
+              project.status
+            )}`}
           >
-            <Text className="text-lg font-semibold text-white">
-              Assign Project
-            </Text>
-          </TouchableOpacity>
-        )}
+            <Text className="font-medium">{project.status}</Text>
+          </View>
+        </View>
 
+        {/* Edit/Save Button */}
+        <TouchableOpacity
+          onPress={() => (editMode ? handleSaveChanges() : setEditMode(true))}
+          className={`mb-4 p-3 rounded-xl ${
+            editMode ? "bg-green-600" : "bg-primary"
+          }`}
+        >
+          <Text className="text-white text-center font-semibold">
+            {editMode ? "Save Changes" : "Edit Project"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Project Details Form */}
+        <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+          <InputField
+            label="Project Title"
+            value={formData.title}
+            icon="title"
+            onChangeText={(value) => handleFieldChange("title", value)}
+            readonly={!editMode}
+          />
+          <InputField
+            label="Description"
+            value={formData.description}
+            icon="description"
+            onChangeText={(value) => handleFieldChange("description", value)}
+            readonly={!editMode}
+          />
+          <InputField
+            label="Client Name"
+            value={formData.clientName}
+            icon="person"
+            onChangeText={(value) => handleFieldChange("clientName", value)}
+            readonly={!editMode}
+          />
+          <InputField
+            label="Client Phone"
+            value={formData.clientPhone}
+            icon="phone"
+            onChangeText={(value) => handleFieldChange("clientPhone", value)}
+            readonly={!editMode}
+          />
+          <InputField
+            label="Due Date"
+            value={new Date(formData.dueDate).toDateString()}
+            icon="event"
+            onChangeText={(value) => handleFieldChange("dueDate", value)}
+            readonly={!editMode}
+          />
+          <InputField
+            label="PO Number"
+            value={formData.poNumber}
+            icon="assignment"
+            onChangeText={(value) => handleFieldChange("poNumber", value)}
+            readonly={!editMode}
+          />
+          <InputField
+            label="Quotation Reference"
+            value={formData.quotationReference}
+            icon="description"
+            onChangeText={(value) =>
+              handleFieldChange("quotationReference", value)
+            }
+            readonly={!editMode}
+          />
+          <InputField
+            label="JC Reference"
+            value={formData.jcReference}
+            icon="work"
+            onChangeText={(value) => handleFieldChange("jcReference", value)}
+            readonly={!editMode}
+          />
+          <InputField
+            label="DC Reference"
+            value={formData.dcReference}
+            icon="description"
+            onChangeText={(value) => handleFieldChange("dcReference", value)}
+            readonly={!editMode}
+          />
+        </View>
+
+        {/* Assigned Personnel Section */}
+        <AssignedPersonnelSection />
+
+        {/* Images Section */}
+        <ImagesSection />
         {/* Assign Head Modal */}
         <Portal>
           <Modal
@@ -268,7 +437,7 @@ const ProjectDetail = () => {
               borderRadius: 12,
             }}
           >
-            <Text className="text-lg font-bold mb-4">Assign Project</Text>
+            <Text className="text-lg font-bold mb-4">Assign Project Head</Text>
             <Dropdown
               style={{
                 backgroundColor: "white",
@@ -299,7 +468,10 @@ const ProjectDetail = () => {
                 Cancel
               </Button>
               <Button
-                onPress={handleAssignHead}
+                onPress={() => {
+                  Alert.alert("Success", "Head assigned successfully");
+                  setModalVisible(false);
+                }}
                 mode="contained"
                 style={{ flex: 1, backgroundColor: "#A82F39" }}
               >
@@ -308,6 +480,16 @@ const ProjectDetail = () => {
             </View>
           </Modal>
         </Portal>
+
+        {/* Full Screen Image Modal */}
+        <ImageViewerModal
+          visible={imageModalVisible}
+          imageUrl={selectedImage || ""}
+          onClose={() => {
+            setImageModalVisible(false);
+            setSelectedImage(null);
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

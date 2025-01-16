@@ -26,15 +26,15 @@ class ProjectController extends Controller
             'surveyPhotos' => 'required|array',
             'quotationReference' => 'required|string',
             'quotationImage' => 'required|string',
-            'jcReference' => 'required|string',
-            'jcImage' => 'required|string',
-            'dcReference' => 'required|string',
-            'dcImage' => 'required|string',
+            'jcReference' => 'nullable|string',
+            'jcImage' => 'nullable|string',
+            'dcReference' => 'nullable|string',
+            'dcImage' => 'nullable|string',
             'status' => 'required|string|in:Pending,In Progress,On Hold,Completed,Cancelled',
             'assignedBy' => 'required|exists:admin,id',
             'assignedHead' => 'nullable|exists:head,id',
             'remarks' => 'nullable|string',
-            'dueDate' => 'nullable|date',
+            'dueDate' => 'required|date',
         ]);
 
         $project = Project::create($validated);

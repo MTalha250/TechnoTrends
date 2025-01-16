@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import PhotosUploader from "@/components/uploader";
 import InputField from "@/components/inputField";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import axios from "axios";
 
 const CreateProject = () => {
   const [project, setProject] = useState<Partial<Project>>({
@@ -45,14 +46,39 @@ const CreateProject = () => {
     setProject((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
-    if (!project.poNumber || !project.clientName || !project.clientPhone) {
+  const handleSubmit = async () => {
+    if (
+      !project.poNumber ||
+      !project.poImage ||
+      !project.title ||
+      !project.description ||
+      !project.clientName ||
+      !project.clientPhone ||
+      !project.quotationReference ||
+      !project.quotationImage ||
+      !project.surveyPhotos?.length ||
+      !project.dueDate
+    ) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
-
-    console.log("Creating project:", project);
-    router.back();
+    try {
+      const response = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/projects`,
+        {
+          ...project,
+          assignedBy: 1,
+          status: "Pending",
+        }
+      );
+      Alert.alert("Success", "Project created successfully");
+      console.log("Project created:", response.data);
+    } catch (error) {
+      console.error("Error creating project", error);
+      Alert.alert("Error", "An error occurred while creating the project");
+      return;
+    }
+    // router.back();
   };
 
   return (
@@ -86,7 +112,7 @@ const CreateProject = () => {
             />
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Project Order Image
+                Project Order Image <Text className="text-red-500">*</Text>
               </Text>
               <PhotosUploader
                 addedPhotos={project.poImage ? [project.poImage] : []}
@@ -138,10 +164,11 @@ const CreateProject = () => {
               value={project.quotationReference || ""}
               onChangeText={(text) => handleChange("quotationReference", text)}
               icon="description"
+              required
             />
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Quotation Image
+                Quotation Image <Text className="text-red-500">*</Text>
               </Text>
               <PhotosUploader
                 addedPhotos={
@@ -156,7 +183,7 @@ const CreateProject = () => {
 
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Survey Photos (Max 5)
+                Survey Photos (Max 5) <Text className="text-red-500">*</Text>
               </Text>
               <PhotosUploader
                 addedPhotos={project.surveyPhotos || []}
