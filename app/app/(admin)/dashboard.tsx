@@ -13,8 +13,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ComplaintCard from "@/components/complaints/card";
 import StatCard from "@/components/dashboard/statCard";
 import Chart from "@/components/dashboard/chart";
+import useAuthStore from "@/store/authStore";
 
 const Dashboard = () => {
+  const { user } = useAuthStore();
   const summaryData = {
     projects: 99,
     complaints: 99,
@@ -120,7 +122,7 @@ const Dashboard = () => {
         <View className="flex-row justify-between items-center mb-8">
           <View>
             <Text className="text-2xl font-bold">Dashboard</Text>
-            <Text className="text-gray-600">Welcome back, Admin</Text>
+            <Text className="text-gray-600">Welcome back, {user?.name}</Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push("/screens/profile")}

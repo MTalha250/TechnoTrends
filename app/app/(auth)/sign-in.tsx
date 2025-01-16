@@ -6,9 +6,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import { Link, router } from "expo-router";
 import { login } from "@/hooks/auth";
+import useAuthStore from "@/store/authStore";
 
 const SignIn = () => {
   const [isFocus, setIsFocus] = useState(false);
+  const { setToken, setRole, setUser } = useAuthStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -48,8 +50,20 @@ const SignIn = () => {
         formData.password,
         formData.role
       );
-      console.log(data);
-    } catch (error) {
+      setToken(data.token);
+      setRole(formData.role);
+      setUser(data.user);
+      router.push("/dashboard");
+      Alert.alert("Success", "Logged in successfully");
+    } catch (error: any) {
+      if (error.response.status === 404) {
+        Alert.alert("Error", "User not found");
+        return;
+      }
+      if (error.response.status === 401) {
+        Alert.alert("Error", "Invalid credentials or you are not authorized");
+        return;
+      }
       Alert.alert("Error", "Something went wrong");
       console.error(error);
     }

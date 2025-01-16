@@ -16,14 +16,14 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'invoiceReference' => 'required|string|max:255',
-            'invoiceImage' => 'required|string|max:255',
-            'amount' => 'required|numeric',
-            'paymentTerms' => 'required|in:Cash,Credit',
-            'creditDays' => 'nullable|string|max:255',
-            'dueDate' => 'nullable|date',
-            'linkedProject' => 'required|exists:projects,id',
-            'status' => 'required|in:Paid,Unpaid,In Progress,Overdue,Cancelled',
+            'invoiceReference' => 'required|string|max:255', // required
+            'invoiceImage' => 'required|string|max:255', // required
+            'amount' => 'required|numeric', // required
+            'paymentTerms' => 'required|in:Cash,Credit', // required
+            'creditDays' => 'nullable|string|max:255', // nullable
+            'dueDate' => 'nullable|date', // required
+            'linkedProject' => 'required|exists:projects,id', // required
+            'status' => 'required|in:Paid,Unpaid,In Progress,Overdue,Cancelled', // required
         ]);
 
         $invoice = Invoice::create($validated);

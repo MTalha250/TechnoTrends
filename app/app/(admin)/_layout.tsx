@@ -5,8 +5,33 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Platform } from "react-native";
+import { loginBack } from "@/hooks/auth";
+import useAuthStore from "@/store/authStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AdminLayout = () => {
+  const { setToken, setUser } = useAuthStore();
+
+  const handleLoginBack = async () => {
+    try {
+      const res = await loginBack();
+      if (!res) {
+        setToken("");
+        setUser(null);
+        AsyncStorage.removeItem("token");
+        return;
+      }
+      setUser(res?.user);
+      if (res?.token) {
+        setToken(res.token);
+      }
+    } catch (error: any) {
+      setToken("");
+      setUser(null);
+      AsyncStorage.removeItem("token");
+    }
+  };
+
   return (
     <Tabs
       screenOptions={{

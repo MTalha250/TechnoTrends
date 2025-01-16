@@ -16,21 +16,21 @@ class ComplaintController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'complaintReference' => 'required|string|max:255',
-            'complaintImage' => 'required|string|max:255',
-            'clientName' => 'required|string|max:255',
-            'clientPhone' => 'required|string|max:15',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'dueDate' => 'nullable|date',
-            'createdBy' => 'nullable|exists:admin,id',
-            'assignedHead' => 'nullable|exists:head,id',
-            'jcReference' => 'required|string|max:255',
-            'jcImage' => 'required|string|max:255',
-            'photos' => 'required|array',
-            'priority' => 'required|in:Low,Medium,High',
-            'remarks' => 'nullable|string',
-            'status' => 'required|in:Pending,In Progress,Resolved,Closed',
+            'complaintReference' => 'required|string|max:255', // required
+            'complaintImage' => 'required|string|max:255', // required
+            'clientName' => 'required|string|max:255', // required
+            'clientPhone' => 'required|string|max:15', // required
+            'title' => 'required|string|max:255', // required
+            'description' => 'required|string', // required
+            'dueDate' => 'nullable|date', // required
+            'createdBy' => 'nullable|exists:admin,id', // required
+            'assignedHead' => 'nullable|exists:head,id', // nullable
+            'jcReference' => 'required|string|max:255', // nullable
+            'jcImage' => 'required|string|max:255', // nullable
+            'photos' => 'required|array', // nullable
+            'priority' => 'required|in:Low,Medium,High', // required
+            'remarks' => 'nullable|string', // nullable
+            'status' => 'required|in:Pending,In Progress,Resolved,Closed', // required
         ]);
 
         $complaint = Complaint::create($request->all());

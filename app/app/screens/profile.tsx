@@ -1,39 +1,76 @@
 import React, { useState } from "react";
-import { View, TouchableOpacity, ScrollView, Text } from "react-native";
+import { View, TouchableOpacity, ScrollView, Text, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import InputField from "@/components/inputField";
-
-type Admin = {
-  name: string;
-  email: string;
-  phone: string;
-};
+import useAuthStore from "@/store/authStore";
+import { logout } from "@/hooks/auth";
+import axios from "axios";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [adminInfo, setAdminInfo] = useState<Admin>({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 234 567 8900",
+  const { user, role, setRole, setToken, setUser } = useAuthStore();
+  const [adminInfo, setAdminInfo] = useState({
+    name: user?.name,
+    email: user?.email,
+    phone: user?.phone,
   });
-  const [tempInfo, setTempInfo] = useState<Admin>({ ...adminInfo });
 
-  const handleSave = () => {
-    setAdminInfo(tempInfo);
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!adminInfo.name || !adminInfo.email || !adminInfo.phone) {
+      Alert.alert("Error", "All fields are required");
+      return;
+    }
+    if (!adminInfo.email.includes("@") || !adminInfo.email.includes(".")) {
+      Alert.alert("Error", "Invalid email address");
+      return;
+    }
+    try {
+      let response;
+      if (role === "admin") {
+        response = await axios.put(
+          `${process.env.EXPO_PUBLIC_API_URL}/admin/${user?.id}`,
+          adminInfo
+        );
+      } else if (role === "head") {
+        response = await axios.put(
+          `${process.env.EXPO_PUBLIC_API_URL}/head/${user?.id}`,
+          adminInfo
+        );
+      } else {
+        response = await axios.put(
+          `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}`,
+          adminInfo
+        );
+      }
+      setUser(response.data);
+      Alert.alert("Success", "Profile updated successfully");
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error", "An error occurred. Please try again later");
+    } finally {
+      setIsEditing(false);
+    }
   };
 
   const handleCancel = () => {
-    setTempInfo(adminInfo);
     setIsEditing(false);
+    setAdminInfo({
+      name: user?.name,
+      email: user?.email,
+      phone: user?.phone,
+    });
   };
 
   const handleLogout = () => {
-    console.log("Logging out...");
-    // Add your logout logic here
+    logout();
+    setUser(null);
+    setToken(null);
+    setRole(null);
+    Alert.alert("Success", "Logged out successfully");
+    router.push("/sign-in");
   };
 
   return (
@@ -62,28 +99,34 @@ const Profile = () => {
           {/* Profile Image and Info */}
           <View className="items-center mb-8">
             <View className="w-20 h-20 bg-primary rounded-full justify-center items-center">
-              <Text style={{ color: "white" }} className="text-2xl">
-                MT
+              <Text style={{ color: "white" }} className="text-3xl font-bold">
+                {user?.name?.charAt(0).toUpperCase()}
               </Text>
             </View>
             <Text className="mt-4 text-xl font-bold text-gray-900">
-              {adminInfo.name}
+              {user?.name}
             </Text>
-            <Text className="text-gray-600">Admin</Text>
+            <Text className="text-gray-600">
+              {role && role[0].toUpperCase() + role.slice(1)}
+            </Text>
           </View>
           <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
             <InputField
               label="Name"
-              value={adminInfo.name}
-              onChangeText={(text) => setTempInfo({ ...tempInfo, name: text })}
+              value={adminInfo.name || ""}
+              onChangeText={(text) =>
+                setAdminInfo({ ...adminInfo, name: text })
+              }
               icon="person"
               required
               readonly={!isEditing}
             />
             <InputField
               label="Email"
-              value={adminInfo.email}
-              onChangeText={(text) => setTempInfo({ ...tempInfo, email: text })}
+              value={adminInfo.email || ""}
+              onChangeText={(text) =>
+                setAdminInfo({ ...adminInfo, email: text })
+              }
               icon="email"
               keyboardType="email-address"
               required
@@ -91,8 +134,10 @@ const Profile = () => {
             />
             <InputField
               label="Phone"
-              value={adminInfo.phone}
-              onChangeText={(text) => setTempInfo({ ...tempInfo, phone: text })}
+              value={adminInfo.phone || ""}
+              onChangeText={(text) =>
+                setAdminInfo({ ...adminInfo, phone: text })
+              }
               icon="phone"
               keyboardType="phone-pad"
               required

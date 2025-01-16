@@ -17,24 +17,24 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'poNumber' => 'required|string',
-            'poImage' => 'required|string',
-            'clientName' => 'required|string',
-            'clientPhone' => 'required|string',
-            'surveyPhotos' => 'required|array',
-            'quotationReference' => 'required|string',
-            'quotationImage' => 'required|string',
-            'jcReference' => 'nullable|string',
-            'jcImage' => 'nullable|string',
-            'dcReference' => 'nullable|string',
-            'dcImage' => 'nullable|string',
-            'status' => 'required|string|in:Pending,In Progress,On Hold,Completed,Cancelled',
-            'assignedBy' => 'required|exists:admin,id',
-            'assignedHead' => 'nullable|exists:head,id',
-            'remarks' => 'nullable|string',
-            'dueDate' => 'required|date',
+            'title' => 'required|string|max:255', // required
+            'description' => 'required|string', // required
+            'poNumber' => 'required|string', // required
+            'poImage' => 'required|string', // required
+            'clientName' => 'required|string', // required
+            'clientPhone' => 'required|string', // required
+            'surveyPhotos' => 'required|array', // required
+            'quotationReference' => 'required|string', // required
+            'quotationImage' => 'required|string', // required
+            'jcReference' => 'nullable|string',  // nullable
+            'jcImage' => 'nullable|string', // nullable
+            'dcReference' => 'nullable|string', // nullable
+            'dcImage' => 'nullable|string', // nullable
+            'status' => 'required|string|in:Pending,In Progress,On Hold,Completed,Cancelled', // required
+            'assignedBy' => 'required|exists:admin,id', // required
+            'assignedHead' => 'nullable|exists:head,id', // nullable
+            'remarks' => 'nullable|string', // nullable
+            'dueDate' => 'required|date', // required
         ]);
 
         $project = Project::create($validated);
