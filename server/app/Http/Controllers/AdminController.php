@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Project;
+use App\Models\Invoice;
+use App\Models\Complaint;
+
 
 class AdminController extends Controller
 {
@@ -77,20 +81,22 @@ class AdminController extends Controller
         return response()->json($admin);
     }
 
-    public function dashboard(Request $request)
+    public function dashboard()
 {
-    $admin = $request->user();
-    $totalProjects = $admin->projects()->count();
-    $totalComplaints = $admin->complaints()->count();
-    $recentProjects = $admin->projects()->latest()->take(5)->get();
-    $recentComplaints = $admin->complaints()->latest()->take(5)->get();
+   // $admin = $request->user();
+    $totalProjects = Project::count(); 
+    $totalComplaints = Complaint::count();
+    $totalInvoices= Invoice::count();
+    $recentProjects = Project::latest()->take(5)->get(); 
+    $recentComplaints = Complaint::latest()->take(5)->get(); 
 
-    $allProjects = $admin->projects()->get(['created_at']);
-    $allComplaints = $admin->complaints()->get(['created_at']);
+    $allProjects = Project::get(['created_at']); 
+    $allComplaints = Complaint::get(['created_at']); 
 
     return response()->json([
         'total_projects' => $totalProjects,
         'total_complaints' => $totalComplaints,
+        'total_invoices' => $totalInvoices,
         'recent_projects' => $recentProjects,
         'recent_complaints' => $recentComplaints,
         'all_projects' => $allProjects,
