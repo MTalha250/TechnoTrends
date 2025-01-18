@@ -25,9 +25,9 @@ class ComplaintController extends Controller
             'dueDate' => 'nullable|date', // required
             'createdBy' => 'nullable|exists:admin,id', // required
             'assignedHead' => 'nullable|exists:head,id', // nullable
-            'jcReference' => 'required|string|max:255', // nullable
-            'jcImage' => 'required|string|max:255', // nullable
-            'photos' => 'required|array', // nullable
+            'jcReference' => 'nullable|string|max:255', // nullable
+            'jcImage' => 'nullable|string|max:255', // nullable
+            'photos' => 'nullable|array', // nullable
             'priority' => 'required|in:Low,Medium,High', // required
             'remarks' => 'nullable|string', // nullable
             'status' => 'required|in:Pending,In Progress,Resolved,Closed', // required
