@@ -56,7 +56,6 @@ class AuthController extends Controller
         }
     
         $token = $user->createToken('YourAppName')->plainTextToken;
-        $role = $user->role;
         return response()->json([
             'token' => $token,
             'role'=> $role,
@@ -75,12 +74,15 @@ class AuthController extends Controller
     
         if ($user instanceof \App\Models\Admin) {
             $user->load(['complaints', 'projects']);
+            $role = 'admin';
             Log::info('Admin data loaded', ['user_id' => $user->id]);
         } elseif ($user instanceof \App\Models\Head) {
             $user->load(['complaints', 'projects']);
+            $role = 'head';
             Log::info('Head data loaded', ['user_id' => $user->id]);
         } elseif ($user instanceof \App\Models\User) {
             $user->load(['complaints', 'projects']);
+            $role = 'user';
             Log::info('User data loaded', ['user_id' => $user->id]);
         } else {
             Log::warning('Unknown user type encountered', ['user_id' => $user->id]);
@@ -88,11 +90,15 @@ class AuthController extends Controller
     
         Log::info('User details response prepared', [
             'user_id' => $user->id,
+            'role' => $role,
             'complaints_count' => $user->complaints->count() ?? 0,
             'projects_count' => $user->projects->count() ?? 0,
         ]);
     
-        return response()->json($user);
+        return response()->json([
+            'role'=> $role,
+            'user' => $user,
+        ]);
     }
 
 
