@@ -17,11 +17,14 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('/admin', [AdminController::class, 'index']); // Get all admins
+
 Route::post('/admin', [AdminController::class, 'store']); // Create admin
 Route::get('/admin/{id}', [AdminController::class, 'show']); // Get admin by ID
 Route::put('/admin/{id}', [AdminController::class, 'update']); // Update admin
 Route::delete('/admin/{id}', [AdminController::class, 'destroy']); // Delete admin
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard/admin', [AdminController::class, 'dashboard']); // admin dashboard
+
     Route::get('/admin-by-token', [AdminController::class, 'getAdminByToken']); // Get admin by token
 });
 

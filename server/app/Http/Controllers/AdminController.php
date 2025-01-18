@@ -77,4 +77,26 @@ class AdminController extends Controller
         return response()->json($admin);
     }
 
+    public function dashboard(Request $request)
+{
+    $admin = $request->user();
+    $totalProjects = $admin->projects()->count();
+    $totalComplaints = $admin->complaints()->count();
+    $recentProjects = $admin->projects()->latest()->take(5)->get();
+    $recentComplaints = $admin->complaints()->latest()->take(5)->get();
+
+    $allProjects = $admin->projects()->get(['created_at']);
+    $allComplaints = $admin->complaints()->get(['created_at']);
+
+    return response()->json([
+        'total_projects' => $totalProjects,
+        'total_complaints' => $totalComplaints,
+        'recent_projects' => $recentProjects,
+        'recent_complaints' => $recentComplaints,
+        'all_projects' => $allProjects,
+        'all_complaints' => $allComplaints,
+    ]);
+}
+
+
 }
