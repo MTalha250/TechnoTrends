@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Image, Alert } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TextInput, Button } from "react-native-paper";
+import { TextInput, Button, ActivityIndicator } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import { Link, router } from "expo-router";
@@ -10,6 +10,8 @@ import { register } from "@/hooks/auth";
 
 const SignUp = () => {
   const [isFocus, setIsFocus] = useState(false);
+  const [heads, setHeads] = useState<Head[]>([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,7 +20,7 @@ const SignUp = () => {
     confirmPassword: "",
     role: "",
     department: "",
-    head: "",
+    head_id: "",
   });
   const renderLabel = () => {
     if (formData.role || isFocus) {
@@ -37,7 +39,7 @@ const SignUp = () => {
   };
 
   const renderLabel2 = () => {
-    if (formData.head || isFocus) {
+    if (formData.head_id || isFocus) {
       return (
         <Text
           className={
@@ -57,6 +59,21 @@ const SignUp = () => {
     { label: "Department Head", value: "head" },
     { label: "Worker", value: "user" },
   ];
+
+  const fetchHeads = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_URL}/head`
+      );
+      setHeads(response.data);
+    } catch (error: any) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchHeads();
+  }, []);
 
   const handleSubmit = async () => {
     if (
@@ -82,11 +99,12 @@ const SignUp = () => {
       Alert.alert("Error", "Please fill all the fields");
       return;
     }
-    if (formData.role === "user" && !formData.head) {
+    if (formData.role === "user" && !formData.head_id) {
       Alert.alert("Error", "Please fill all the fields");
       return;
     }
     try {
+      setLoading(true);
       const { message } = await register({
         ...formData,
         email: formData.email.toLowerCase(),
@@ -100,7 +118,7 @@ const SignUp = () => {
         confirmPassword: "",
         role: "",
         department: "",
-        head: "",
+        head_id: "",
       });
       router.push("/sign-in");
     } catch (error: any) {
@@ -110,6 +128,8 @@ const SignUp = () => {
       }
       Alert.alert("Error", "Something went wrong");
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -259,15 +279,15 @@ const SignUp = () => {
                     },
                     isFocus && { borderColor: "#A82F39" },
                   ]}
-                  data={roles}
-                  labelField="label"
-                  valueField="value"
+                  data={heads}
+                  labelField="name"
+                  valueField="id"
                   placeholder={!isFocus ? "Head" : ""}
-                  value={formData.head}
+                  value={formData.head_id}
                   onFocus={() => setIsFocus(true)}
                   onBlur={() => setIsFocus(false)}
                   onChange={(item) => {
-                    setFormData({ ...formData, head: item.value });
+                    setFormData({ ...formData, head_id: item.id.toString() });
                     setIsFocus(false);
                   }}
                 />
@@ -276,16 +296,21 @@ const SignUp = () => {
           </View>
           <Button
             onPress={handleSubmit}
-            buttonColor="#A82F39"
+            disabled={loading}
             style={{
               borderRadius: 100,
               marginTop: 32,
               width: "100%",
               padding: 10,
+              backgroundColor: loading ? "#A82F39" : "#A82F39",
+              opacity: loading ? 0.7 : 1,
+            }}
+            contentStyle={{
+              backgroundColor: "#A82F39",
             }}
           >
             <Text className="text-center text-xl font-light text-white">
-              Register
+              {loading ? <ActivityIndicator color="white" /> : "Sign Up"}
             </Text>
           </Button>
           <Link href="/sign-in" className="text-center text-xl font-light mt-4">

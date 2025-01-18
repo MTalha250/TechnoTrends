@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, TouchableOpacity, ScrollView, Text, Alert } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  ScrollView,
+  Text,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -12,6 +19,7 @@ import axios from "axios";
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { user, role, setRole, setToken, setUser } = useAuthStore();
+  const [loading, setLoading] = useState(false);
   const [adminInfo, setAdminInfo] = useState({
     name: user?.name,
     email: user?.email,
@@ -28,6 +36,7 @@ const Profile = () => {
       return;
     }
     try {
+      setLoading(true);
       let response;
       if (role === "admin") {
         response = await axios.put(
@@ -52,6 +61,7 @@ const Profile = () => {
       Alert.alert("Error", "An error occurred. Please try again later");
     } finally {
       setIsEditing(false);
+      setLoading(false);
     }
   };
 
@@ -149,14 +159,22 @@ const Profile = () => {
                 <>
                   <TouchableOpacity
                     onPress={handleSave}
-                    className="flex-1 bg-green-500 rounded-xl p-4 items-center"
+                    disabled={loading}
+                    className={`flex-1 bg-green-500 rounded-xl p-4 items-center ${
+                      loading ? "opacity-50" : ""
+                    }`}
                   >
-                    <Text className="text-white font-semibold">
-                      Save Changes
-                    </Text>
+                    {loading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text className="text-white font-semibold">
+                        Save Changes
+                      </Text>
+                    )}
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleCancel}
+                    disabled={loading}
                     className="flex-1 bg-gray-200 rounded-xl p-4 items-center"
                   >
                     <Text className="text-gray-800 font-semibold">Cancel</Text>

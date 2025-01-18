@@ -43,11 +43,14 @@ export const loginBack = async () => {
     return null;
   }
 
-  const { data } = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/user`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const { data } = await axios.get(
+    `${process.env.EXPO_PUBLIC_API_URL}/get/by-token`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
-  return { user: data, token };
+  return { user: data.user, token, role: data.role };
 };

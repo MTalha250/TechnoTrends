@@ -1,71 +1,75 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   View,
   TouchableOpacity,
   ScrollView,
   Text,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import axios from "axios";
 import InputField from "@/components/inputField";
 import ComplaintCard from "@/components/complaints/card";
 
+type ComplaintStatus =
+  | "Pending"
+  | "In Progress"
+  | "Resolved"
+  | "Closed"
+  | "All";
+
+const statusOptions: ComplaintStatus[] = [
+  "All",
+  "Pending",
+  "In Progress",
+  "Resolved",
+  "Closed",
+];
+
 const Complaints = () => {
-  const allComplaints: Partial<Complaint>[] = [
-    {
-      id: 1,
-      title: "Delayed Project",
-      clientName: "Client A",
-      dueDate: new Date("2024-12-23"),
-      status: "Pending",
-      description: "Project timeline exceeded by 2 weeks",
-    },
-    {
-      id: 2,
-      title: "Budget Exceeded",
-      clientName: "Client B",
-      dueDate: new Date("2024-12-23"),
-      status: "In Progress",
-      description: "Budget overrun by 15%",
-    },
-    {
-      id: 3,
-      title: "Delayed Project",
-      clientName: "Client A",
-      dueDate: new Date("2024-12-23"),
-      status: "Resolved",
-      description: "Project timeline exceeded by 2 weeks",
-    },
-    {
-      id: 4,
-      title: "Budget Exceeded",
-      clientName: "Client B",
-      dueDate: new Date("2024-12-23"),
-      status: "Closed",
-      description: "Budget overrun by 15%",
-    },
-  ];
-
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [searchText, setSearchText] = useState("");
-  const [filteredComplaints, setFilteredComplaints] = useState(allComplaints);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<ComplaintStatus>("All");
 
-  const handleSearch = (text: string) => {
-    setSearchText(text);
-    const filtered = allComplaints.filter(
-      (complaint) =>
-        complaint.title?.toLowerCase().includes(text.toLowerCase()) ||
-        complaint.description?.toLowerCase().includes(text.toLowerCase())
-    );
-    setFilteredComplaints(filtered);
+  const fetchComplaints = async () => {
+    try {
+      setRefreshing(true);
+      const response = await axios.get<Complaint[]>(
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints`
+      );
+      setComplaints(response.data);
+    } catch (error) {
+      console.error("Error fetching complaints:", error);
+    } finally {
+      setRefreshing(false);
+    }
   };
+
+  useEffect(() => {
+    fetchComplaints();
+  }, []);
+
+  const filteredComplaints = complaints.filter((complaint) => {
+    const matchesFilter =
+      selectedStatus === "All" || complaint.status === selectedStatus;
+
+    const matchesSearch =
+      complaint.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      complaint.description.toLowerCase().includes(searchText.toLowerCase());
+
+    return matchesFilter && matchesSearch;
+  });
 
   return (
     <SafeAreaView className="flex-1">
       <FlatList
         ListHeaderComponent={
           <View>
+            {/* Header Section */}
             <View className="flex-row justify-between items-center mb-8">
               <View>
                 <Text className="text-2xl font-bold">Complaints</Text>
@@ -78,41 +82,61 @@ const Complaints = () => {
                 className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
               >
                 <MaterialIcons name="add" size={20} color="white" />
-                <Text className="font-medium" style={{ color: "#fff" }}>
-                  New Complaint
-                </Text>
+                <Text className="font-medium text-white">New Complaint</Text>
               </TouchableOpacity>
             </View>
             <InputField
               placeholder="Search by title or description"
               value={searchText}
-              onChangeText={handleSearch}
+              onChangeText={setSearchText}
               icon="search"
             />
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="mb-6"
+            >
               <View className="flex-row gap-2 p-1">
-                <TouchableOpacity className="px-6 py-3 bg-primary rounded-xl shadow-sm">
-                  <Text className="text-white font-medium">All</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
-                  <Text className="text-gray-600">Pending</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
-                  <Text className="text-gray-600">In Progress</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
-                  <Text className="text-gray-600">Resolved</Text>
-                </TouchableOpacity>
+                {statusOptions.map((status) => (
+                  <TouchableOpacity
+                    key={status}
+                    onPress={() => setSelectedStatus(status)}
+                    className={`px-6 py-3 rounded-xl shadow-sm ${
+                      selectedStatus === status ? "bg-primary" : "bg-white"
+                    }`}
+                  >
+                    <Text
+                      className={`font-medium ${
+                        selectedStatus === status
+                          ? "text-white"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {status}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </ScrollView>
           </View>
         }
         data={filteredComplaints}
         renderItem={({ item }) => <ComplaintCard item={item} />}
-        keyExtractor={(item) => item.id?.toString() || ""}
-        contentContainerClassName="container my-6 pb-20 gap-6"
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerClassName="container my-6"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={fetchComplaints} />
+        }
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center py-8">
+            <Text className="text-gray-500">
+              {searchText || selectedStatus !== "All"
+                ? "No complaints match your filters"
+                : "No complaints found"}
+            </Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );

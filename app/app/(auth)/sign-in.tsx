@@ -7,10 +7,12 @@ import { Dropdown } from "react-native-element-dropdown";
 import { Link, router } from "expo-router";
 import { login } from "@/hooks/auth";
 import useAuthStore from "@/store/authStore";
+import { ActivityIndicator } from "react-native-paper";
 
 const SignIn = () => {
   const [isFocus, setIsFocus] = useState(false);
   const { setToken, setRole, setUser } = useAuthStore();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -45,13 +47,14 @@ const SignIn = () => {
       return;
     }
     try {
+      setLoading(true);
       const data = await login(
         formData.email.toLowerCase(),
         formData.password,
         formData.role
       );
       setToken(data.token);
-      setRole(formData.role);
+      setRole(data.role);
       setUser(data.user);
       router.push("/dashboard");
       Alert.alert("Success", "Logged in successfully");
@@ -65,7 +68,9 @@ const SignIn = () => {
         return;
       }
       Alert.alert("Error", "Something went wrong");
-      console.error(error);
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,20 +145,25 @@ const SignIn = () => {
           </View>
           <Button
             onPress={handleSubmit}
-            buttonColor="#A82F39"
+            disabled={loading}
             style={{
               borderRadius: 100,
               marginTop: 32,
               width: "100%",
               padding: 10,
+              backgroundColor: loading ? "#A82F39" : "#A82F39",
+              opacity: loading ? 0.7 : 1,
+            }}
+            contentStyle={{
+              backgroundColor: "#A82F39",
             }}
           >
             <Text className="text-center text-xl font-light text-white">
-              Log In
+              {loading ? <ActivityIndicator color="white" /> : "Sign In"}
             </Text>
           </Button>
           <Link href="/sign-up" className="text-center text-xl font-light mt-4">
-            <Text>Register</Text>
+            <Text>Sign Up</Text>
           </Link>
         </ScrollView>
       </SafeAreaView>

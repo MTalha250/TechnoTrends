@@ -14,6 +14,8 @@ import PhotosUploader from "@/components/uploader";
 import InputField from "@/components/inputField";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
+import useAuthStore from "@/store/authStore";
+import { ActivityIndicator } from "react-native-paper";
 
 const CreateProject = () => {
   const [project, setProject] = useState<Partial<Project>>({
@@ -28,9 +30,9 @@ const CreateProject = () => {
     quotationImage: "",
     dueDate: null,
   });
-
+  const { user } = useAuthStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const showDatePickerModal = () => {
     setShowDatePicker(true);
   };
@@ -63,22 +65,33 @@ const CreateProject = () => {
       return;
     }
     try {
-      const response = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/projects`,
-        {
-          ...project,
-          assignedBy: 1,
-          status: "Pending",
-        }
-      );
+      setLoading(true);
+      await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/projects`, {
+        ...project,
+        assignedBy: user?.id,
+        status: "Pending",
+      });
       Alert.alert("Success", "Project created successfully");
-      console.log("Project created:", response.data);
+      setProject({
+        title: "",
+        description: "",
+        poNumber: "",
+        poImage: "",
+        clientName: "",
+        clientPhone: "",
+        surveyPhotos: [],
+        quotationReference: "",
+        quotationImage: "",
+        dueDate: null,
+      });
+      router.back();
     } catch (error) {
       console.error("Error creating project", error);
       Alert.alert("Error", "An error occurred while creating the project");
       return;
+    } finally {
+      setLoading(false);
     }
-    // router.back();
   };
 
   return (
@@ -232,11 +245,18 @@ const CreateProject = () => {
 
           <TouchableOpacity
             onPress={handleSubmit}
-            className="bg-primary rounded-2xl p-4 justify-center items-center"
+            disabled={loading}
+            className={`bg-primary rounded-2xl p-4 justify-center items-center ${
+              loading ? "opacity-50" : ""
+            }`}
           >
-            <Text className="text-lg font-semibold text-white">
-              Create Project
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-lg font-semibold text-white">
+                Create Project
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   ScrollView,
@@ -14,12 +14,8 @@ import InputField from "@/components/inputField";
 import { Dropdown } from "react-native-element-dropdown";
 import PhotosUploader from "@/components/uploader";
 import DateTimePicker from "@react-native-community/datetimepicker";
-
-const projects = [
-  { label: "Project A", value: "projectA" },
-  { label: "Project B", value: "projectB" },
-  { label: "Project C", value: "projectC" },
-];
+import axios from "axios";
+import { ActivityIndicator } from "react-native-paper";
 
 const paymentTerms = [
   { label: "Cash", value: "Cash" },
@@ -46,6 +42,24 @@ const CreateInvoice = () => {
     creditDays: "",
     dueDate: null,
   });
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_URL}/projects`
+      );
+      setProjects(response.data);
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while fetching projects");
+      return;
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const showDatePickerModal = () => {
@@ -62,19 +76,45 @@ const CreateInvoice = () => {
     setInvoice((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (
       !invoice.invoiceReference ||
+      !invoice.invoiceImage ||
       !invoice.linkedProject ||
       !invoice.amount ||
+      !invoice.paymentTerms ||
       !invoice.dueDate
     ) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
-
-    console.log("Creating invoice:", invoice);
-    router.back();
+    if (invoice.paymentTerms === "Credit" && !invoice.creditDays) {
+      Alert.alert("Error", "Please fill in all required fields");
+      return;
+    }
+    try {
+      setLoading(true);
+      await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/invoices`, {
+        ...invoice,
+        status: "Unpaid",
+      });
+      Alert.alert("Success", "Invoice created successfully");
+      setInvoice({
+        invoiceReference: "",
+        invoiceImage: "",
+        linkedProject: "",
+        amount: "",
+        paymentTerms: "Cash",
+        creditDays: "",
+        dueDate: null,
+      });
+      router.back();
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while creating the invoice");
+      return;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -139,11 +179,13 @@ const CreateInvoice = () => {
                   }}
                   placeholderStyle={{ color: "#9CA3AF" }}
                   data={projects}
-                  labelField="label"
-                  valueField="value"
+                  labelField="title"
+                  valueField="id"
                   placeholder="Select Project"
-                  value={invoice.linkedProject || ""}
-                  onChange={(item) => handleChange("linkedProject", item.value)}
+                  value={invoice.linkedProject}
+                  onChange={(item) =>
+                    handleChange("linkedProject", item.id.toString())
+                  }
                 />
               </View>
             </View>
@@ -193,6 +235,7 @@ const CreateInvoice = () => {
                 onChangeText={(text) => handleChange("creditDays", text)}
                 icon="event"
                 keyboardType="numeric"
+                required
               />
             )}
 
@@ -233,11 +276,18 @@ const CreateInvoice = () => {
 
           <TouchableOpacity
             onPress={handleSubmit}
-            className="bg-primary rounded-2xl p-4 justify-center items-center"
+            disabled={loading}
+            className={`bg-primary rounded-2xl p-4 justify-center items-center ${
+              loading ? "opacity-50" : ""
+            }`}
           >
-            <Text className="text-lg font-semibold text-white">
-              Create Invoice
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-lg font-semibold text-white">
+                Create Invoice
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -14,6 +14,9 @@ import InputField from "@/components/inputField";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import PhotosUploader from "@/components/uploader";
+import axios from "axios";
+import useAuthStore from "@/store/authStore";
+import { ActivityIndicator } from "react-native-paper";
 
 const priorities = [
   { label: "Low", value: "Low" },
@@ -32,9 +35,9 @@ const CreateComplaint = () => {
     dueDate: null,
     complaintImage: "",
   });
-
+  const { user } = useAuthStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const showDatePickerModal = () => {
     setShowDatePicker(true);
   };
@@ -53,7 +56,7 @@ const CreateComplaint = () => {
     setComplaint((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (
       !complaint.title ||
       !complaint.description ||
@@ -67,9 +70,31 @@ const CreateComplaint = () => {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
-
-    console.log("Creating complaint:", complaint);
-    router.back();
+    try {
+      setLoading(true);
+      await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/complaints`, {
+        ...complaint,
+        assignedBy: user?.id,
+        status: "Pending",
+      });
+      Alert.alert("Success", "Complaint created successfully");
+      setComplaint({
+        title: "",
+        description: "",
+        clientName: "",
+        clientPhone: "",
+        complaintReference: "",
+        priority: undefined,
+        dueDate: null,
+        complaintImage: "",
+      });
+      router.back();
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "An error occurred while creating the complaint");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -139,6 +164,7 @@ const CreateComplaint = () => {
               onChangeText={(text) => handleChange("clientPhone", text)}
               icon="phone"
               placeholder="Enter client phone"
+              keyboardType="phone-pad"
               required
             />
 
@@ -230,11 +256,18 @@ const CreateComplaint = () => {
           {/* Submit Button */}
           <TouchableOpacity
             onPress={handleSubmit}
-            className="bg-primary rounded-2xl p-4 justify-center items-center"
+            disabled={loading}
+            className={`bg-primary rounded-2xl p-4 justify-center items-center ${
+              loading ? "opacity-50" : ""
+            }`}
           >
-            <Text className="text-lg font-semibold text-white">
-              Create Complaint
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-lg font-semibold text-white">
+                Create Complaint
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

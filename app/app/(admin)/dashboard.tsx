@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   ScrollView,
   View,
   TouchableOpacity,
   Text,
+  RefreshControl,
 } from "react-native";
 import { router } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -14,110 +15,66 @@ import ComplaintCard from "@/components/complaints/card";
 import StatCard from "@/components/dashboard/statCard";
 import Chart from "@/components/dashboard/chart";
 import useAuthStore from "@/store/authStore";
+import axios from "axios";
+import ProjectCard from "@/components/projects/card";
 
 const Dashboard = () => {
-  const { user } = useAuthStore();
-  const summaryData = {
-    projects: 99,
-    complaints: 99,
-    invoices: 99,
+  const { user, token } = useAuthStore();
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [refresing, setRefreshing] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [recentComplaints, setRecentComplaints] = useState<
+    Partial<Complaint>[]
+  >([]);
+  const [recentProjects, setRecentProjects] = useState<Partial<Project>[]>([]);
+  const [summaryData, setSummaryData] = useState({
+    projects: 0,
+    complaints: 0,
+    invoices: 0,
+  });
+
+  const fetchDashboardData = async () => {
+    try {
+      setRefreshing(true);
+      const response = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_URL}/dashboard/admin`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setComplaints(response.data.all_complaints);
+      setProjects(response.data.all_projects);
+      setRecentComplaints(response.data.recent_complaints);
+      setRecentProjects(response.data.recent_projects);
+      setSummaryData({
+        projects: response.data.total_projects,
+        complaints: response.data.total_complaints,
+        invoices: response.data.total_invoices,
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
-  const projects = [
-    { created_at: "2024-01-01" },
-    { created_at: "2024-01-01" },
-    { created_at: "2024-01-01" },
-    { created_at: "2024-01-02" },
-    { created_at: "2024-01-02" },
-    { created_at: "2024-01-03" },
-    { created_at: "2024-01-03" },
-    { created_at: "2024-01-03" },
-    { created_at: "2024-01-03" },
-    { created_at: "2024-01-04" },
-    { created_at: "2024-01-04" },
-    { created_at: "2024-01-05" },
-    { created_at: "2024-01-05" },
-    { created_at: "2024-01-05" },
-    { created_at: "2024-01-06" },
-    { created_at: "2024-01-07" },
-    { created_at: "2024-01-07" },
-    { created_at: "2024-02-01" },
-    { created_at: "2024-03-01" },
-    { created_at: "2024-03-02" },
-    { created_at: "2024-03-03" },
-    { created_at: "2024-03-03" },
-    { created_at: "2024-03-04" },
-    { created_at: "2024-03-05" },
-    { created_at: "2024-03-05" },
-    { created_at: "2024-03-05" },
-  ];
-
-  const complaints = [
-    { created_at: "2024-01-01" },
-    { created_at: "2024-01-02" },
-    { created_at: "2024-01-02" },
-    { created_at: "2024-01-03" },
-    { created_at: "2024-01-04" },
-    { created_at: "2024-01-04" },
-    { created_at: "2024-01-04" },
-    { created_at: "2024-01-05" },
-    { created_at: "2024-01-06" },
-    { created_at: "2024-01-06" },
-    { created_at: "2024-01-07" },
-    { created_at: "2024-02-01" },
-    { created_at: "2024-02-01" },
-    { created_at: "2024-02-02" },
-    { created_at: "2024-02-03" },
-    { created_at: "2024-02-04" },
-    { created_at: "2024-02-04" },
-    { created_at: "2024-02-05" },
-    { created_at: "2024-03-05" },
-    { created_at: "2024-03-05" },
-    { created_at: "2024-03-05" },
-    { created_at: "2024-03-05" },
-    { created_at: "2024-03-05" },
-    { created_at: "2024-03-05" },
-  ];
-  const recentComplaints: Partial<Complaint>[] = [
-    {
-      id: 1,
-      title: "Delayed Project",
-      clientName: "Client A",
-      dueDate: new Date("2024-12-23"),
-      status: "Pending",
-      description: "Project timeline exceeded by 2 weeks",
-    },
-    {
-      id: 2,
-      title: "Budget Exceeded",
-      clientName: "Client B",
-      dueDate: new Date("2024-12-23"),
-      status: "In Progress",
-      description: "Budget overrun by 15%",
-    },
-    {
-      id: 3,
-      title: "Delayed Project",
-      clientName: "Client A",
-      dueDate: new Date("2024-12-23"),
-      status: "Resolved",
-      description: "Project timeline exceeded by 2 weeks",
-    },
-    {
-      id: 4,
-      title: "Budget Exceeded",
-      clientName: "Client B",
-      dueDate: new Date("2024-12-23"),
-      status: "Closed",
-      description: "Budget overrun by 15%",
-    },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   return (
     <SafeAreaView className="flex-1">
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="flex-1 w-full container py-6"
+        refreshControl={
+          <RefreshControl
+            refreshing={refresing}
+            onRefresh={fetchDashboardData}
+          />
+        }
       >
         <View className="flex-row justify-between items-center mb-8">
           <View>
@@ -159,8 +116,28 @@ const Dashboard = () => {
         />
         <Chart projects={projects} complaints={complaints} />
         <View className="my-6 flex-row justify-between items-center">
+          <Text className="text-xl font-bold">Recent Projects</Text>
+          <TouchableOpacity
+            className="flex-row items-center gap-2"
+            onPress={() => router.push("/projects")}
+          >
+            <Text>View All</Text>
+            <View className="animate-bounceX">
+              <MaterialIcons name="arrow-forward" size={20} color="#A82F39" />
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View className="flex-col gap-4">
+          {recentProjects.map((item) => (
+            <ProjectCard key={item.id} item={item} />
+          ))}
+        </View>
+        <View className="my-6 flex-row justify-between items-center">
           <Text className="text-xl font-bold">Recent Complaints</Text>
-          <TouchableOpacity className="flex-row items-center gap-2">
+          <TouchableOpacity
+            className="flex-row items-center gap-2"
+            onPress={() => router.push("/complaints")}
+          >
             <Text>View All</Text>
             <View className="animate-bounceX">
               <MaterialIcons name="arrow-forward" size={20} color="#A82F39" />

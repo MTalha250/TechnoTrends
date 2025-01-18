@@ -6,7 +6,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 interface InputFieldProps {
   label?: string;
   value: string;
-  onChangeText: (text: string) => void;
+  onChangeText?: (text: string) => void;
   icon: keyof typeof MaterialIcons.glyphMap;
   keyboardType?: KeyboardTypeOptions;
   required?: boolean;
@@ -17,7 +17,7 @@ interface InputFieldProps {
 const InputField: React.FC<InputFieldProps> = ({
   label,
   value,
-  onChangeText,
+  onChangeText = () => {},
   icon,
   keyboardType = "default",
   required = false,

@@ -1,36 +1,15 @@
 import React from "react";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Platform } from "react-native";
-import { loginBack } from "@/hooks/auth";
 import useAuthStore from "@/store/authStore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 const AdminLayout = () => {
-  const { setToken, setUser } = useAuthStore();
+  const { user } = useAuthStore();
 
-  const handleLoginBack = async () => {
-    try {
-      const res = await loginBack();
-      if (!res) {
-        setToken("");
-        setUser(null);
-        AsyncStorage.removeItem("token");
-        return;
-      }
-      setUser(res?.user);
-      if (res?.token) {
-        setToken(res.token);
-      }
-    } catch (error: any) {
-      setToken("");
-      setUser(null);
-      AsyncStorage.removeItem("token");
-    }
-  };
+  if (!user) return <Redirect href="/sign-in" />;
 
   return (
     <Tabs

@@ -1,6 +1,40 @@
-import { Stack } from "expo-router";
+import { Redirect, Stack } from "expo-router";
+import { useEffect } from "react";
+import useAuthStore from "@/store/authStore";
+import { loginBack } from "@/hooks/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AuthLayout() {
+  const { setToken, setUser, setRole, role, user } = useAuthStore();
+
+  const handleLoginBack = async () => {
+    try {
+      const res = await loginBack();
+      if (!res) {
+        setToken("");
+        setUser(null);
+        setRole("");
+        AsyncStorage.removeItem("token");
+        return;
+      }
+      setUser(res?.user);
+      setRole(res?.role);
+      if (res?.token) {
+        setToken(res.token);
+      }
+    } catch (error: any) {
+      setToken("");
+      setUser(null);
+      AsyncStorage.removeItem("token");
+    }
+  };
+
+  useEffect(() => {
+    handleLoginBack();
+  }, []);
+
+  if (user && role == "admin") return <Redirect href="/dashboard" />;
+
   return (
     <Stack>
       <Stack.Screen

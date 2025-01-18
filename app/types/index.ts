@@ -14,7 +14,7 @@ type Head = {
   email: string;
   phone: string;
   department: string;
-  status: "Pending" | "Approved" | "Rejected";
+  status: "pending" | "approved" | "rejected";
   assignedComplaints: Complaint[];
   assignedProjects: Project[];
   created_at: string;
@@ -51,7 +51,8 @@ type Project = {
   dcImage: string;
   status: "Pending" | "In Progress" | "On Hold" | "Completed" | "Cancelled";
   assignedBy: Admin;
-  assignedHead: Head;
+  assignedHead: number;
+  head: Head;
   assignedWorkers: User[];
   remarks: string;
   dueDate: Date | null;
@@ -69,7 +70,8 @@ type Complaint = {
   description: string;
   dueDate: Date | null;
   createdBy: Admin;
-  assignedHead: Head;
+  assignedHead: number;
+  head: Head;
   assignedWorkers: User[];
   jcReference: string;
   jcImage: string;
@@ -89,7 +91,8 @@ type Invoice = {
   paymentTerms: "Cash" | "Credit";
   creditDays?: string;
   dueDate: Date | null;
-  linkedProject: Partial<Project>;
+  linkedProject: number;
+  project: Project;
   status: "Paid" | "Unpaid" | "In Progress" | "Overdue" | "Cancelled";
   created_at: string;
   updated_at: string;

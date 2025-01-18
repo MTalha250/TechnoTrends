@@ -1,49 +1,69 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   View,
   TouchableOpacity,
   ScrollView,
   Text,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import InputField from "@/components/inputField";
 import ProjectCard from "@/components/projects/card";
+import axios from "axios";
+
+type ProjectStatus =
+  | "Pending"
+  | "In Progress"
+  | "On Hold"
+  | "Completed"
+  | "Cancelled"
+  | "All";
+
+const statusOptions: ProjectStatus[] = [
+  "All",
+  "Pending",
+  "In Progress",
+  "On Hold",
+  "Completed",
+  "Cancelled",
+];
 
 const Projects = () => {
-  const allProjects: Partial<Project>[] = [
-    {
-      id: 1,
-      title: "Website Redesign",
-      description: "Redesign the company website",
-      clientName: "Tech Corp",
-      dueDate: new Date("2024-12-23"),
-      status: "In Progress",
-    },
-    {
-      id: 2,
-      title: "Mobile App Development",
-      description: "Develop a mobile app for the client",
-      clientName: "App Solutions",
-      dueDate: new Date("2024-12-23"),
-      status: "On Hold",
-    },
-  ];
-
+  const [projects, setProjects] = useState<Project[]>([]);
   const [searchText, setSearchText] = useState("");
-  const [filteredProjects, setFilteredProjects] = useState(allProjects);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<ProjectStatus>("All");
 
-  const handleSearch = (text: string) => {
-    setSearchText(text);
-    const filtered = allProjects.filter(
-      (project) =>
-        project.title?.toLowerCase().includes(text.toLowerCase()) ||
-        project.description?.toLowerCase().includes(text.toLowerCase())
-    );
-    setFilteredProjects(filtered);
+  const fetchProjects = async () => {
+    try {
+      setRefreshing(true);
+      const response = await axios.get<Project[]>(
+        `${process.env.EXPO_PUBLIC_API_URL}/projects`
+      );
+      setProjects(response.data);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    } finally {
+      setRefreshing(false);
+    }
   };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const filteredProjects = projects.filter((project) => {
+    const matchesFilter =
+      selectedStatus === "All" || project.status === selectedStatus;
+    const matchesSearch =
+      project.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchText.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
   return (
     <SafeAreaView className="flex-1">
       <FlatList
@@ -61,41 +81,64 @@ const Projects = () => {
                 className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
               >
                 <MaterialIcons name="add" size={20} color="white" />
-                <Text className="font-medium" style={{ color: "#fff" }}>
-                  New Project
-                </Text>
+                <Text className="font-medium text-white">New Project</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Search Input */}
             <InputField
               placeholder="Search by project title or description"
               value={searchText}
-              onChangeText={handleSearch}
+              onChangeText={setSearchText}
               icon="search"
             />
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="mb-6"
+            >
               <View className="flex-row gap-2 p-1">
-                <TouchableOpacity className="px-6 py-3 bg-primary rounded-xl shadow-sm">
-                  <Text className="text-white font-medium">All</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
-                  <Text className="text-gray-600">In Progress</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
-                  <Text className="text-gray-600">On Hold</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="px-6 py-3 bg-white rounded-xl shadow-sm">
-                  <Text className="text-gray-600">Completed</Text>
-                </TouchableOpacity>
+                {statusOptions.map((status) => (
+                  <TouchableOpacity
+                    key={status}
+                    onPress={() => setSelectedStatus(status)}
+                    className={`px-6 py-3 rounded-xl shadow-sm ${
+                      selectedStatus === status ? "bg-primary" : "bg-white"
+                    }`}
+                  >
+                    <Text
+                      className={`font-medium ${
+                        selectedStatus === status
+                          ? "text-white"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {status}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </ScrollView>
           </View>
         }
         data={filteredProjects}
         renderItem={({ item }) => <ProjectCard item={item} />}
-        keyExtractor={(item) => item.id?.toString() || ""}
-        contentContainerClassName="container my-6 gap-6"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={fetchProjects} />
+        }
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerClassName="container my-6"
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center py-8">
+            <Text className="text-gray-500">
+              {searchText || selectedStatus !== "All"
+                ? "No projects match your filters"
+                : "No projects found"}
+            </Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );

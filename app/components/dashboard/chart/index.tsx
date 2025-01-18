@@ -228,13 +228,29 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
       </Svg>
 
       {/* Legend */}
-      <View className="flex-row justify-center gap-4 mt-4">
+      <View className="flex-row justify-center gap-10 mt-4">
         <View className="flex-row items-center">
-          <View className="w-3.5 h-3.5 rounded-full bg-blue-500 mr-2" />
+          <View
+            style={{
+              backgroundColor: "#2196F3",
+              width: 10,
+              height: 10,
+              borderRadius: 50,
+              marginRight: 4,
+            }}
+          />
           <Text className="text-gray-600">Projects</Text>
         </View>
         <View className="flex-row items-center">
-          <View className="w-3.5 h-3.5 rounded-full bg-red-500 mr-2" />
+          <View
+            style={{
+              backgroundColor: "#F44336",
+              width: 10,
+              height: 10,
+              borderRadius: 50,
+              marginRight: 4,
+            }}
+          />
           <Text className="text-gray-600">Complaints</Text>
         </View>
       </View>
