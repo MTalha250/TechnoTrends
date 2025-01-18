@@ -84,4 +84,36 @@ class ComplaintController extends Controller
         $complaint->delete();
         return response()->json(['message' => 'Complaint deleted successfully.']);
     }
+
+    public function assignToHead(Request $request, $complaintId)
+    {
+        $validated = $request->validate([
+            'head_id' => 'required|exists:head,id',
+        ]);
+    
+        $complaint = Complaint::findOrFail($complaintId);
+        $complaint->update(['assignedHead' => $validated['head_id']]);
+    
+        return response()->json([
+            'message' => 'Complain assigned to head successfully',
+            'Complain' => $complaint->load('head','users','admin'),
+        ]);
+    }
+    
+    public function assignToWorkers(Request $request, $complaintId)
+    {
+        $validated = $request->validate([
+            'worker_ids' => 'required|array',
+            'worker_ids.*' => 'exists:user,id',
+        ]);
+    
+        $complaint = Complaint::findOrFail($complaintId);
+        $complaint->users()->sync($validated['worker_ids']);
+    
+        return response()->json([
+            'message' => 'Complain assigned to workers successfully',
+            'Complain' => $complaint->load('head','users','admin'),
+        ]);
+    }
+    
 }

@@ -90,4 +90,37 @@ class ProjectController extends Controller
         $project->delete();
         return response()->json(['message' => 'Project deleted successfully']);
     }
+
+    public function assignToHead(Request $request, $projectId)
+{
+    $validated = $request->validate([
+        'head_id' => 'required|exists:head,id',
+    ]);
+
+    $project = Project::findOrFail($projectId);
+    $project->update(['assignedHead' => $validated['head_id']]);
+
+    return response()->json([
+        'message' => 'Project assigned to head successfully',
+        'project' => $project->load('head','users','admin'),
+    ]);
+}
+
+public function assignToWorkers(Request $request, $projectId)
+{
+    $validated = $request->validate([
+        'worker_ids' => 'required|array',
+        'worker_ids.*' => 'exists:user,id',
+    ]);
+
+    $project = Project::findOrFail($projectId);
+    $project->users()->sync($validated['worker_ids']);
+
+    return response()->json([
+        'message' => 'Project assigned to workers successfully',
+        'project' => $project->load('users','head','admin'),
+    ]);
+}
+
+
 }

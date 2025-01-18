@@ -43,11 +43,19 @@ Route::prefix('user')->group(function () {
 });
 
 
+Route::post('projects/{id}/assign-head', [ProjectController::class, 'assignToHead']);
+Route::post('projects/{id}/assign-workers', [ProjectController::class, 'assignToWorkers']);
+
 Route::get('/projects', [ProjectController::class, 'index']); // List all projects
 Route::post('/projects', [ProjectController::class, 'store']); // Create a new project
 Route::get('/projects/{id}', [ProjectController::class, 'show']); // Get a specific project
 Route::put('/projects/{id}', [ProjectController::class, 'update']); // Update a project
 Route::delete('/projects/{id}', [ProjectController::class, 'destroy']); // Delete a project
+
+
+
+Route::post('complaints/{id}/assign-head', [ComplaintController::class, 'assignToHead']);
+Route::post('complaints/{id}/assign-workers', [ComplaintController::class, 'assignToWorkers']);
 
 
 Route::get('complaints', [ComplaintController::class, 'index']); // List all complaints
