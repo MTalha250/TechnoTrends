@@ -24,6 +24,15 @@ class InvoiceController extends Controller
             'dueDate' => 'nullable|date', // required
             'linkedProject' => 'required|exists:projects,id', // required
             'status' => 'required|in:Paid,Unpaid,In Progress,Overdue,Cancelled', // required
+            'clientName' => 'nullable|string|max:255', // nullable
+            'poNumber' => 'nullable|string|max:255', // nullable
+            'poDate' => 'nullable|string', // nullable
+            'jcReference' => 'nullable|string|max:255', // nullable
+            'jcDate' => 'nullable|string', // nullable
+            'dcReference' => 'nullable|string|max:255', // nullable
+            'dcDate' => 'nullable|string', // nullable
+            'invoiceDate' => 'nullable|string', // nullable
+
         ]);
 
         $invoice = Invoice::create($validated);
@@ -49,6 +58,14 @@ class InvoiceController extends Controller
             'dueDate' => 'nullable|date',
             'linkedProject' => 'exists:projects,id',
             'status' => 'in:Paid,Unpaid,In Progress,Overdue,Cancelled',
+            'clientName' => 'nullable|string|max:255',
+            'poNumber' => 'nullable|string|max:255',
+            'poDate' => 'nullable|string',
+            'jcReference' => 'nullable|string|max:255',
+            'jcDate' => 'nullable|string',
+            'dcReference' => 'nullable|string|max:255',
+            'dcDate' => 'nullable|string',
+            'invoiceDate' => 'nullable|string',
         ]);
 
         $invoice->update($validated);

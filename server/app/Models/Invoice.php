@@ -18,6 +18,15 @@ class Invoice extends Model
         'dueDate',
         'linkedProject',
         'status',
+        'clientName',
+        'poNumber',
+        'poDate',
+        'jcReference',
+        'jcDate',
+        'dcReference',
+        'dcDate',
+        'invoiceDate',
+        
     ];
 
     protected $casts = [
