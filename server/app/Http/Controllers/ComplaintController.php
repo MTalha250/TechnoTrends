@@ -30,7 +30,16 @@ class ComplaintController extends Controller
             'photos' => 'nullable|array', // nullable
             'priority' => 'required|in:Low,Medium,High', // required
             'remarks' => 'nullable|string', // nullable
-            'status' => 'required|in:Pending,In Progress,Resolved,Closed', // required
+            'status' => 'required|in:Pending,In Progress,Completed,Cancelled', // required
+            'poNumber' => 'nullable|string|max:255', // nullable
+            'poDate' => 'nullable|string', // nullable
+            'visitDates' => 'nullable|array', // nullable
+            'jcDate' => 'nullable|string', // nullable
+            'dcReference' => 'nullable|string|max:255', // nullable
+            'dcDate' => 'nullable|string', // nullable
+            'quotation' => 'nullable|string', // nullable
+            'quotationDate' => 'nullable|string', // nullable
+            'remarksDate' => 'nullable|string', // nullable
         ]);
 
         $complaint = Complaint::create($request->all());
@@ -66,6 +75,16 @@ class ComplaintController extends Controller
             'priority' => 'in:Low,Medium,High',
             'remarks' => 'string',
             'status' => 'in:Pending,In Progress,Resolved,Closed',
+            'poNumber' => 'string|max:255',
+            'poDate' => 'string',
+            'visitDates' => 'array',
+            'jcDate' => 'string',
+            'dcReference' => 'string|max:255',
+            'dcDate' => 'string',
+            'quotation' => 'string',
+            'quotationDate' => 'string',
+            'remarksDate' => 'string',
+
         ]);
 
         $complaint = Complaint::findOrFail($id);

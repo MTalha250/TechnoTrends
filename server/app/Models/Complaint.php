@@ -25,10 +25,21 @@ class Complaint extends Model
         'priority',
         'remarks',
         'status',
+        'poNumber',
+        'poDate',
+        'visitDates',
+        'jcDate',
+        'dcReference',
+        'dcDate',
+        'quotation',
+        'quotationDate',
+        'remarksDate'
+
     ];
 
     protected $casts = [
         'photos' => 'array',
+        'visitDates' => 'array',
         'dueDate' => 'datetime',
     ];
 

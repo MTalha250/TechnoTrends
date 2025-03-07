@@ -7,7 +7,6 @@ class Project extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title',
         'description',
         'poNumber',
         'poImage',
@@ -25,6 +24,13 @@ class Project extends Model
         'assignedHead',
         'remarks',
         'dueDate',
+        'poDate',
+        'surveyDate',
+        'quotationDate',
+        'jcDate',
+        'dcDate',
+        'remarksDate',
+
     ];
 
     protected $casts = [

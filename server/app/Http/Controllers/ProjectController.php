@@ -11,13 +11,15 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::with(['admin', 'head', 'users'])->get();
+        $projects->each(function ($project) {
+            $project->users->makeHidden(['pivot', 'remember_token']);
+        });
         return response()->json($projects);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255', // required
             'description' => 'required|string', // required
             'poNumber' => 'required|string', // required
             'poImage' => 'required|string', // required
@@ -35,19 +37,38 @@ class ProjectController extends Controller
             'assignedHead' => 'nullable|exists:head,id', // nullable
             'remarks' => 'nullable|string', // nullable
             'dueDate' => 'required|date', // required
+            'poDate' => 'nullable|string', // nullable
+            'surveyDate' => 'nullable|string', // nullable
+            'quotationDate' => 'nullable|string', // nullable
+            'jcDate' => 'nullable|string', // nullable
+            'dcDate' => 'nullable|string', // nullable
+            'remarksDate' => 'nullable|string', // nullable
+
         ]);
 
         $project = Project::create($validated);
+
+        // If workers are assigned, attach them to the project
         if ($request->has('assignedWorkers')) {
             $project->users()->attach($request->assignedWorkers);
         }
-
-        return response()->json($project->load(['admin', 'head', 'users']), 201);
-    }
+    
+        // Load the relationships and hide pivot and remember_token fields
+        $project = $project->load(['admin', 'head', 'users']);
+    
+        // Make sure to hide the pivot and remember_token fields from users
+        $project->users->each(function ($user) {
+            $user->makeHidden(['pivot', 'remember_token']);
+        });
+    
+        // Return the response with the cleaned-up data
+        return response()->json($project, 201);
+        }
 
     public function show($id)
     {
         $project = Project::with(['admin', 'head', 'users'])->findOrFail($id);
+        $project->users->makeHidden(['pivot', 'remember_token']);  
         return response()->json($project);
     }
 
@@ -55,7 +76,6 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($id);
         $validated = $request->validate([
-            'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
             'poNumber' => 'sometimes|string',
             'poImage' => 'sometimes|string',
@@ -73,6 +93,12 @@ class ProjectController extends Controller
             'assignedHead' => 'sometimes|exists:head,id',
             'remarks' => 'sometimes|string',
             'dueDate' => 'sometimes|date',
+            'poDate' => 'sometimes|string',
+            'surveyDate' => 'sometimes|string',
+            'quotationDate' => 'sometimes|string',
+            'jcDate' => 'sometimes|string',
+            'dcDate' => 'sometimes|string',
+            'remarksDate' => 'sometimes|string',
         ]);
 
         $project->update($validated);
@@ -81,7 +107,7 @@ class ProjectController extends Controller
             $project->users()->sync($request->assignedWorkers);
         }
 
-        return response()->json($project->load(['admin', 'head', 'users']));
+        return response()->json($project->load(['admin', 'head', 'users'])->makeHidden(['pivot', 'remember_token']));
     }
 
     public function destroy($id)
@@ -102,7 +128,7 @@ class ProjectController extends Controller
 
     return response()->json([
         'message' => 'Project assigned to head successfully',
-        'project' => $project->load('head','users','admin'),
+        'project' => $project->load('head','users','admin')->makeHidden(['pivot', 'remember_token']),
     ]);
 }
 
@@ -118,7 +144,7 @@ public function assignToWorkers(Request $request, $projectId)
 
     return response()->json([
         'message' => 'Project assigned to workers successfully',
-        'project' => $project->load('users','head','admin'),
+        'project' => $project->load('users','head','admin')->makeHidden(['pivot', 'remember_token']),
     ]);
 }
 
