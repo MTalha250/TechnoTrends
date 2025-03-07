@@ -28,10 +28,20 @@ jobs:
           cp server/.env.example server/.env  # Ensure env file exists
           php server/artisan key:generate  # Generate Laravel key
 
-      - name: Run Migrations
-        run: |
-          php server/artisan migrate --force  # Run migrations
-
-      - name: Restart Server
-        run: |
-          sudo systemctl restart apache2 || sudo systemctl restart nginx  # Restart web server
+      - name: Deploy to technotrends.globalctg1.com
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{38.91.101.117}}
+          username: ${{globalct}}
+          key: ${{-----BEGIN OPENSSH PRIVATE KEY-----b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABAuTLUEHwp9rHvkI5JMse4mAAAAEAAAAAEAAAEXAAAAB3NzaC1yc2EAAAADAQABAAABAQDEfVpIaaWHvxdeKbt/nW5KSVc6bImhCAj+7UO2IZhwbUddElggCYVt7QdbAJs2g1CXkUPqUT59HxIvzbeFlumPbcjZpXrO7fTRKZa5DzHnnZHg2gmfcRJMaWhglwzESIjQEceoEOEFjpxsMGys+OezhvRK/jsRYsTyV1Vyp4K+TQhsVl6SXAv/m0QVRHlqc0ywFKRpQLuTXEiMfLFBt0zx+r6c75AZqIemZO31DaAT2nObVH2gTGd9diUnoQoiwWIj/0Gr+rOIfQ0qTBdTm0Ijlx8LNy51fJp2u2wTXaHWg9klWBBYw9mrCPdoJYgNPbc9sozkvMviICJwGjt7YmOfAAADwJPmos6boHiLudD1g4DVVO7KTDY7NI75G/0oFL0/8cNu9pg1GF97rN2iFJSmjwbegpwzXDeYawc77xC5edOHvWyAbupftubimJwgtaKv6wlZ2MQ3lLy+ANeYYtNanhAcWFAMSrhyYK4i8sqzMRDXLpX/l05Dt+fWlnbVgZg89Qt09+g6A6tNrZUwPaVCcr6RDwnGMdDvA+h7AWjwXAJNIj3wHYZkeNusE4Q0YIIZZkGyDbeF/r+AlJDCpVzJhx9j9+/VqQCGW9kKtLN4ThWeqOoWBcB11lSkLYY/QSDh08He589lRqF6s4o4b37yAX5gmoMzwImI3jmwtWBJcXrZBIrNrqHhqQzINh4PWcxevDCJUOiVmuMZnP4aH1po7e3NR6vVlPfw2waoGvZVjR6eIqfnv0fTGxNIX5AztFnah/NIC8YYo9PWkPEzFKaDw9iiOI4vUHKW0QVAkzeVVN8q4RdD31e7zshLOnyDsB3H1brGtuEDsTieaHf1XZhKBAvU9C5AS5C7BttzWo2UGUtsTeU/rh6DLzZh3wHeursZL6wLcDOnc8KLSeF9x5mj5PzChhwTZ+d/x+5NnAMlSXYtu11d3vmqG3bqVwBR4hSMRiF42cVfJHvEnbBXvrZyBccHCl5P1IpLMAasgXQYI0KKPmELRvhn0gE+veqi7rEziZLJCX54pTWrid0+WdGPBKHijch8jDtEb3ReP0+teEI1pxtVXOVSWYHgj6tIIcETGA6MsX7kWgAhCbWo5Z+sWHz3egzyp6Bk2CghsvATKkAKeRwQJzcH/+Q/Y/O2xtp4o+5sDoKkwOIM/l+fkZEq3PH6ErWu1GLMPiZ6QqAB3uYvUiT96Gg0J/PSG6+/jqu6LaCXqJuq/CyL67/fvxSfEDURjpihBMyyBvSe5+nOOeK8Ka80+Py3uvmUESz37Jv6BC8trN5HsVqAE8X5vR02aKLg+N46uxAY/ar3KXbfJJ859EBWsK9AoMI/qD0+WV/MKR8VW5CWSTEakV3oqbDEuYPTEdlHSSBvRInvLWoIuyKBk9pOoWljgY18eh/hZKFozv/bojKOcnS55cDt9fe1ranEPJMRoUx+MAnggTbaSSsPzIAyYfuozBld81HhIxBO/t3ExYDACKT7VkG48fwFyqiTDXLRokHN5HPSvoODvSTMobdZBW33mpe4A5ssnbWZkNEdnakazuBXi+S+1nvoLK/y6eI0zfFM898MJnKkpnIh19OIumxI1LDcHcoAmwX56AuYvfIgHfMyl7vlDryBd/zo2Q==-----END OPENSSH PRIVATE KEY-----}}
+          script: |
+            cd /var/www/technotrends.globalctg1.com
+            git pull origin main
+            rsync -av --delete $GITHUB_WORKSPACE/server/ /var/www/technotrends.globalctg1.com/
+            cd /var/www/technotrends.globalctg1.com
+            composer install --no-dev --optimize-autoloader
+            php artisan config:clear
+            php artisan cache:clear
+            php artisan view:clear
+            php artisan route:clear
+            sudo systemctl restart apache2 || sudo systemctl restart nginx
