@@ -124,6 +124,7 @@ class AuthController extends Controller
                     'password' => 'required|string|min:6',
                     'phone' => 'required|string|max:15',
                     'status' => 'nullable|string|max:50',
+                    'isDirector'=>'nullable|boolean'
                 ]);
                 if ($validator->fails()) {
                     return response()->json(['error' => $validator->errors()], 422);
@@ -135,6 +136,8 @@ class AuthController extends Controller
                     'password' => Hash::make($data['password']),
                     'phone' => $data['phone'],
                     'status' => 'pending',
+                    'isDirector' => $data['isDirector'] ?? false, 
+                    
                 ]);
                 return response()->json(['message' => 'Admin created. Waiting for approval.', 'admin' => $admin], 201);
 

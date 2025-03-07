@@ -18,6 +18,7 @@ class Admin extends Model
         'password',
         'phone',
         'status',
+        'isDirector'
     ];
 
     protected $hidden = [
