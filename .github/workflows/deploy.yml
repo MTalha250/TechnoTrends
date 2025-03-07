@@ -1,0 +1,37 @@
+name: Deploy Server
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4  
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1" 
+
+      - name: Install Dependencies
+        run: |
+          cd server  # Navigate to the server folder
+          composer install --no-dev --optimize-autoloader  # Install dependencies
+
+      - name: Set Environment Variables
+        run: |
+          cp server/.env.example server/.env  # Ensure env file exists
+          php server/artisan key:generate  # Generate Laravel key
+
+      - name: Run Migrations
+        run: |
+          php server/artisan migrate --force  # Run migrations
+
+      - name: Restart Server
+        run: |
+          sudo systemctl restart apache2 || sudo systemctl restart nginx  # Restart web server
