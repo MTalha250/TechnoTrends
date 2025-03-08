@@ -28,8 +28,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}  
           username: ${{ secrets.SERVER_USER }} 
-          key: ${{ secrets.SSH_PRIVATE_KEY }}  
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}  # 🔥 Add this line to decrypt the key          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd /var/www/technotrends.globalctg1.com
 
