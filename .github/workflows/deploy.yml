@@ -20,7 +20,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd server  
+          cd server  # Navigate to the server folder
           composer install --no-dev --optimize-autoloader  # Install dependencies
 
       - name: Deploy to technotrends.globalctg1.com
@@ -32,11 +32,12 @@ jobs:
           script: |
             cd /var/www/technotrends.globalctg1.com
 
-            git reset --hard 
+            git reset --hard  
             git clean -fd  
             git pull origin main  
 
-            rsync -av --delete $GITHUB_WORKSPACE/server/ /var/www/technotrends.globalctg1.com/
+            # Rsync only contents of 'server' directory
+            rsync -av --delete --exclude='.env' --exclude='.htaccess' $GITHUB_WORKSPACE/server/ /var/www/technotrends.globalctg1.com/
 
             cd /var/www/technotrends.globalctg1.com
             composer install --no-dev --optimize-autoloader
