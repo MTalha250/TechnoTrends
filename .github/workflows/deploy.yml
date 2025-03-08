@@ -37,7 +37,7 @@ jobs:
             git pull origin main  
 
             # Rsync only contents of 'server' directory
-            rsync -av --delete --exclude='.env' --exclude='.htaccess' $GITHUB_WORKSPACE/server/ /var/www/technotrends.globalctg1.com/
+            rsync -av --delete $GITHUB_WORKSPACE/server/ /var/www/technotrends.globalctg1.com/
 
             cd /var/www/technotrends.globalctg1.com
             composer install --no-dev --optimize-autoloader
