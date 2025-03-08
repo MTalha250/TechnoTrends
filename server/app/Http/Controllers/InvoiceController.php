@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use Illuminate\Http\Request;
-
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
+use Exception;
 class InvoiceController extends Controller
 {
     public function index()
@@ -15,30 +17,71 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'invoiceReference' => 'required|string|max:255', // required
-            'invoiceImage' => 'required|string|max:255', // required
-            'amount' => 'required|numeric', // required
-            'paymentTerms' => 'required|in:Cash,Credit', // required
-            'creditDays' => 'nullable|string|max:255', // nullable
-            'dueDate' => 'nullable|date', // required
-            'linkedProject' => 'required|exists:projects,id', // required
-            'status' => 'required|in:Paid,Unpaid,In Progress,Overdue,Cancelled', // required
-            'clientName' => 'nullable|string|max:255', // nullable
-            'poNumber' => 'nullable|string|max:255', // nullable
-            'poDate' => 'nullable|string', // nullable
-            'jcReference' => 'nullable|string|max:255', // nullable
-            'jcDate' => 'nullable|string', // nullable
-            'dcReference' => 'nullable|string|max:255', // nullable
-            'dcDate' => 'nullable|string', // nullable
-            'invoiceDate' => 'nullable|string', // nullable
-
-        ]);
-
-        $invoice = Invoice::create($validated);
-        return response()->json($invoice->load('project'), 201);
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'invoiceReference' => 'nullable|string|max:255',
+                'invoiceImage' => 'nullable|string|max:255',
+                'amount' => 'nullable|numeric',
+                'paymentTerms' => 'required|in:Cash,Credit',
+                'creditDays' => 'nullable|string|max:255',
+                'dueDate' => 'nullable|date',
+                'linkedProject' => 'nullable|exists:projects,id',
+                'status' => 'nullable|in:Paid,Unpaid,In Progress,Overdue,Cancelled',
+                'clientName' => 'nullable|string|max:255',
+                'poNumber' => 'nullable|string|max:255',
+                'poDate' => 'nullable|string',
+                'jcReference' => 'nullable|string|max:255',
+                'jcDate' => 'nullable|string',
+                'dcReference' => 'nullable|string|max:255',
+                'dcDate' => 'nullable|string',
+                'invoiceDate' => 'nullable|string',
+            ]);
+    
+            // Automatically set poDate, jcDate, and dcDate if applicable
+            if ($request->has('poNumber')) {
+                $validated['poDate'] = $request->input('poDate') ?: now();  // Set to current date if no poDate provided
+            }
+    
+            if ($request->has('jcReference')) {
+                $validated['jcDate'] = $request->input('jcDate') ?: now();  // Set to current date if no jcDate provided
+            }
+    
+            if ($request->has('dcReference')) {
+                $validated['dcDate'] = $request->input('dcDate') ?: now();  // Set to current date if no dcDate provided
+            }
+    
+            // Create the invoice
+            $invoice = Invoice::create($validated);
+    
+            // Load the related project data
+            $invoice->load('project');
+    
+            // Return success response
+            return response()->json($invoice, 201);
+    
+        } catch (ValidationException $e) {
+            // Return validation errors as JSON
+            return response()->json([
+                'error' => 'Validation failed',
+                'message' => $e->errors()
+            ], 422);
+        
+        } catch (ModelNotFoundException $e) {
+            // Handle case where the linked project doesn't exist
+            return response()->json([
+                'error' => 'Linked project not found',
+                'message' => 'The specified linked project does not exist.'
+            ], 404);
+    
+        } catch (Exception $e) {
+            // Handle any other general errors
+            return response()->json([
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
-
     public function show($id)
     {
         $invoice = Invoice::with('project')->findOrFail($id);
@@ -67,6 +110,19 @@ class InvoiceController extends Controller
             'dcDate' => 'nullable|string',
             'invoiceDate' => 'nullable|string',
         ]);
+        if ($request->has('poNumber')) {
+            $validated['poDate'] = $request->input('poDate') ?: now();  // Set to current date if no poDate provided
+        }
+    
+        // Automatically set jcDate if jcReference is provided
+        if ($request->has('jcReference')) {
+            $validated['jcDate'] = $request->input('jcDate') ?: now();  // Set to current date if no jcDate provided
+        }
+    
+        // Automatically set dcDate if dcReference is provided
+        if ($request->has('dcReference')) {
+            $validated['dcDate'] = $request->input('dcDate') ?: now();  // Set to current date if no dcDate provided
+        }
 
         $invoice->update($validated);
         return response()->json($invoice->load('project'));

@@ -20,35 +20,57 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'description' => 'required|string', // required
-            'poNumber' => 'required|string', // required
-            'poImage' => 'required|string', // required
-            'clientName' => 'required|string', // required
-            'clientPhone' => 'required|string', // required
-            'surveyPhotos' => 'required|array', // required
-            'quotationReference' => 'required|string', // required
-            'quotationImage' => 'required|string', // required
-            'jcReference' => 'nullable|string',  // nullable
-            'jcImage' => 'nullable|string', // nullable
-            'dcReference' => 'nullable|string', // nullable
-            'dcImage' => 'nullable|string', // nullable
-            'status' => 'required|string|in:Pending,In Progress,On Hold,Completed,Cancelled', // required
-            'assignedBy' => 'required|exists:admin,id', // required
-            'assignedHead' => 'nullable|exists:head,id', // nullable
-            'remarks' => 'nullable|string', // nullable
-            'dueDate' => 'required|date', // required
-            'poDate' => 'nullable|string', // nullable
-            'surveyDate' => 'nullable|string', // nullable
-            'quotationDate' => 'nullable|string', // nullable
-            'jcDate' => 'nullable|string', // nullable
-            'dcDate' => 'nullable|string', // nullable
-            'remarksDate' => 'nullable|string', // nullable
-
+            'description' => 'nullable|string',
+            'poNumber' => 'nullable|string',
+            'poImage' => 'nullable|string',
+            'clientName' => 'nullable|string',
+            'clientPhone' => 'nullable|string',
+            'surveyPhotos' => 'nullable|array',
+            'quotationReference' => 'nullable|string',
+            'quotationImage' => 'nullable|string',
+            'jcReference' => 'nullable|string',
+            'jcImage' => 'nullable|string',
+            'dcReference' => 'nullable|string',
+            'dcImage' => 'nullable|string',
+            'status' => 'nullable|string|in:Pending,In Progress,On Hold,Completed,Cancelled',
+            'assignedBy' => 'nullable|exists:admin,id',
+            'assignedHead' => 'nullable|exists:head,id',
+            'remarks' => 'nullable|string',
+            'dueDate' => 'nullable|date',
+            'poDate' => 'nullable|string',
+            'surveyDate' => 'nullable|string',
+            'quotationDate' => 'nullable|string',
+            'jcDate' => 'nullable|string',
+            'dcDate' => 'nullable|string',
+            'remarksDate' => 'nullable|string',
         ]);
+    
+        if ($request->has('poNumber')) {
+            $validated['poDate'] = $request->input('poDate') ?: now();  
+        }
+    
+        if ($request->has('jcReference')) {
+            $validated['jcDate'] = $request->input('jcDate') ?: now();  
+        }
+    
+        if ($request->has('dcReference')) {
+            $validated['dcDate'] = $request->input('dcDate') ?: now();  
+        }
+    
+        if ($request->has('remarks')) {
+            $validated['remarksDate'] = $request->input('remarksDate') ?: now();
+        }
 
+        if ($request->has('surveyPhotos')) {
+            $validated['surveyDate'] = $request->input('surveyDate') ?: now();
+        }
+    
+        if ($request->has('quotationReference')) {
+            $validated['quotationDate'] = $request->input('quotationDate') ?: now();  
+        }
+    
         $project = Project::create($validated);
-
-        // If workers are assigned, attach them to the project
+    
         if ($request->has('assignedWorkers')) {
             $project->users()->attach($request->assignedWorkers);
         }
@@ -56,15 +78,13 @@ class ProjectController extends Controller
         // Load the relationships and hide pivot and remember_token fields
         $project = $project->load(['admin', 'head', 'users']);
     
-        // Make sure to hide the pivot and remember_token fields from users
         $project->users->each(function ($user) {
             $user->makeHidden(['pivot', 'remember_token']);
         });
     
-        // Return the response with the cleaned-up data
         return response()->json($project, 201);
-        }
-
+    }
+    
     public function show($id)
     {
         $project = Project::with(['admin', 'head', 'users'])->findOrFail($id);
@@ -75,6 +95,8 @@ class ProjectController extends Controller
     public function update(Request $request, $id)
     {
         $project = Project::findOrFail($id);
+    
+        // Validate the incoming request
         $validated = $request->validate([
             'description' => 'sometimes|string',
             'poNumber' => 'sometimes|string',
@@ -100,16 +122,46 @@ class ProjectController extends Controller
             'dcDate' => 'sometimes|string',
             'remarksDate' => 'sometimes|string',
         ]);
-
+    
+        // Automatically set poDate if poNumber is provided
+        if ($request->has('poNumber')) {
+            $validated['poDate'] = $request->input('poDate') ?: now();  // Set to current date if no poDate provided
+        }
+    
+        // Automatically set jcDate if jcReference is provided
+        if ($request->has('jcReference')) {
+            $validated['jcDate'] = $request->input('jcDate') ?: now();  // Set to current date if no jcDate provided
+        }
+    
+        // Automatically set dcDate if dcReference is provided
+        if ($request->has('dcReference')) {
+            $validated['dcDate'] = $request->input('dcDate') ?: now();  // Set to current date if no dcDate provided
+        }
+        if ($request->has('surveyPhotos')) {
+            $validated['surveyDate'] = $request->input('surveyDate') ?: now();
+        }
+    
+        // Automatically set remarksDate if remarks is provided
+        if ($request->has('remarks')) {
+            $validated['remarksDate'] = $request->input('remarksDate') ?: now();  // Set to current date if no remarksDate provided
+        }
+    
+        // Automatically set quotationDate if quotationReference is provided
+        if ($request->has('quotationReference')) {
+            $validated['quotationDate'] = $request->input('quotationDate') ?: now();  // Set to current date if no quotationDate provided
+        }
+    
+        // Update the project with validated data
         $project->update($validated);
-
+    
+        // If workers are assigned, sync them with the project
         if ($request->has('assignedWorkers')) {
             $project->users()->sync($request->assignedWorkers);
         }
-
+    
         return response()->json($project->load(['admin', 'head', 'users'])->makeHidden(['pivot', 'remember_token']));
     }
-
+    
     public function destroy($id)
     {
         $project = Project::findOrFail($id);

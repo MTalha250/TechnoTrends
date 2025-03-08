@@ -15,22 +15,22 @@ class ComplaintController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'complaintReference' => 'required|string|max:255', // required
-            'complaintImage' => 'required|string|max:255', // required
-            'clientName' => 'required|string|max:255', // required
-            'clientPhone' => 'required|string|max:15', // required
-            'title' => 'required|string|max:255', // required
-            'description' => 'required|string', // required
+        $validated=$request->validate([
+            'complaintReference' => 'nullable|string|max:255', // required
+            'complaintImage' => 'nullable|string|max:255', // required
+            'clientName' => 'nullable|string|max:255', // required
+            'clientPhone' => 'nullable|string|max:15', // required
+            'title' => 'nullable|string|max:255', // required
+            'description' => 'nullable|string', // required
             'dueDate' => 'nullable|date', // required
             'createdBy' => 'nullable|exists:admin,id', // required
             'assignedHead' => 'nullable|exists:head,id', // nullable
             'jcReference' => 'nullable|string|max:255', // nullable
             'jcImage' => 'nullable|string|max:255', // nullable
             'photos' => 'nullable|array', // nullable
-            'priority' => 'required|in:Low,Medium,High', // required
+            'priority' => 'nullable|in:Low,Medium,High', // required
             'remarks' => 'nullable|string', // nullable
-            'status' => 'required|in:Pending,In Progress,Completed,Cancelled', // required
+            'status' => 'nullable|in:Pending,In Progress,Completed,Cancelled', // required
             'poNumber' => 'nullable|string|max:255', // nullable
             'poDate' => 'nullable|string', // nullable
             'visitDates' => 'nullable|array', // nullable
@@ -42,7 +42,26 @@ class ComplaintController extends Controller
             'remarksDate' => 'nullable|string', // nullable
         ]);
 
-        $complaint = Complaint::create($request->all());
+        if ($request->has('poNumber')) {
+            $validated['poDate'] = $request->input('poDate') ?: now();  
+        }
+    
+        if ($request->has('jcReference')) {
+            $validated['jcDate'] = $request->input('jcDate') ?: now();  
+        }
+        if ($request->has('dcReference')) {
+            $validated['dcDate'] = $request->input('dcDate') ?: now();  
+        }
+    
+        if ($request->has('remarks')) {
+            $validated['remarksDate'] = $request->input('remarksDate') ?: now();
+        }
+        if ($request->has('quotation')) {
+            $validated['quotationDate'] = $request->input('quotationDate') ?: now();  
+        }
+        
+
+        $complaint = Complaint::create($validated);
 
         if ($request->has('assignedWorkers')) {
             $complaint->users()->sync($request->assignedWorkers);
@@ -59,7 +78,9 @@ class ComplaintController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $complaint = Complaint::findOrFail($id);
+
+        $validated=$request->validate([
             'complaintReference' => 'string|max:255',
             'complaintImage' => 'string|max:255',
             'clientName' => 'string|max:255',
@@ -87,8 +108,25 @@ class ComplaintController extends Controller
 
         ]);
 
-        $complaint = Complaint::findOrFail($id);
-        $complaint->update($request->all());
+        if ($request->has('poNumber')) {
+            $validated['poDate'] = $request->input('poDate') ?: now();  
+        }
+    
+        if ($request->has('jcReference')) {
+            $validated['jcDate'] = $request->input('jcDate') ?: now();  
+        }
+        if ($request->has('dcReference')) {
+            $validated['dcDate'] = $request->input('dcDate') ?: now();  
+        }
+    
+        if ($request->has('remarks')) {
+            $validated['remarksDate'] = $request->input('remarksDate') ?: now();
+        }
+        if ($request->has('quotation')) {
+            $validated['quotationDate'] = $request->input('quotationDate') ?: now();  
+        }
+
+        $complaint->update($validated);
 
         if ($request->has('assignedWorkers')) {
             $complaint->users()->sync($request->assignedWorkers);
@@ -97,6 +135,7 @@ class ComplaintController extends Controller
         return response()->json($complaint->load(['admin', 'head', 'users']));
     }
 
+    
     public function destroy($id)
     {
         $complaint = Complaint::findOrFail($id);

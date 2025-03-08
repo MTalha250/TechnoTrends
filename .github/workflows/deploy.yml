@@ -16,7 +16,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.1" 
+          php-version: "8.2" 
 
       - name: Install Dependencies
         run: |
@@ -32,11 +32,11 @@ jobs:
           script: |
             cd /var/www/technotrends.globalctg1.com
 
-            # Pull latest changes
-            git reset --hard  # Reset local changes
-            git clean -fd  # Remove untracked files
-            git pull origin main  # Ensure latest code
+            git reset --hard  
+            git clean -fd  
+            git pull origin main  
 
+            # Rsync only contents of 'server' directory
             rsync -av --delete $GITHUB_WORKSPACE/server/ /var/www/technotrends.globalctg1.com/
 
             cd /var/www/technotrends.globalctg1.com
