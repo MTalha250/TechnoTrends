@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Project;
 use App\Models\Invoice;
 use App\Models\Complaint;
+use App\Models\User;
+use App\Models\Head;
+
 
 
 class AdminController extends Controller
@@ -104,5 +107,16 @@ class AdminController extends Controller
     ]);
 }
 
+public function getPendingHeadAdminsAndUsers()
+{
+    $heads = Head::where('status', 'Pending')->get();
+    $admin = Admin::where('status', 'Pending')->get();
+    $users = User::where('status', 'Pending')->get();
+    return response()->json([
+        'heads' => $heads,
+        'admin' => $admin,
+        'users' => $users,
+    ]);
+}
 
 }

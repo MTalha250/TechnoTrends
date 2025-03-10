@@ -23,7 +23,7 @@ class InvoiceController extends Controller
                 'invoiceReference' => 'nullable|string|max:255',
                 'invoiceImage' => 'nullable|string|max:255',
                 'amount' => 'nullable|numeric',
-                'paymentTerms' => 'required|in:Cash,Credit',
+                'paymentTerms' => 'nullable|in:Cash,Credit',
                 'creditDays' => 'nullable|string|max:255',
                 'dueDate' => 'nullable|date',
                 'linkedProject' => 'nullable|exists:projects,id',

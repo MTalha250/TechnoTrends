@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
-
+use App\Models\Invoice;
 class ProjectController extends Controller
 {
     public function index()
@@ -158,6 +158,22 @@ class ProjectController extends Controller
         if ($request->has('assignedWorkers')) {
             $project->users()->sync($request->assignedWorkers);
         }
+
+        if ($request->has('jcReference') || $request->has('dcReference')) {
+            Invoice::create([
+                'linkedProject' => $project->id,
+                'clientName' => $project->clientName,
+                'poNumber' => $project->poNumber,
+                'poDate' => $project->poDate,
+                'jcReference' => $validated['jcReference'] ?? null,
+                'jcDate' => $validated['jcDate'] ?? null,
+                'dcReference' => $validated['dcReference'] ?? null,
+                'dcDate' => $validated['dcDate'] ?? null,
+                'invoiceDate' => now(),
+                'status' => 'Pending', 
+            ]);
+        }
+        
     
         return response()->json($project->load(['admin', 'head', 'users'])->makeHidden(['pivot', 'remember_token']));
     }
