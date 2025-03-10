@@ -3,6 +3,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Divider } from "react-native-paper";
 import React from "react";
 import { router } from "expo-router";
+import RenderBadge from "@/utils/renderBadge";
 
 const ComplaintCard = ({ item }: { item: Partial<Complaint> }) => {
   return (
@@ -39,9 +40,24 @@ const ComplaintCard = ({ item }: { item: Partial<Complaint> }) => {
         </View>
       </View>
 
-      <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center gap-2 mb-4">
         <MaterialIcons name="business" size={16} color="#A82F39" />
         <Text>{item.clientName}</Text>
+      </View>
+
+      <View
+        style={{
+          flexWrap: "wrap",
+        }}
+        className="flex-row gap-2"
+      >
+        {RenderBadge("Complaint#", item.complaintReference)}
+        {RenderBadge("Complaint Image", item.complaintImage)}
+        {RenderBadge("Client Contact", item.clientPhone)}
+        {RenderBadge("Photos", item.photos)}
+        {RenderBadge("JC#", item.jcReference)}
+        {RenderBadge("JC Image", item.jcImage)}
+        {RenderBadge("Remarks", item.remarks)}
       </View>
 
       <Divider className="my-4" />

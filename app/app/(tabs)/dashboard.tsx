@@ -65,7 +65,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="flex-1 w-full container py-6"

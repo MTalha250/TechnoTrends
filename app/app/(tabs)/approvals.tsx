@@ -156,7 +156,7 @@ const Approvals = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <FlatList
         ListHeaderComponent={
           <View>

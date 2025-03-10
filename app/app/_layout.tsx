@@ -1,4 +1,5 @@
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
+import * as ScreenOrientation from "expo-screen-orientation";
 import * as SplashScreen from "expo-splash-screen";
 import { PaperProvider } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
@@ -12,6 +13,24 @@ export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
+  const pathname = usePathname();
+  useEffect(() => {
+    const updateOrientation = async () => {
+      if (
+        pathname !== "/projects" &&
+        pathname !== "/complaints" &&
+        pathname !== "/invoices"
+      ) {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP
+        );
+      } else {
+        await ScreenOrientation.unlockAsync();
+      }
+    };
+
+    updateOrientation();
+  }, [pathname]);
 
   return (
     <PaperProvider>
@@ -47,7 +66,7 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </PaperProvider>

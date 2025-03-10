@@ -3,6 +3,7 @@ import { Divider } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
+import RenderBadge from "@/utils/renderBadge";
 
 const ProjectCard = ({ item }: { item: Partial<Project> }) => {
   return (
@@ -20,6 +21,8 @@ const ProjectCard = ({ item }: { item: Partial<Project> }) => {
               ? "bg-blue-100"
               : item.status === "Completed"
               ? "bg-green-100"
+              : item.status === "On Hold"
+              ? "bg-orange-100"
               : "bg-red-100"
           }`}
         >
@@ -31,6 +34,8 @@ const ProjectCard = ({ item }: { item: Partial<Project> }) => {
                 ? "text-blue-700"
                 : item.status === "Completed"
                 ? "text-green-700"
+                : item.status === "On Hold"
+                ? "text-orange-700"
                 : "text-red-700"
             }
           >
@@ -39,9 +44,28 @@ const ProjectCard = ({ item }: { item: Partial<Project> }) => {
         </View>
       </View>
 
-      <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center gap-2 mb-4">
         <MaterialIcons name="business" size={16} color="#A82F39" />
         <Text>{item.clientName}</Text>
+      </View>
+
+      <View
+        style={{
+          flexWrap: "wrap",
+        }}
+        className="flex-row gap-2"
+      >
+        {RenderBadge("PO#", item.poNumber)}
+        {RenderBadge("PO Image", item.poImage)}
+        {RenderBadge("Client Contact", item.clientPhone)}
+        {RenderBadge("Survey Photos", item.surveyPhotos)}
+        {RenderBadge("Quotation#", item.quotationReference)}
+        {RenderBadge("Quotation Image", item.quotationImage)}
+        {RenderBadge("JC#", item.jcReference)}
+        {RenderBadge("JC Image", item.jcImage)}
+        {RenderBadge("DC#", item.dcReference)}
+        {RenderBadge("DC Image", item.dcImage)}
+        {RenderBadge("Remarks", item.remarks)}
       </View>
 
       <Divider className="my-4" />
