@@ -22,7 +22,7 @@ const statusOptions = [
 
 // Helper function to format dates
 const formatDate = (date: Date | null | string): string => {
-  if (!date) return "N/A";
+  if (!date) return "No date";
 
   if (typeof date === "string") {
     date = new Date(date);
@@ -34,7 +34,7 @@ const formatDate = (date: Date | null | string): string => {
         month: "short",
         day: "numeric",
       })
-    : "N/A";
+    : "None";
 };
 
 // Helper function to format multiple visit dates
@@ -79,44 +79,40 @@ const ComplaintTableRow = ({
 
   return (
     <TouchableOpacity
-      // onPress={() => router.push(`/screens/admin/complaintDetails/${item.id}`)}
+      onPress={() => router.push(`/screens/complaint/${item.id}`)}
       className={`flex-row py-4 border-b border-gray-200 items-center ${
         isEvenRow ? "bg-white" : "bg-gray-50"
       }`}
     >
       <View className="w-40 px-3">
-        <Text className="text-gray-800 font-medium">{item.clientName}</Text>
-
-        <View className="flex-row items-center mt-1">
-          <View
-            className={`px-2 py-1 rounded-full ${
+        <Text className="text-gray-800 text-lg font-medium">
+          {item.clientName}
+        </Text>
+        <View
+          className={`px-2 w-16 items-center py-1 rounded-full ${
+            item.priority === "High"
+              ? "bg-red-100"
+              : item.priority === "Medium"
+              ? "bg-orange-100"
+              : "bg-blue-100"
+          }`}
+        >
+          <Text
+            className={`text-xs ${
               item.priority === "High"
-                ? "bg-red-100"
+                ? "text-red-800"
                 : item.priority === "Medium"
-                ? "bg-orange-100"
-                : "bg-blue-100"
+                ? "text-orange-800"
+                : "text-blue-800"
             }`}
           >
-            <Text
-              className={`text-xs ${
-                item.priority === "High"
-                  ? "text-red-800"
-                  : item.priority === "Medium"
-                  ? "text-orange-800"
-                  : "text-blue-800"
-              }`}
-            >
-              {item.priority}
-            </Text>
-          </View>
-          <Text className="text-xs text-gray-500 ml-2">
-            #{item.complaintReference}
+            {item.priority}
           </Text>
         </View>
       </View>
 
       <View
-        className={`w-40 px-3 py-2 ${
+        className={`w-40 h-full px-3 py-2 ${
           hasValue(item.visitDates) && item.visitDates.length > 0
             ? "bg-green-50"
             : "bg-red-50"
@@ -154,7 +150,7 @@ const ComplaintTableRow = ({
             hasValue(item.quotation) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.quotation || "N/A"}
+          {item.quotation || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.quotationDate)}
@@ -178,7 +174,7 @@ const ComplaintTableRow = ({
             hasValue(item.poNumber) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.poNumber || "N/A"}
+          {item.poNumber || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.poDate)}
@@ -202,7 +198,7 @@ const ComplaintTableRow = ({
             hasValue(item.dcReference) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.dcReference || "N/A"}
+          {item.dcReference || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.dcDate)}
@@ -226,7 +222,7 @@ const ComplaintTableRow = ({
             hasValue(item.jcReference) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.jcReference || "N/A"}
+          {item.jcReference || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.jcDate)}
@@ -246,7 +242,7 @@ const ComplaintTableRow = ({
             hasValue(item.remarks) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.remarks || "N/A"}
+          {item.remarks || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.remarksDate)}
@@ -279,14 +275,12 @@ const ComplaintTableRow = ({
             {item.status}
           </Text>
         </View>
-        {item.dueDate && (
-          <View className="flex-row items-center mt-2">
-            <MaterialIcons name="event" size={12} color="#6B7280" />
-            <Text className="text-xs text-gray-500 ml-1">
-              Due: {formatDate(item.dueDate)}
-            </Text>
-          </View>
-        )}
+        <View className="flex-row items-center mt-2">
+          <MaterialIcons name="event" size={12} color="#6B7280" />
+          <Text className="text-xs text-gray-500 ml-1">
+            Due: {formatDate(item.dueDate)}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -350,7 +344,7 @@ const Complaints = () => {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/screens/admin/createComplaint")}
+                onPress={() => router.push("/screens/createComplaint")}
                 className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
               >
                 <MaterialIcons name="add" size={20} color="white" />

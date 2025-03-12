@@ -22,7 +22,7 @@ const statusOptions = [
 
 // Helper function to format dates
 const formatDate = (date: Date | null | string): string => {
-  if (!date) return "N/A";
+  if (!date) return "No date";
 
   if (typeof date === "string") {
     date = new Date(date);
@@ -34,7 +34,7 @@ const formatDate = (date: Date | null | string): string => {
         month: "short",
         day: "numeric",
       })
-    : "N/A";
+    : "None";
 };
 
 const hasValue = (value: any): boolean => {
@@ -67,10 +67,12 @@ const InvoiceTableRow = ({ item, index }: { item: Invoice; index: number }) => {
       }`}
     >
       <View className="w-40 px-3">
-        <Text className="text-gray-800 font-medium">{item.clientName}</Text>
+        <Text className="text-gray-800 text-lg font-medium">
+          {item.clientName}
+        </Text>
         <View className="flex-row items-center mt-1">
           <Text className="text-xs text-gray-500">
-            #{item.invoiceReference}
+            {item.invoiceReference ? item.invoiceReference : "No reference"}
           </Text>
         </View>
       </View>
@@ -92,7 +94,7 @@ const InvoiceTableRow = ({ item, index }: { item: Invoice; index: number }) => {
             hasValue(item.poNumber) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.poNumber || "N/A"}
+          {item.poNumber || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.poDate)}
@@ -116,7 +118,7 @@ const InvoiceTableRow = ({ item, index }: { item: Invoice; index: number }) => {
             hasValue(item.dcReference) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.dcReference || "N/A"}
+          {item.dcReference || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.dcDate)}
@@ -140,7 +142,7 @@ const InvoiceTableRow = ({ item, index }: { item: Invoice; index: number }) => {
             hasValue(item.jcReference) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.jcReference || "N/A"}
+          {item.jcReference || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.jcDate)}
@@ -164,7 +166,7 @@ const InvoiceTableRow = ({ item, index }: { item: Invoice; index: number }) => {
             hasValue(item.invoiceReference) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.invoiceReference || "N/A"}
+          {item.invoiceReference || "None"}
         </Text>
         <View className="flex-row justify-between">
           <Text className="text-xs text-gray-500 mt-1">
@@ -199,14 +201,12 @@ const InvoiceTableRow = ({ item, index }: { item: Invoice; index: number }) => {
             {item.status}
           </Text>
         </View>
-        {item.dueDate && (
-          <View className="flex-row items-center mt-2">
-            <MaterialIcons name="event" size={12} color="#6B7280" />
-            <Text className="text-xs text-gray-500 ml-1">
-              Due: {formatDate(item.dueDate)}
-            </Text>
-          </View>
-        )}
+        <View className="flex-row items-center mt-2">
+          <MaterialIcons name="event" size={12} color="#6B7280" />
+          <Text className="text-xs text-gray-500 ml-1">
+            Due: {formatDate(item.dueDate)}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -268,7 +268,7 @@ const Invoices = () => {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/screens/admin/createInvoice")}
+                onPress={() => router.push("/screens/createInvoice")}
                 className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
               >
                 <MaterialIcons name="add" size={20} color="white" />

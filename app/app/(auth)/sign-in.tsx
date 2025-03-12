@@ -36,6 +36,7 @@ const SignIn = () => {
   };
 
   const roles = [
+    { label: "Director", value: "admin" },
     { label: "Admin", value: "admin" },
     { label: "Department Head", value: "head" },
     { label: "Worker", value: "user" },

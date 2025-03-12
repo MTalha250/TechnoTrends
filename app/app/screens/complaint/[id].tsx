@@ -19,6 +19,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import axios from "axios";
 import InputField from "@/components/inputField";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import PhotosUploader from "@/components/uploader";
 
 const getInitials = (name: string) => {
   return name
@@ -45,9 +46,9 @@ const getAvatarColor = (name: string) => {
   return colors[index % colors.length];
 };
 
-const ProjectDetail = () => {
+const ComplaintDetail = () => {
   const { id } = useLocalSearchParams();
-  const [project, setProject] = useState<Project | null>(null);
+  const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [loading, setLoading] = useState(true);
   const [heads, setHeads] = useState<Head[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -57,6 +58,10 @@ const ProjectDetail = () => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentDatePickerIndex, setCurrentDatePickerIndex] = useState<
+    number | null
+  >(null);
+  const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -69,21 +74,59 @@ const ProjectDetail = () => {
     }
   };
 
+  const handleVisitDateChange = (event: any, selectedDate?: Date) => {
+    setShowVisitDatePicker(Platform.OS === "ios");
+    if (selectedDate && currentDatePickerIndex !== null) {
+      const newVisitDates = [...(complaint?.visitDates || [])];
+      newVisitDates[currentDatePickerIndex] = selectedDate;
+
+      setComplaint((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          visitDates: newVisitDates.map((date) => new Date(date)),
+        };
+      });
+    }
+  };
+
+  const addVisitDate = () => {
+    setComplaint((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        visitDates: [...(prev.visitDates || []), new Date()],
+      };
+    });
+  };
+
+  const removeVisitDate = (index: number) => {
+    setComplaint((prev) => {
+      if (!prev) return prev;
+      const newVisitDates = [...(prev.visitDates || [])];
+      newVisitDates.splice(index, 1);
+      return {
+        ...prev,
+        visitDates: newVisitDates,
+      };
+    });
+  };
+
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
 
-  const fetchProject = async () => {
+  const fetchComplaint = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<Project>(
-        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}`
+      const response = await axios.get<Complaint>(
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`
       );
-      setProject(response.data);
-      if (response.data.assignedHead) {
+      setComplaint(response.data);
+      if (response.data.head) {
         setSelectedHead(response.data.head.id.toString());
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to fetch project details");
+      Alert.alert("Error", "Failed to fetch complaint details");
     } finally {
       setLoading(false);
     }
@@ -101,64 +144,61 @@ const ProjectDetail = () => {
   };
 
   useEffect(() => {
-    fetchProject();
+    fetchComplaint();
     fetchHeads();
   }, [id]);
 
   const handleSaveChanges = async () => {
-    if (
-      !project?.title ||
-      !project?.description ||
-      !project?.clientName ||
-      !project?.clientPhone ||
-      !project?.dueDate ||
-      !project?.poNumber ||
-      !project?.quotationReference
-    ) {
-      Alert.alert("Error", "Please fill all fields");
+    if (!complaint?.clientName || !complaint?.dueDate || !complaint?.priority) {
+      Alert.alert("Error", "Please fill all the fields");
       return;
     }
+    console.log(complaint.visitDates);
     try {
       setSaving(true);
-      await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/projects/${id}`, {
-        title: project?.title,
-        description: project?.description,
-        clientName: project?.clientName,
-        clientPhone: project?.clientPhone,
-        dueDate: project?.dueDate,
-        poNumber: project?.poNumber,
-        quotationReference: project?.quotationReference,
+      await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`, {
+        clientName: complaint?.clientName,
+        description: complaint?.description,
+        visitDates: complaint?.visitDates,
+        dueDate: complaint?.dueDate,
+        complaintReference: complaint?.complaintReference,
+        priority: complaint?.priority,
+        photos: complaint?.photos,
+        poNumber: complaint?.poNumber,
+        remarks: complaint?.remarks,
+        dcReference: complaint?.dcReference,
+        jcReference: complaint?.jcReference,
+        quotation: complaint?.quotation,
       });
-      Alert.alert("Success", "Project updated successfully");
+      Alert.alert("Success", "Complaint updated successfully");
       setEditMode(false);
-      fetchProject();
+      fetchComplaint();
     } catch (error) {
-      console.log("Error updating project", error);
-      Alert.alert("Error", "Failed to update project");
+      Alert.alert("Error", "Failed to update complaint");
+      console.log("Error saving complaint:", error);
     } finally {
       setSaving(false);
     }
   };
 
-  // Assign head
   const handleAssignHead = async () => {
     if (!selectedHead) return;
 
     try {
       await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}/assign-head`,
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}/assign-head`,
         { head_id: selectedHead }
       );
       Alert.alert("Success", "Head assigned successfully");
       setModalVisible(false);
-      fetchProject();
+      fetchComplaint();
     } catch (error) {
       Alert.alert("Error", "Failed to assign head");
     }
   };
 
   const handleFieldChange = (field: string, value: string) => {
-    setProject((prev) => {
+    setComplaint((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
@@ -261,21 +301,106 @@ const ProjectDetail = () => {
     );
   };
 
-  // Helper functions
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "pending":
         return "bg-yellow-200 text-yellow-800";
-      case "completed":
-        return "bg-green-200 text-green-800";
       case "in progress":
         return "bg-blue-200 text-blue-800";
+      case "resolved":
+        return "bg-green-200 text-green-800";
+      case "closed":
+        return "bg-gray-200 text-gray-800";
       default:
         return "bg-gray-200 text-gray-800";
     }
   };
 
   // Section Components
+  const VisitDatesSection = () => {
+    const formattedVisitDates = (complaint?.visitDates || [])
+      .map((date) => new Date(date).toLocaleDateString())
+      .join(", ");
+
+    return (
+      <View className="mb-6">
+        <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+          Visit Dates
+        </Text>
+
+        {!editMode ? (
+          <View className="flex-row items-center bg-white rounded-xl border border-gray-200 p-4">
+            <MaterialIcons
+              name="event"
+              size={24}
+              color="#6B7280"
+              style={{ marginRight: 10 }}
+            />
+            <Text className="text-black">
+              {formattedVisitDates || "No visit dates scheduled"}
+            </Text>
+          </View>
+        ) : (
+          <View>
+            {(complaint?.visitDates || []).map((date, index) => (
+              <View key={index} className="flex-row items-center mb-2">
+                <View className="flex-1 flex-row items-center bg-white rounded-xl border border-gray-200 p-4">
+                  <MaterialIcons
+                    name="event"
+                    size={24}
+                    color="#6B7280"
+                    style={{ marginRight: 10 }}
+                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setCurrentDatePickerIndex(index);
+                      setShowVisitDatePicker(true);
+                    }}
+                    className="flex-1"
+                  >
+                    <Text className="text-black">
+                      {new Date(date).toLocaleDateString()}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  onPress={() => removeVisitDate(index)}
+                  className="ml-2 bg-red-500 p-2 rounded-full"
+                >
+                  <MaterialIcons name="remove" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+            ))}
+
+            {currentDatePickerIndex !== null && showVisitDatePicker && (
+              <DateTimePicker
+                value={
+                  complaint?.visitDates &&
+                  complaint.visitDates[currentDatePickerIndex]
+                    ? new Date(complaint.visitDates[currentDatePickerIndex])
+                    : new Date()
+                }
+                mode="date"
+                accentColor="#A82F39"
+                onChange={handleVisitDateChange}
+              />
+            )}
+
+            <TouchableOpacity
+              onPress={addVisitDate}
+              className="mt-2 bg-primary p-3 rounded-xl flex-row items-center justify-center"
+            >
+              <MaterialIcons name="add" size={24} color="white" />
+              <Text className="text-white ml-2 font-medium">
+                Add Visit Date
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const AssignedPersonnelSection = () => (
     <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
       <Text className="text-lg font-bold mb-4">Assigned Personnel</Text>
@@ -286,17 +411,17 @@ const ProjectDetail = () => {
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
             <Avatar
-              name={project?.head?.name || "Not Assigned"}
+              name={complaint?.head?.name || "Not Assigned"}
               size="medium"
             />
             <View className="ml-3">
               <Text className="font-semibold">
-                {project?.head?.name || "Not assigned"}
+                {complaint?.head?.name || "Not assigned"}
               </Text>
-              <Text className="text-gray-500 text-sm">Project Head</Text>
+              <Text className="text-gray-500 text-sm">Complaint Head</Text>
             </View>
           </View>
-          {project?.status !== "Completed" && (
+          {complaint?.status !== "Completed" && (
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
               className="bg-primary px-4 py-2 rounded-lg"
@@ -308,11 +433,11 @@ const ProjectDetail = () => {
       </View>
 
       {/* Assigned Workers */}
-      {project?.assignedWorkers && project.assignedWorkers.length > 0 && (
+      {complaint?.users && complaint.users.length > 0 && (
         <View>
           <Text className="font-medium mb-3">Workers:</Text>
           <View className="gap-4">
-            {project?.assignedWorkers.map((worker) => (
+            {complaint?.users.map((worker) => (
               <View key={worker.id} className="flex-row items-center">
                 <Avatar name={worker.name} size="medium" />
                 <View className="ml-3">
@@ -329,32 +454,28 @@ const ProjectDetail = () => {
 
   const ImagesSection = () => (
     <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-      <Text className="text-lg font-bold mb-4">Project Documents</Text>
-
-      {[
-        { label: "PO Image", image: project?.poImage },
-        { label: "Quotation Image", image: project?.quotationImage },
-        { label: "JC Image", image: project?.jcImage },
-        { label: "DC Image", image: project?.dcImage },
-      ].map(
-        (doc, index) =>
-          doc.image && (
-            <ImageThumbnail
-              key={index}
-              imageUrl={doc.image || ""}
-              label={doc.label}
-              size="full"
-            />
-          )
+      <Text className="text-lg font-bold mb-4">Photos</Text>
+      {editMode ? (
+        <PhotosUploader
+          maxPhotos={5}
+          addedPhotos={complaint?.photos || []}
+          onChange={(photos) =>
+            setComplaint((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                photos: photos,
+              };
+            })
+          }
+        />
+      ) : (
+        <ScrollView horizontal className="gap-4">
+          {complaint?.photos?.map((photo, index) => (
+            <ImageThumbnail key={index} imageUrl={photo} size="thumbnail" />
+          ))}
+        </ScrollView>
       )}
-
-      {/* Survey Photos */}
-      <Text className="font-medium mb-2">Survey Photos:</Text>
-      <ScrollView horizontal className="gap-4">
-        {project?.surveyPhotos.map((photo, index) => (
-          <ImageThumbnail key={index} imageUrl={photo} size="thumbnail" />
-        ))}
-      </ScrollView>
     </View>
   );
 
@@ -366,13 +487,13 @@ const ProjectDetail = () => {
     );
   }
 
-  if (!project) {
+  if (!complaint) {
     return (
       <View className="flex-1 items-center justify-center p-4">
         <Text className="text-red-600 text-center mb-4">
-          {"Project not found"}
+          {"Complaint not found"}
         </Text>
-        <Button mode="contained" onPress={fetchProject}>
+        <Button mode="contained" onPress={fetchComplaint}>
           Retry
         </Button>
       </View>
@@ -393,19 +514,21 @@ const ProjectDetail = () => {
             </TouchableOpacity>
             <View>
               <Text className="text-2xl font-bold text-gray-800">
-                Project Details
+                Complaint Details
               </Text>
               <Text className="text-gray-600">
-                View details of the selected project
+                View details of the selected complaint
               </Text>
             </View>
           </View>
-          <View
-            className={`px-3 py-1 rounded-full ${getStatusColor(
-              project.status
-            )}`}
-          >
-            <Text className="font-medium">{project.status}</Text>
+          <View className="flex-row gap-2">
+            <View
+              className={`px-3 py-1 rounded-full ${getStatusColor(
+                complaint.status
+              )}`}
+            >
+              <Text className="font-medium">{complaint.status}</Text>
+            </View>
           </View>
         </View>
 
@@ -427,52 +550,48 @@ const ProjectDetail = () => {
             <ActivityIndicator color="white" />
           ) : (
             <Text className="text-white text-center font-semibold">
-              {editMode ? "Save Changes" : "Edit Project"}
+              {editMode ? "Save Changes" : "Edit Complaint"}
             </Text>
           )}
         </TouchableOpacity>
 
-        {/* Project Details Form */}
+        {/* Complaint Details Form */}
         <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <InputField
-            label="Project Title"
-            value={project.title || ""}
+            label="Client"
+            value={complaint.clientName || ""}
             icon="title"
-            onChangeText={(value) => handleFieldChange("title", value)}
-            readonly={!editMode}
-            placeholder="Enter project title"
-          />
-          <InputField
-            label="Description"
-            value={project.description || ""}
-            icon="description"
-            onChangeText={(value) => handleFieldChange("description", value)}
-            readonly={!editMode}
-          />
-          <InputField
-            label="Client Name"
-            value={project.clientName || ""}
-            icon="person"
             onChangeText={(value) => handleFieldChange("clientName", value)}
             readonly={!editMode}
             placeholder="Enter client name"
           />
           <InputField
-            label="Client Phone"
-            value={project.clientPhone || ""}
-            icon="phone"
-            onChangeText={(value) => handleFieldChange("clientPhone", value)}
+            label="Complaint Description"
+            value={complaint.description || ""}
+            icon="description"
+            onChangeText={(value) => handleFieldChange("description", value)}
             readonly={!editMode}
-            placeholder="Enter client phone"
+            placeholder="Enter complaint description"
+          />
+          <InputField
+            label="Complaint Reference"
+            value={complaint.complaintReference || ""}
+            icon="bookmark"
+            onChangeText={(value) =>
+              handleFieldChange("complaintReference", value)
+            }
+            readonly={!editMode}
+            placeholder="Enter complaint reference"
           />
           {!editMode ? (
             <InputField
               label="Due Date"
               value={
-                project.dueDate ? new Date(project.dueDate).toDateString() : ""
+                complaint.dueDate
+                  ? new Date(complaint.dueDate).toDateString()
+                  : ""
               }
               icon="event"
-              onChangeText={(value) => handleFieldChange("dueDate", value)}
               readonly
               placeholder="Select due date"
             />
@@ -493,8 +612,8 @@ const ProjectDetail = () => {
                     style={{ marginRight: 10 }}
                   />
                   <Text className="text-black">
-                    {project.dueDate
-                      ? project.dueDate.toLocaleDateString()
+                    {complaint.dueDate
+                      ? new Date(complaint.dueDate).toLocaleDateString()
                       : "Select due date"}
                   </Text>
                 </TouchableOpacity>
@@ -503,7 +622,7 @@ const ProjectDetail = () => {
               {(showDatePicker || Platform.OS === "ios") && (
                 <DateTimePicker
                   value={
-                    project.dueDate ? new Date(project.dueDate) : new Date()
+                    complaint.dueDate ? new Date(complaint.dueDate) : new Date()
                   }
                   mode="date"
                   minimumDate={new Date()}
@@ -513,49 +632,74 @@ const ProjectDetail = () => {
               )}
             </View>
           )}
-          <InputField
-            label="PO Number"
-            value={project.poNumber || ""}
-            icon="assignment"
-            onChangeText={(value) => handleFieldChange("poNumber", value)}
-            readonly={!editMode}
-            placeholder="Enter PO number"
-          />
-          <InputField
-            label="Quotation Reference"
-            value={project.quotationReference || ""}
-            icon="description"
-            onChangeText={(value) =>
-              handleFieldChange("quotationReference", value)
-            }
-            readonly={!editMode}
-            placeholder="Enter quotation reference"
-          />
+
+          {/* Visit Dates Section */}
+          <VisitDatesSection />
+
+          {editMode && (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                Priority
+              </Text>
+              <Dropdown
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: 12,
+                  borderColor: "#ddd",
+                  borderWidth: 1,
+                  padding: 14,
+                }}
+                placeholderStyle={{ color: "#6b7280" }}
+                selectedTextStyle={{ color: "#374151" }}
+                data={[
+                  { label: "Low", value: "Low" },
+                  { label: "Medium", value: "Medium" },
+                  { label: "High", value: "High" },
+                ]}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Priority"
+                value={complaint.priority}
+                onChange={(item) => handleFieldChange("priority", item.value)}
+              />
+            </View>
+          )}
           <InputField
             label="JC Reference"
-            value={project.jcReference || ""}
+            value={complaint.jcReference || ""}
             icon="work"
+            readonly={!editMode}
             onChangeText={(value) => handleFieldChange("jcReference", value)}
-            readonly
-            placeholder="Enter JC reference"
+            placeholder="JC reference"
           />
           <InputField
             label="DC Reference"
-            value={project.dcReference || ""}
-            icon="description"
+            value={complaint.dcReference || ""}
+            icon="work"
+            readonly={!editMode}
+            placeholder="DC reference"
             onChangeText={(value) => handleFieldChange("dcReference", value)}
-            readonly
-            placeholder="Enter DC reference"
+          />
+          <InputField
+            label="Quotation"
+            value={complaint.quotation || ""}
+            icon="work"
+            readonly={!editMode}
+            placeholder="Quotation"
+            onChangeText={(value) => handleFieldChange("quotation", value)}
+          />
+          <InputField
+            label="Remarks"
+            value={complaint.remarks || ""}
+            icon="comment"
+            readonly={!editMode}
+            placeholder="Remarks"
+            onChangeText={(value) => handleFieldChange("remarks", value)}
           />
         </View>
-
-        {/* Assigned Personnel Section */}
         <AssignedPersonnelSection />
-
-        {/* Images Section */}
         <ImagesSection />
 
-        {/* Assign Head Modal */}
         <Portal>
           <Modal
             visible={modalVisible}
@@ -567,7 +711,9 @@ const ProjectDetail = () => {
               borderRadius: 12,
             }}
           >
-            <Text className="text-lg font-bold mb-4">Assign Project Head</Text>
+            <Text className="text-lg font-bold mb-4">
+              Assign Complaint Head
+            </Text>
             <Dropdown
               style={{
                 backgroundColor: "white",
@@ -598,9 +744,7 @@ const ProjectDetail = () => {
                 Cancel
               </Button>
               <Button
-                onPress={() => {
-                  handleAssignHead();
-                }}
+                onPress={handleAssignHead}
                 mode="contained"
                 style={{ flex: 1, backgroundColor: "#A82F39" }}
               >
@@ -624,4 +768,4 @@ const ProjectDetail = () => {
   );
 };
 
-export default ProjectDetail;
+export default ComplaintDetail;

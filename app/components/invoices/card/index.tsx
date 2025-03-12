@@ -55,7 +55,7 @@ const InvoiceCard = ({ item }: { item: Partial<Invoice> }) => {
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() => router.push(`/screens/admin/invoice/${item.id}`)}
+          onPress={() => router.push(`/screens/invoice/${item.id}`)}
           className="flex-row items-center gap-2 bg-primary px-4 py-2 rounded-lg"
         >
           <Text className="text-white">Details</Text>

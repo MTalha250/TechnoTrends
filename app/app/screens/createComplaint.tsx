@@ -26,14 +26,18 @@ const priorities = [
 
 const CreateComplaint = () => {
   const [complaint, setComplaint] = useState<Partial<Complaint>>({
-    title: "",
-    description: "",
     clientName: "",
-    clientPhone: "",
+    description: "",
+    visitDates: [],
+    photos: [],
+    quotation: "",
+    poNumber: "",
+    jcReference: "",
+    dcReference: "",
+    remarks: "",
     complaintReference: "",
     priority: undefined,
     dueDate: null,
-    complaintImage: "",
   });
   const { user } = useAuthStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -57,16 +61,7 @@ const CreateComplaint = () => {
   };
 
   const handleSubmit = async () => {
-    if (
-      !complaint.title ||
-      !complaint.description ||
-      !complaint.clientName ||
-      !complaint.clientPhone ||
-      !complaint.priority ||
-      !complaint.dueDate ||
-      !complaint.complaintReference ||
-      !complaint.complaintImage
-    ) {
+    if (!complaint.clientName || !complaint.priority || !complaint.dueDate) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -79,14 +74,18 @@ const CreateComplaint = () => {
       });
       Alert.alert("Success", "Complaint created successfully");
       setComplaint({
-        title: "",
-        description: "",
         clientName: "",
-        clientPhone: "",
+        description: "",
+        visitDates: [],
+        photos: [],
+        quotation: "",
+        poNumber: "",
+        jcReference: "",
+        dcReference: "",
+        remarks: "",
         complaintReference: "",
         priority: undefined,
         dueDate: null,
-        complaintImage: "",
       });
       router.back();
     } catch (error) {
@@ -118,77 +117,28 @@ const CreateComplaint = () => {
           </View>
 
           <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-            {/* Complaint Reference */}
             <InputField
-              label="Complaint Reference"
-              value={complaint.complaintReference || ""}
-              onChangeText={(text) => handleChange("complaintReference", text)}
-              icon="bookmark"
-              placeholder="Enter complaint reference"
-              required
-            />
-
-            {/* Complaint Image */}
-            <View className="mb-6">
-              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Complaint Image <Text className="text-red-500">*</Text>
-              </Text>
-              <PhotosUploader
-                addedPhotos={
-                  complaint.complaintImage ? [complaint.complaintImage] : []
-                }
-                onChange={(photos) =>
-                  setComplaint((prev) => ({
-                    ...prev,
-                    complaintImage: photos[0],
-                  }))
-                }
-                maxPhotos={1}
-              />
-            </View>
-
-            {/* Client Name */}
-            <InputField
-              label="Client Name"
+              label="Client"
               value={complaint.clientName || ""}
               onChangeText={(text) => handleChange("clientName", text)}
               icon="person"
               placeholder="Enter client name"
               required
             />
-
-            {/* Client Phone */}
-            <InputField
-              label="Client Phone"
-              value={complaint.clientPhone || ""}
-              onChangeText={(text) => handleChange("clientPhone", text)}
-              icon="phone"
-              placeholder="Enter client phone"
-              keyboardType="phone-pad"
-              required
-            />
-
-            {/* Complaint Title */}
-            <InputField
-              label="Complaint Title"
-              value={complaint.title || ""}
-              onChangeText={(text) => handleChange("title", text)}
-              icon="title"
-              placeholder="Enter complaint title"
-              required
-            />
-
-            {/* Complaint Description */}
             <InputField
               label="Complaint Description"
               value={complaint.description || ""}
               onChangeText={(text) => handleChange("description", text)}
               icon="description"
               placeholder="Enter complaint description"
-              required
             />
-
-            {/* Priority Dropdown */}
+            <InputField
+              label="Complaint Reference"
+              value={complaint.complaintReference || ""}
+              onChangeText={(text) => handleChange("complaintReference", text)}
+              icon="bookmark"
+              placeholder="Enter complaint reference"
+            />
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-2">
                 Priority <Text className="text-red-500">*</Text>
@@ -216,8 +166,21 @@ const CreateComplaint = () => {
                 />
               </View>
             </View>
-
-            {/* Due Date */}
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
+                Photos (Max 5) <Text className="text-gray-400">(Optional)</Text>
+              </Text>
+              <PhotosUploader
+                addedPhotos={complaint.photos || []}
+                onChange={(photos) =>
+                  setComplaint((prev) => ({
+                    ...prev,
+                    photos: photos,
+                  }))
+                }
+                maxPhotos={5}
+              />
+            </View>
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
                 Due Date <Text className="text-red-500">*</Text>

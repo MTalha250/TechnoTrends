@@ -22,7 +22,7 @@ const statusOptions = [
 
 // Helper function to format dates
 const formatDate = (date: Date | null | string): string => {
-  if (!date) return "N/A";
+  if (!date) return "No date";
 
   if (typeof date === "string") {
     date = new Date(date);
@@ -34,7 +34,7 @@ const formatDate = (date: Date | null | string): string => {
         month: "short",
         day: "numeric",
       })
-    : "N/A";
+    : "None";
 };
 
 const hasValue = (value: any): boolean => {
@@ -63,15 +63,17 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
 
   return (
     <TouchableOpacity
-      // onPress={() => router.push(`/screens/admin/projectDetails/${item.id}`)}
+      onPress={() => router.push(`/screens/project/${item.id}`)}
       className={`flex-row py-4 border-b border-gray-200 items-center ${
         isEvenRow ? "bg-white" : "bg-gray-50"
       }`}
     >
       <View className="w-40 px-3">
-        <Text className="text-gray-800 font-medium">{item.clientName}</Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {item.description || "N/A"}
+        <Text className="text-gray-800 text-lg font-medium">
+          {item.clientName}
+        </Text>
+        <Text numberOfLines={1} className="text-xs text-gray-500">
+          {item.description || "No description"}
         </Text>
       </View>
 
@@ -105,7 +107,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
       </View>
 
       <View
-        className={`w-32 px-3 py-2 ${
+        className={`w-32 h-full px-3 py-2 ${
           hasValue(item.quotationReference) && hasValue(item.quotationDate)
             ? "bg-green-50"
             : "bg-red-50"
@@ -122,7 +124,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
               : "text-red-700"
           } font-medium`}
         >
-          {item.quotationReference || "N/A"}
+          {item.quotationReference || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.quotationDate)}
@@ -145,7 +147,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
             hasValue(item.poNumber) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.poNumber || "N/A"}
+          {item.poNumber || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.poDate)}
@@ -168,7 +170,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
             hasValue(item.dcReference) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.dcReference || "N/A"}
+          {item.dcReference || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.dcDate)}
@@ -191,7 +193,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
             hasValue(item.jcReference) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.jcReference || "N/A"}
+          {item.jcReference || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.jcDate)}
@@ -211,7 +213,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
             hasValue(item.remarks) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.remarks || "N/A"}
+          {item.remarks || "None"}
         </Text>
         <Text className="text-xs text-gray-500 mt-1">
           {formatDate(item.remarksDate)}
@@ -244,14 +246,12 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
             {item.status}
           </Text>
         </View>
-        {item.dueDate && (
-          <View className="flex-row items-center mt-2">
-            <MaterialIcons name="event" size={12} color="#6B7280" />
-            <Text className="text-xs text-gray-500 ml-1">
-              Due: {formatDate(item.dueDate)}
-            </Text>
-          </View>
-        )}
+        <View className="flex-row items-center mt-2">
+          <MaterialIcons name="event" size={12} color="#6B7280" />
+          <Text className="text-xs text-gray-500 ml-1">
+            Due: {formatDate(item.dueDate)}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -312,7 +312,7 @@ const Projects = () => {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/screens/admin/createProject")}
+                onPress={() => router.push("/screens/createProject")}
                 className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
               >
                 <MaterialIcons name="add" size={20} color="white" />

@@ -28,6 +28,7 @@ const InputField: React.FC<InputFieldProps> = ({
     {label && (
       <Text className="text-gray-600 font-medium mb-2 text-sm uppercase tracking-wide">
         {label} {required && <Text className="text-red-500">*</Text>}
+        {!required && <Text className="text-gray-400">(Optional)</Text>}
       </Text>
     )}
     <View

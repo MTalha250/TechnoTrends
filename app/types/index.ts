@@ -3,7 +3,7 @@ type Admin = {
   name: string;
   email: string;
   phone: string;
-  is_director: boolean;
+  isDirector: boolean;
   status: "Pending" | "Approved" | "Rejected";
   created_at: string;
   updated_at: string;

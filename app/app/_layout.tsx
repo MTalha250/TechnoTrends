@@ -42,27 +42,27 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="screens/profile" options={{ headerShown: false }} />
         <Stack.Screen
-          name="screens/admin/createProject"
+          name="screens/createProject"
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="screens/admin/createComplaint"
+          name="screens/createComplaint"
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="screens/admin/createInvoice"
+          name="screens/createInvoice"
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="screens/admin/project/[id]"
+          name="screens/project/[id]"
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="screens/admin/complaint/[id]"
+          name="screens/complaint/[id]"
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="screens/admin/invoice/[id]"
+          name="screens/invoice/[id]"
           options={{ headerShown: false }}
         />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />

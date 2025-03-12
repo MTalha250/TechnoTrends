@@ -51,7 +51,6 @@ const InvoiceDetail = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/invoices/${id}`
       );
       setInvoice(response.data);
-      console.log(response.data);
     } catch (error) {
       Alert.alert("Error", "Failed to fetch invoice details");
     } finally {
@@ -187,9 +186,7 @@ const InvoiceDetail = () => {
       <Text className="text-lg font-bold mb-4">Linked Project</Text>
       {invoice?.linkedProject ? (
         <TouchableOpacity
-          onPress={() =>
-            router.push(`/screens/admin/project/${invoice.project.id}`)
-          }
+          onPress={() => router.push(`/screens/project/${invoice.project.id}`)}
           className="flex-row items-center justify-between"
         >
           <View>

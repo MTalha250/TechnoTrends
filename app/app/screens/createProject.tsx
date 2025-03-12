@@ -19,15 +19,14 @@ import { ActivityIndicator } from "react-native-paper";
 
 const CreateProject = () => {
   const [project, setProject] = useState<Partial<Project>>({
-    title: "",
-    description: "",
-    poNumber: "",
-    poImage: "",
     clientName: "",
-    clientPhone: "",
+    description: "",
     surveyPhotos: [],
     quotationReference: "",
-    quotationImage: "",
+    poNumber: "",
+    jcReference: "",
+    dcReference: "",
+    remarks: "",
     dueDate: null,
   });
   const { user } = useAuthStore();
@@ -49,18 +48,7 @@ const CreateProject = () => {
   };
 
   const handleSubmit = async () => {
-    if (
-      !project.poNumber ||
-      !project.poImage ||
-      !project.title ||
-      !project.description ||
-      !project.clientName ||
-      !project.clientPhone ||
-      !project.quotationReference ||
-      !project.quotationImage ||
-      !project.surveyPhotos?.length ||
-      !project.dueDate
-    ) {
+    if (!project.clientName || !project.dueDate) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -73,15 +61,14 @@ const CreateProject = () => {
       });
       Alert.alert("Success", "Project created successfully");
       setProject({
-        title: "",
-        description: "",
-        poNumber: "",
-        poImage: "",
         clientName: "",
-        clientPhone: "",
+        description: "",
         surveyPhotos: [],
         quotationReference: "",
-        quotationImage: "",
+        poNumber: "",
+        jcReference: "",
+        dcReference: "",
+        remarks: "",
         dueDate: null,
       });
       router.back();
@@ -116,31 +103,11 @@ const CreateProject = () => {
 
           <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
             <InputField
-              label="Project Order Number"
-              value={project.poNumber || ""}
-              onChangeText={(text) => handleChange("poNumber", text)}
-              icon="assignment"
-              placeholder="Enter project order number"
-              required
-            />
-            <View className="mb-6">
-              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Project Order Image <Text className="text-red-500">*</Text>
-              </Text>
-              <PhotosUploader
-                addedPhotos={project.poImage ? [project.poImage] : []}
-                onChange={(photos) =>
-                  setProject((prev) => ({ ...prev, poImage: photos[0] }))
-                }
-                maxPhotos={1}
-              />
-            </View>
-            <InputField
-              label="Project Title"
-              value={project.title || ""}
-              onChangeText={(text) => handleChange("title", text)}
-              icon="title"
-              placeholder="Enter project title"
+              label="Client"
+              value={project.clientName || ""}
+              onChangeText={(text) => handleChange("clientName", text)}
+              icon="person"
+              placeholder="Enter client name"
               required
             />
             <InputField
@@ -149,54 +116,46 @@ const CreateProject = () => {
               onChangeText={(text) => handleChange("description", text)}
               icon="description"
               placeholder="Enter project description"
-              required
             />
-
             <InputField
-              label="Client Name"
-              value={project.clientName || ""}
-              onChangeText={(text) => handleChange("clientName", text)}
-              icon="person"
-              placeholder="Enter client name"
-              required
+              label="PO Number"
+              value={project.poNumber || ""}
+              onChangeText={(text) => handleChange("poNumber", text)}
+              icon="assignment"
+              placeholder="Enter project order number"
             />
-
             <InputField
-              label="Client Phone"
-              placeholder="Enter client phone number"
-              value={project.clientPhone || ""}
-              onChangeText={(text) => handleChange("clientPhone", text)}
-              icon="phone"
-              keyboardType="phone-pad"
-              required
-            />
-
-            <InputField
-              label="Quotation Reference"
+              label="Quotation"
               placeholder="Enter quotation reference"
               value={project.quotationReference || ""}
               onChangeText={(text) => handleChange("quotationReference", text)}
               icon="description"
-              required
+            />
+            <InputField
+              label="JC Reference"
+              placeholder="Enter JC reference"
+              value={project.jcReference || ""}
+              onChangeText={(text) => handleChange("jcReference", text)}
+              icon="work"
+            />
+            <InputField
+              label="DC Reference"
+              placeholder="Enter DC reference"
+              value={project.dcReference || ""}
+              onChangeText={(text) => handleChange("dcReference", text)}
+              icon="description"
+            />
+            <InputField
+              label="Remarks"
+              placeholder="Enter remarks"
+              value={project.remarks || ""}
+              onChangeText={(text) => handleChange("remarks", text)}
+              icon="description"
             />
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Quotation Image <Text className="text-red-500">*</Text>
-              </Text>
-              <PhotosUploader
-                addedPhotos={
-                  project.quotationImage ? [project.quotationImage] : []
-                }
-                onChange={(photos) =>
-                  setProject((prev) => ({ ...prev, quotationImage: photos[0] }))
-                }
-                maxPhotos={1}
-              />
-            </View>
-
-            <View className="mb-6">
-              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Survey Photos (Max 5) <Text className="text-red-500">*</Text>
+                Survey Photos (Max 5){" "}
+                <Text className="text-gray-400">(Optional)</Text>
               </Text>
               <PhotosUploader
                 addedPhotos={project.surveyPhotos || []}

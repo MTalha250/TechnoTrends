@@ -12,7 +12,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import InputField from "@/components/inputField";
 import { Dropdown } from "react-native-element-dropdown";
-import PhotosUploader from "@/components/uploader";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
 import { ActivityIndicator } from "react-native-paper";
@@ -24,7 +23,6 @@ const paymentTerms = [
 
 interface Invoice {
   invoiceReference: string;
-  invoiceImage: string;
   linkedProject: string;
   amount: string;
   paymentTerms: string;
@@ -35,7 +33,6 @@ interface Invoice {
 const CreateInvoice = () => {
   const [invoice, setInvoice] = useState<Invoice>({
     invoiceReference: "",
-    invoiceImage: "",
     linkedProject: "",
     amount: "",
     paymentTerms: "Cash",
@@ -78,8 +75,6 @@ const CreateInvoice = () => {
 
   const handleSubmit = async () => {
     if (
-      !invoice.invoiceReference ||
-      !invoice.invoiceImage ||
       !invoice.linkedProject ||
       !invoice.amount ||
       !invoice.paymentTerms ||
@@ -101,7 +96,6 @@ const CreateInvoice = () => {
       Alert.alert("Success", "Invoice created successfully");
       setInvoice({
         invoiceReference: "",
-        invoiceImage: "",
         linkedProject: "",
         amount: "",
         paymentTerms: "Cash",
@@ -144,21 +138,7 @@ const CreateInvoice = () => {
               value={invoice.invoiceReference || ""}
               onChangeText={(text) => handleChange("invoiceReference", text)}
               icon="description"
-              required
             />
-
-            <View className="mb-6">
-              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Invoice Image <Text className="text-red-500">*</Text>
-              </Text>
-              <PhotosUploader
-                addedPhotos={invoice.invoiceImage ? [invoice.invoiceImage] : []}
-                onChange={(photos) =>
-                  setInvoice((prev) => ({ ...prev, invoiceImage: photos[0] }))
-                }
-                maxPhotos={1}
-              />
-            </View>
 
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-2">
@@ -179,7 +159,7 @@ const CreateInvoice = () => {
                   }}
                   placeholderStyle={{ color: "#9CA3AF" }}
                   data={projects}
-                  labelField="title"
+                  labelField="clientName"
                   valueField="id"
                   placeholder="Select Project"
                   value={invoice.linkedProject}
