@@ -25,13 +25,8 @@ const InvoiceDetail = () => {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageModalVisible, setImageModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const screenWidth = Dimensions.get("window").width;
-  const screenHeight = Dimensions.get("window").height;
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -80,6 +75,9 @@ const InvoiceDetail = () => {
         paymentTerms: invoice?.paymentTerms,
         creditDays: invoice?.creditDays,
         dueDate: invoice?.dueDate,
+        poNumber: invoice?.poNumber,
+        dcReference: invoice?.dcReference,
+        jcReference: invoice?.jcReference,
       });
       Alert.alert("Success", "Invoice updated successfully");
       setEditMode(false);
@@ -118,82 +116,23 @@ const InvoiceDetail = () => {
     }
   };
 
-  // Image viewer components
-  const ImageViewerModal = ({
-    visible,
-    imageUrl,
-    onClose,
-  }: {
-    visible: boolean;
-    imageUrl: string;
-    onClose: () => void;
-  }) => (
-    <RNModal
-      animationType="fade"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <View className="flex-1 bg-black">
-        <TouchableOpacity
-          onPress={onClose}
-          className="absolute top-12 right-4 z-10 p-2 bg-black/50 rounded-full"
-        >
-          <MaterialIcons name="close" size={24} color="white" />
-        </TouchableOpacity>
-
-        <View className="flex-1 items-center justify-center">
-          <Image
-            source={{ uri: imageUrl }}
-            style={{ width: screenWidth, height: screenHeight * 0.8 }}
-            resizeMode="contain"
-          />
-        </View>
-      </View>
-    </RNModal>
-  );
-
-  const ImageThumbnail = ({
-    imageUrl,
-    label,
-  }: {
-    imageUrl: string;
-    label?: string;
-  }) => {
-    return (
-      <TouchableOpacity
-        onPress={() => {
-          setSelectedImage(imageUrl);
-          setImageModalVisible(true);
-        }}
-        className="relative mb-4"
-      >
-        {label && <Text className="font-medium mb-2">{label}:</Text>}
-        <Image
-          source={{ uri: imageUrl }}
-          className="w-full h-48 rounded-lg"
-          resizeMode="cover"
-        />
-        <View className="absolute bottom-2 right-2 bg-black/50 rounded-full p-2">
-          <MaterialIcons name="fullscreen" size={20} color="white" />
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   const LinkedProjectSection = () => (
     <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
       <Text className="text-lg font-bold mb-4">Linked Project</Text>
-      {invoice?.linkedProject ? (
+      {invoice?.project ? (
         <TouchableOpacity
           onPress={() => router.push(`/screens/project/${invoice.project.id}`)}
           className="flex-row items-center justify-between"
         >
           <View>
             <Text className="font-semibold text-lg">
-              {invoice.project.title}
+              {invoice.project.clientName}
             </Text>
-            <Text className="text-gray-600">{invoice.project.clientName}</Text>
+            <Text className="text-gray-600">
+              {invoice.project.description
+                ? invoice.project.description
+                : "No description"}
+            </Text>
           </View>
           <MaterialIcons name="chevron-right" size={24} color="#374151" />
         </TouchableOpacity>
@@ -225,7 +164,7 @@ const InvoiceDetail = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView className="flex-1 container my-6">
         {/* Header */}
         <View className="flex-row items-center justify-between mb-6">
@@ -392,31 +331,32 @@ const InvoiceDetail = () => {
               )}
             </View>
           )}
+          <InputField
+            label="PO Number"
+            value={invoice.poNumber || ""}
+            icon="receipt"
+            onChangeText={(value) => handleFieldChange("poNumber", value)}
+            readonly={!editMode}
+            placeholder="Enter PO number"
+          />
+          <InputField
+            label="DC Reference"
+            value={invoice.dcReference || ""}
+            icon="receipt"
+            onChangeText={(value) => handleFieldChange("dcReference", value)}
+            readonly={!editMode}
+            placeholder="Enter DC reference"
+          />
+          <InputField
+            label="JC Reference"
+            value={invoice.jcReference || ""}
+            icon="receipt"
+            onChangeText={(value) => handleFieldChange("jcReference", value)}
+            readonly={!editMode}
+            placeholder="Enter JC reference"
+          />
         </View>
-
-        {/* Linked Project Section */}
         <LinkedProjectSection />
-
-        {/* Invoice Image Section */}
-        {invoice.invoiceImage && (
-          <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-            <Text className="text-lg font-bold mb-4">Invoice Document</Text>
-            <ImageThumbnail
-              imageUrl={invoice.invoiceImage}
-              label="Invoice Image"
-            />
-          </View>
-        )}
-
-        {/* Full Screen Image Modal */}
-        <ImageViewerModal
-          visible={imageModalVisible}
-          imageUrl={selectedImage || ""}
-          onClose={() => {
-            setImageModalVisible(false);
-            setSelectedImage(null);
-          }}
-        />
       </ScrollView>
     </SafeAreaView>
   );

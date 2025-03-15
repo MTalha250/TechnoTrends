@@ -48,8 +48,8 @@ const CreateProject = () => {
   };
 
   const handleSubmit = async () => {
-    if (!project.clientName || !project.dueDate) {
-      Alert.alert("Error", "Please fill in all required fields");
+    if (!project.clientName) {
+      Alert.alert("Error", "Client name is required");
       return;
     }
     try {
@@ -82,7 +82,7 @@ const CreateProject = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView className="flex-1 container">
         <View className="my-6">
           {/* Header */}
@@ -110,6 +110,7 @@ const CreateProject = () => {
               placeholder="Enter client name"
               required
             />
+
             <InputField
               label="Project Description"
               value={project.description || ""}
@@ -121,7 +122,7 @@ const CreateProject = () => {
               label="PO Number"
               value={project.poNumber || ""}
               onChangeText={(text) => handleChange("poNumber", text)}
-              icon="assignment"
+              icon="receipt"
               placeholder="Enter project order number"
             />
             <InputField
@@ -129,47 +130,32 @@ const CreateProject = () => {
               placeholder="Enter quotation reference"
               value={project.quotationReference || ""}
               onChangeText={(text) => handleChange("quotationReference", text)}
-              icon="description"
+              icon="attach-money"
             />
             <InputField
               label="JC Reference"
               placeholder="Enter JC reference"
               value={project.jcReference || ""}
               onChangeText={(text) => handleChange("jcReference", text)}
-              icon="work"
+              icon="receipt"
             />
             <InputField
               label="DC Reference"
               placeholder="Enter DC reference"
               value={project.dcReference || ""}
               onChangeText={(text) => handleChange("dcReference", text)}
-              icon="description"
+              icon="receipt"
             />
             <InputField
               label="Remarks"
               placeholder="Enter remarks"
               value={project.remarks || ""}
               onChangeText={(text) => handleChange("remarks", text)}
-              icon="description"
+              icon="notes"
             />
             <View className="mb-6">
-              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
-                Survey Photos (Max 5){" "}
-                <Text className="text-gray-400">(Optional)</Text>
-              </Text>
-              <PhotosUploader
-                addedPhotos={project.surveyPhotos || []}
-                onChange={(photos) =>
-                  setProject((prev) => ({ ...prev, surveyPhotos: photos }))
-                }
-                maxPhotos={5}
-              />
-            </View>
-
-            {/* Due Date */}
-            <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
-                Due Date <Text className="text-red-500">*</Text>
+                Due Date <Text className="text-gray-400">(Optional)</Text>
               </Text>
               {Platform.OS === "android" ? (
                 <TouchableOpacity
@@ -184,7 +170,7 @@ const CreateProject = () => {
                   />
                   <Text className="text-black">
                     {project.dueDate
-                      ? project.dueDate.toLocaleDateString()
+                      ? new Date(project.dueDate).toDateString()
                       : "Select due date"}
                   </Text>
                 </TouchableOpacity>
@@ -199,6 +185,19 @@ const CreateProject = () => {
                   onChange={handleDateChange}
                 />
               )}
+            </View>
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
+                Survey Photos (Max 5){" "}
+                <Text className="text-gray-400">(Optional)</Text>
+              </Text>
+              <PhotosUploader
+                addedPhotos={project.surveyPhotos || []}
+                onChange={(photos) =>
+                  setProject((prev) => ({ ...prev, surveyPhotos: photos }))
+                }
+                maxPhotos={5}
+              />
             </View>
           </View>
 

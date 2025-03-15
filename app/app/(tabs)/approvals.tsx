@@ -24,12 +24,12 @@ type ApprovalItem = {
 };
 
 type ApprovalData = {
-  heads: ApprovalItem[];
+  head: ApprovalItem[];
   admin: ApprovalItem[];
-  users: ApprovalItem[];
+  user: ApprovalItem[];
 };
 
-const typeOptions = ["All", "Heads", "Admin", "Users"];
+const typeOptions = ["All", "Admins", "Heads", "Users"];
 const statusOptions = ["All", "Pending", "Approved", "Rejected"];
 
 // Helper function to format dates
@@ -61,9 +61,9 @@ const ApprovalTableHeader = () => {
 
 const Approvals = () => {
   const [approvalData, setApprovalData] = useState<ApprovalData>({
-    heads: [],
+    head: [],
     admin: [],
-    users: [],
+    user: [],
   });
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -73,10 +73,14 @@ const Approvals = () => {
   const fetchApprovals = async () => {
     try {
       setRefreshing(true);
-      const response = await axios.get<ApprovalData>(
+      const response = await axios.get(
         `${process.env.EXPO_PUBLIC_API_URL}/pending/requests`
       );
-      setApprovalData(response.data);
+      setApprovalData({
+        head: response.data.heads,
+        admin: response.data.admin,
+        user: response.data.users,
+      });
     } catch (error) {
       console.error("Error fetching approvals:", error);
     } finally {
@@ -90,13 +94,13 @@ const Approvals = () => {
 
   const updateApprovalStatus = async (
     id: number,
-    type: "heads" | "admin" | "users",
+    type: "head" | "admin" | "user",
     status: "approved" | "rejected" | "pending"
   ) => {
     setRefreshing(true);
     try {
       // Adjust endpoint according to your API structure
-      await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/api/${type}/${id}`, {
+      await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/${type}/${id}`, {
         status,
       });
 
@@ -117,17 +121,17 @@ const Approvals = () => {
 
   // Combine and filter all approval items
   const getAllApprovalItems = () => {
-    let allItems: (ApprovalItem & { type: "heads" | "admin" | "users" })[] = [];
+    let allItems: (ApprovalItem & { type: "head" | "admin" | "user" })[] = [];
 
     // Add type property to each item for later identification
-    approvalData.heads.forEach((item) =>
-      allItems.push({ ...item, type: "heads" })
+    approvalData.head.forEach((item) =>
+      allItems.push({ ...item, type: "head" })
     );
     approvalData.admin.forEach((item) =>
       allItems.push({ ...item, type: "admin" })
     );
-    approvalData.users.forEach((item) =>
-      allItems.push({ ...item, type: "users" })
+    approvalData.user.forEach((item) =>
+      allItems.push({ ...item, type: "user" })
     );
 
     return allItems;
@@ -138,7 +142,8 @@ const Approvals = () => {
       selectedStatus === "All" || item.status === selectedStatus.toLowerCase();
 
     const matchesTypeFilter =
-      selectedType === "All" || item.type === selectedType.toLowerCase();
+      selectedType === "All" ||
+      item.type === selectedType.slice(0, -1).toLowerCase();
 
     const matchesSearch =
       (item.name?.toLowerCase() || "").includes(searchText.toLowerCase()) ||
@@ -155,7 +160,7 @@ const Approvals = () => {
     item,
     index,
   }: {
-    item: ApprovalItem & { type: "heads" | "admin" | "users" };
+    item: ApprovalItem & { type: "head" | "admin" | "user" };
     index: number;
   }) => {
     const isEvenRow = index % 2 === 0;
@@ -189,7 +194,7 @@ const Approvals = () => {
         <View className="w-40 px-3 mx-1">
           <View
             className={`py-2 px-3 rounded-full ${
-              item.type === "heads"
+              item.type === "head"
                 ? "bg-blue-100"
                 : item.type === "admin"
                 ? "bg-purple-100"
@@ -198,14 +203,14 @@ const Approvals = () => {
           >
             <Text
               className={`text-xs text-center font-semibold ${
-                item.type === "heads"
+                item.type === "head"
                   ? "text-blue-800"
                   : item.type === "admin"
                   ? "text-purple-800"
                   : "text-green-800"
               }`}
             >
-              {item.type === "heads"
+              {item.type === "head"
                 ? "Department Head"
                 : item.type === "admin"
                 ? "Administrator"

@@ -19,7 +19,8 @@ export default function RootLayout() {
       if (
         pathname !== "/projects" &&
         pathname !== "/complaints" &&
-        pathname !== "/invoices"
+        pathname !== "/invoices" &&
+        pathname !== "/approvals"
       ) {
         await ScreenOrientation.lockAsync(
           ScreenOrientation.OrientationLock.PORTRAIT_UP

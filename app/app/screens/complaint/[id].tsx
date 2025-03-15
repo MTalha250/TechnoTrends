@@ -58,13 +58,13 @@ const ComplaintDetail = () => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [currentDatePickerIndex, setCurrentDatePickerIndex] = useState<
-    number | null
-  >(null);
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
-
+  const [visitDate, setVisitDate] = useState<Date | null>(null);
   const showDatePickerModal = () => {
     setShowDatePicker(true);
+  };
+  const showVisitDatePickerModal = () => {
+    setShowVisitDatePicker(true);
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -76,40 +76,9 @@ const ComplaintDetail = () => {
 
   const handleVisitDateChange = (event: any, selectedDate?: Date) => {
     setShowVisitDatePicker(Platform.OS === "ios");
-    if (selectedDate && currentDatePickerIndex !== null) {
-      const newVisitDates = [...(complaint?.visitDates || [])];
-      newVisitDates[currentDatePickerIndex] = selectedDate;
-
-      setComplaint((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          visitDates: newVisitDates.map((date) => new Date(date)),
-        };
-      });
+    if (selectedDate) {
+      setVisitDate(selectedDate);
     }
-  };
-
-  const addVisitDate = () => {
-    setComplaint((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        visitDates: [...(prev.visitDates || []), new Date()],
-      };
-    });
-  };
-
-  const removeVisitDate = (index: number) => {
-    setComplaint((prev) => {
-      if (!prev) return prev;
-      const newVisitDates = [...(prev.visitDates || [])];
-      newVisitDates.splice(index, 1);
-      return {
-        ...prev,
-        visitDates: newVisitDates,
-      };
-    });
   };
 
   const screenWidth = Dimensions.get("window").width;
@@ -153,7 +122,6 @@ const ComplaintDetail = () => {
       Alert.alert("Error", "Please fill all the fields");
       return;
     }
-    console.log(complaint.visitDates);
     try {
       setSaving(true);
       await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`, {
@@ -317,90 +285,6 @@ const ComplaintDetail = () => {
   };
 
   // Section Components
-  const VisitDatesSection = () => {
-    const formattedVisitDates = (complaint?.visitDates || [])
-      .map((date) => new Date(date).toLocaleDateString())
-      .join(", ");
-
-    return (
-      <View className="mb-6">
-        <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
-          Visit Dates
-        </Text>
-
-        {!editMode ? (
-          <View className="flex-row items-center bg-white rounded-xl border border-gray-200 p-4">
-            <MaterialIcons
-              name="event"
-              size={24}
-              color="#6B7280"
-              style={{ marginRight: 10 }}
-            />
-            <Text className="text-black">
-              {formattedVisitDates || "No visit dates scheduled"}
-            </Text>
-          </View>
-        ) : (
-          <View>
-            {(complaint?.visitDates || []).map((date, index) => (
-              <View key={index} className="flex-row items-center mb-2">
-                <View className="flex-1 flex-row items-center bg-white rounded-xl border border-gray-200 p-4">
-                  <MaterialIcons
-                    name="event"
-                    size={24}
-                    color="#6B7280"
-                    style={{ marginRight: 10 }}
-                  />
-                  <TouchableOpacity
-                    onPress={() => {
-                      setCurrentDatePickerIndex(index);
-                      setShowVisitDatePicker(true);
-                    }}
-                    className="flex-1"
-                  >
-                    <Text className="text-black">
-                      {new Date(date).toLocaleDateString()}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity
-                  onPress={() => removeVisitDate(index)}
-                  className="ml-2 bg-red-500 p-2 rounded-full"
-                >
-                  <MaterialIcons name="remove" size={24} color="white" />
-                </TouchableOpacity>
-              </View>
-            ))}
-
-            {currentDatePickerIndex !== null && showVisitDatePicker && (
-              <DateTimePicker
-                value={
-                  complaint?.visitDates &&
-                  complaint.visitDates[currentDatePickerIndex]
-                    ? new Date(complaint.visitDates[currentDatePickerIndex])
-                    : new Date()
-                }
-                mode="date"
-                accentColor="#A82F39"
-                onChange={handleVisitDateChange}
-              />
-            )}
-
-            <TouchableOpacity
-              onPress={addVisitDate}
-              className="mt-2 bg-primary p-3 rounded-xl flex-row items-center justify-center"
-            >
-              <MaterialIcons name="add" size={24} color="white" />
-              <Text className="text-white ml-2 font-medium">
-                Add Visit Date
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    );
-  };
-
   const AssignedPersonnelSection = () => (
     <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
       <Text className="text-lg font-bold mb-4">Assigned Personnel</Text>
@@ -501,7 +385,7 @@ const ComplaintDetail = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView className="flex-1 container my-6">
         {/* Header */}
         <View className="flex-row items-center justify-between mb-6">
@@ -560,83 +444,13 @@ const ComplaintDetail = () => {
           <InputField
             label="Client"
             value={complaint.clientName || ""}
-            icon="title"
+            icon="person"
             onChangeText={(value) => handleFieldChange("clientName", value)}
             readonly={!editMode}
             placeholder="Enter client name"
+            required
           />
-          <InputField
-            label="Complaint Description"
-            value={complaint.description || ""}
-            icon="description"
-            onChangeText={(value) => handleFieldChange("description", value)}
-            readonly={!editMode}
-            placeholder="Enter complaint description"
-          />
-          <InputField
-            label="Complaint Reference"
-            value={complaint.complaintReference || ""}
-            icon="bookmark"
-            onChangeText={(value) =>
-              handleFieldChange("complaintReference", value)
-            }
-            readonly={!editMode}
-            placeholder="Enter complaint reference"
-          />
-          {!editMode ? (
-            <InputField
-              label="Due Date"
-              value={
-                complaint.dueDate
-                  ? new Date(complaint.dueDate).toDateString()
-                  : ""
-              }
-              icon="event"
-              readonly
-              placeholder="Select due date"
-            />
-          ) : (
-            <View className="mb-6">
-              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
-                Due Date
-              </Text>
-              {Platform.OS === "android" ? (
-                <TouchableOpacity
-                  onPress={showDatePickerModal}
-                  className="flex-row items-center bg-white rounded-xl border border-gray-200 p-4"
-                >
-                  <MaterialIcons
-                    name="event"
-                    size={24}
-                    color="#6B7280"
-                    style={{ marginRight: 10 }}
-                  />
-                  <Text className="text-black">
-                    {complaint.dueDate
-                      ? new Date(complaint.dueDate).toLocaleDateString()
-                      : "Select due date"}
-                  </Text>
-                </TouchableOpacity>
-              ) : null}
-
-              {(showDatePicker || Platform.OS === "ios") && (
-                <DateTimePicker
-                  value={
-                    complaint.dueDate ? new Date(complaint.dueDate) : new Date()
-                  }
-                  mode="date"
-                  minimumDate={new Date()}
-                  accentColor="#A82F39"
-                  onChange={handleDateChange}
-                />
-              )}
-            </View>
-          )}
-
-          {/* Visit Dates Section */}
-          <VisitDatesSection />
-
-          {editMode && (
+          {editMode ? (
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
                 Priority
@@ -663,11 +477,104 @@ const ComplaintDetail = () => {
                 onChange={(item) => handleFieldChange("priority", item.value)}
               />
             </View>
+          ) : (
+            <InputField
+              label="Priority"
+              value={complaint.priority || ""}
+              icon="priority-high"
+              readonly
+              placeholder="Priority"
+              required
+            />
           )}
+          {!editMode ? (
+            <InputField
+              label="Due Date"
+              value={
+                complaint.dueDate
+                  ? new Date(complaint.dueDate).toDateString()
+                  : ""
+              }
+              icon="event"
+              readonly
+              placeholder="Select due date"
+              required
+            />
+          ) : (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                Due Date
+              </Text>
+              {Platform.OS === "android" ? (
+                <TouchableOpacity
+                  onPress={showDatePickerModal}
+                  className="flex-row items-center bg-white rounded-xl border border-gray-200 p-4"
+                >
+                  <MaterialIcons
+                    name="event"
+                    size={24}
+                    color="#6B7280"
+                    style={{ marginRight: 10 }}
+                  />
+                  <Text className="text-black">
+                    {complaint.dueDate
+                      ? new Date(complaint.dueDate).toDateString()
+                      : "Select due date"}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
+              {(showDatePicker || Platform.OS === "ios") && (
+                <DateTimePicker
+                  value={
+                    complaint.dueDate ? new Date(complaint.dueDate) : new Date()
+                  }
+                  mode="date"
+                  minimumDate={new Date()}
+                  accentColor="#A82F39"
+                  onChange={handleDateChange}
+                />
+              )}
+            </View>
+          )}
+          <InputField
+            label="Complaint Description"
+            value={complaint.description || ""}
+            icon="description"
+            onChangeText={(value) => handleFieldChange("description", value)}
+            readonly={!editMode}
+            placeholder="Enter complaint description"
+          />
+          <InputField
+            label="Complaint Reference"
+            value={complaint.complaintReference || ""}
+            icon="bookmark"
+            onChangeText={(value) =>
+              handleFieldChange("complaintReference", value)
+            }
+            readonly={!editMode}
+            placeholder="Enter complaint reference"
+          />
+          <InputField
+            label="Quotation"
+            value={complaint.quotation || ""}
+            icon="attach-money"
+            readonly={!editMode}
+            placeholder="Quotation"
+            onChangeText={(value) => handleFieldChange("quotation", value)}
+          />
+          <InputField
+            label="PO Number"
+            value={complaint.poNumber || ""}
+            icon="receipt"
+            readonly={!editMode}
+            placeholder="PO number"
+            onChangeText={(value) => handleFieldChange("poNumber", value)}
+          />
           <InputField
             label="JC Reference"
             value={complaint.jcReference || ""}
-            icon="work"
+            icon="receipt"
             readonly={!editMode}
             onChangeText={(value) => handleFieldChange("jcReference", value)}
             placeholder="JC reference"
@@ -675,27 +582,129 @@ const ComplaintDetail = () => {
           <InputField
             label="DC Reference"
             value={complaint.dcReference || ""}
-            icon="work"
+            icon="receipt"
             readonly={!editMode}
             placeholder="DC reference"
             onChangeText={(value) => handleFieldChange("dcReference", value)}
           />
           <InputField
-            label="Quotation"
-            value={complaint.quotation || ""}
-            icon="work"
-            readonly={!editMode}
-            placeholder="Quotation"
-            onChangeText={(value) => handleFieldChange("quotation", value)}
-          />
-          <InputField
             label="Remarks"
             value={complaint.remarks || ""}
-            icon="comment"
+            icon="notes"
             readonly={!editMode}
             placeholder="Remarks"
             onChangeText={(value) => handleFieldChange("remarks", value)}
           />
+          {editMode ? (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                Visit Dates <Text className="text-gray-400">(Optional)</Text>
+              </Text>
+              <View className="flex-row items-center">
+                {Platform.OS === "android" ? (
+                  <TouchableOpacity
+                    onPress={showVisitDatePickerModal}
+                    className="flex-row items-center bg-white rounded-xl border border-gray-200 p-4"
+                  >
+                    <MaterialIcons
+                      name="event"
+                      size={24}
+                      color="#6B7280"
+                      style={{ marginRight: 10 }}
+                    />
+                    <Text className="text-black">
+                      {visitDate
+                        ? new Date(visitDate).toDateString()
+                        : "Select visit date"}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+
+                {(showVisitDatePicker || Platform.OS === "ios") && (
+                  <DateTimePicker
+                    value={visitDate || new Date()}
+                    mode="date"
+                    minimumDate={new Date()}
+                    accentColor="#A82F39"
+                    onChange={handleVisitDateChange}
+                  />
+                )}
+                <TouchableOpacity
+                  onPress={() => {
+                    if (visitDate) {
+                      setComplaint((prev) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          visitDates: [...(prev.visitDates || []), visitDate],
+                        };
+                      });
+                      setVisitDate(null);
+                    } else {
+                      Alert.alert("Error", "Please select a visit date");
+                    }
+                  }}
+                  className="bg-primary rounded-full p-2 ml-4"
+                >
+                  <MaterialIcons name="add" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              <View className="flex-row flex-wrap mt-4">
+                {complaint.visitDates?.map((date, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                  >
+                    <Text>
+                      {new Date(date).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setComplaint((prev) => {
+                          if (!prev) return prev;
+                          return {
+                            ...prev,
+                            visitDates: prev.visitDates?.filter(
+                              (d) => d !== date
+                            ),
+                          };
+                        })
+                      }
+                      className="ml-2"
+                    >
+                      <MaterialIcons name="close" size={20} color="#A82F39" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                Visit Dates
+              </Text>
+              <View className="flex-row flex-wrap">
+                {complaint.visitDates?.map((date, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                  >
+                    <Text>
+                      {new Date(date).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
         <AssignedPersonnelSection />
         <ImagesSection />

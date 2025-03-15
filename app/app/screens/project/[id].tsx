@@ -371,7 +371,7 @@ const ProjectDetail = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView className="flex-1 container my-6">
         {/* Header */}
         <View className="flex-row items-center justify-between mb-6">
@@ -428,7 +428,7 @@ const ProjectDetail = () => {
           <InputField
             label="Client"
             value={project.clientName || ""}
-            icon="title"
+            icon="person"
             onChangeText={(value) => handleFieldChange("clientName", value)}
             readonly={!editMode}
             placeholder="Enter client name"
@@ -446,15 +446,15 @@ const ProjectDetail = () => {
           <InputField
             label="PO Number"
             value={project.poNumber || ""}
-            icon="assignment"
+            icon="receipt"
             onChangeText={(value) => handleFieldChange("poNumber", value)}
             readonly={!editMode}
             placeholder="Enter PO number"
           />
           <InputField
-            label="Quotation Reference"
+            label="Quotation"
             value={project.quotationReference || ""}
-            icon="description"
+            icon="attach-money"
             onChangeText={(value) =>
               handleFieldChange("quotationReference", value)
             }
@@ -464,7 +464,7 @@ const ProjectDetail = () => {
           <InputField
             label="JC Reference"
             value={project.jcReference || ""}
-            icon="work"
+            icon="receipt"
             onChangeText={(value) => handleFieldChange("jcReference", value)}
             readonly={!editMode}
             placeholder="Enter JC reference"
@@ -472,7 +472,7 @@ const ProjectDetail = () => {
           <InputField
             label="DC Reference"
             value={project.dcReference || ""}
-            icon="description"
+            icon="receipt"
             onChangeText={(value) => handleFieldChange("dcReference", value)}
             readonly={!editMode}
             placeholder="Enter DC reference"
@@ -480,7 +480,7 @@ const ProjectDetail = () => {
           <InputField
             label="Remarks"
             value={project.remarks || ""}
-            icon="description"
+            icon="notes"
             onChangeText={(value) => handleFieldChange("remarks", value)}
             readonly={!editMode}
             placeholder="Enter remarks"
@@ -514,7 +514,7 @@ const ProjectDetail = () => {
                   />
                   <Text className="text-black">
                     {project.dueDate
-                      ? project.dueDate.toLocaleDateString()
+                      ? new Date(project.dueDate).toDateString()
                       : "Select due date"}
                   </Text>
                 </TouchableOpacity>

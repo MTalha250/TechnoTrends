@@ -91,7 +91,7 @@ const CreateInvoice = () => {
       setLoading(true);
       await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/invoices`, {
         ...invoice,
-        status: "Unpaid",
+        status: "Pending",
       });
       Alert.alert("Success", "Invoice created successfully");
       setInvoice({
@@ -112,7 +112,7 @@ const CreateInvoice = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView className="flex-1 container">
         <View className="my-6">
           {/* Header */}
@@ -236,7 +236,7 @@ const CreateInvoice = () => {
                   />
                   <Text className="text-black">
                     {invoice.dueDate
-                      ? invoice.dueDate.toLocaleDateString()
+                      ? new Date(invoice.dueDate).toDateString()
                       : "Select due date"}
                   </Text>
                 </TouchableOpacity>

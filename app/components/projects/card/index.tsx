@@ -6,14 +6,14 @@ import React from "react";
 
 const ProjectCard = ({ item }: { item: Partial<Project> }) => {
   return (
-    <View className="border-l-4 border-primary p-6 bg-white rounded-2xl shadow-sm mb-4">
-      <View className="flex-row justify-between items-start mb-4">
-        <View>
-          <Text className="text-xl font-bold mb-2">{item.clientName}</Text>
-          <Text>{item.description ? item.description : "No description"}</Text>
-        </View>
+    <View
+      className="p-6 bg-white rounded-2xl shadow-sm mb-2"
+      style={{ borderLeftWidth: 5, borderLeftColor: "#A82F39" }}
+    >
+      <View className="flex-row justify-between items-start">
+        <Text className="text-xl font-bold">{item.clientName}</Text>
         <View
-          className={`px-4 py-2 h-10 rounded-lg ${
+          className={`px-4 py-2 rounded-lg ${
             item.status === "Pending"
               ? "bg-yellow-100"
               : item.status === "In Progress"
@@ -38,8 +38,11 @@ const ProjectCard = ({ item }: { item: Partial<Project> }) => {
           </Text>
         </View>
       </View>
-      <Divider className="my-4" />
-      <View className="flex-row justify-between items-center">
+      <Text className="mb-4">
+        {item.description ? item.description : "No description"}
+      </Text>
+      <Divider />
+      <View className="flex-row justify-between items-center mt-4">
         <View className="flex-row items-center gap-2">
           <MaterialIcons name="calendar-today" size={20} color="#4b5563" />
           <Text>

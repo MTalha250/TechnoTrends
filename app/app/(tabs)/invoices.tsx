@@ -61,7 +61,7 @@ const InvoiceTableRow = ({ item, index }: { item: Invoice; index: number }) => {
 
   return (
     <TouchableOpacity
-      // onPress={() => router.push(`/screens/admin/invoiceDetails/${item.id}`)}
+      onPress={() => router.push(`/screens/invoice/${item.id}`)}
       className={`flex-row py-4 border-b border-gray-200 items-center ${
         isEvenRow ? "bg-white" : "bg-gray-50"
       }`}
@@ -240,7 +240,7 @@ const Invoices = () => {
     const matchesStatus =
       selectedStatus === "All" || invoice.status === selectedStatus;
     const matchesSearch =
-      invoice.clientName.toLowerCase().includes(searchText.toLowerCase()) ||
+      invoice.clientName?.toLowerCase().includes(searchText.toLowerCase()) ||
       invoice.invoiceReference
         .toLowerCase()
         .includes(searchText.toLowerCase()) ||
