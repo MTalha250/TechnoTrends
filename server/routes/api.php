@@ -9,7 +9,6 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProjectAssignedToUserController;
 use App\Http\Controllers\ComplaintAssignedToUserController;
 Route::post('/login', [AuthController::class, 'login']); // Create admin
