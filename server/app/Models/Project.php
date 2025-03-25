@@ -21,7 +21,6 @@ class Project extends Model
         'dcImage',
         'status',
         'assignedBy',
-        'assignedHead',
         'remarks',
         'dueDate',
         'poDate',
@@ -30,12 +29,20 @@ class Project extends Model
         'jcDate',
         'dcDate',
         'remarksDate',
+        'isJcDateEdited',
+        'isDcDateEdited',
+        'isQuotationDateEdited',
+        'isRemarksDateEdited',
+        'isSurveyDateEdited',
+        'isPoDateEdited',
+        'isDueDateEdited',
 
     ];
 
     protected $casts = [
         'surveyPhotos' => 'array',
-        'dueDate' => 'datetime',
+        'jcReference' => 'array',
+        'dcReference' => 'array',
     ];
 
     public function admin()
@@ -43,13 +50,19 @@ class Project extends Model
         return $this->belongsTo(Admin::class, 'assignedBy');
     }
 
-    public function head()
+    /*public function head()
     {
         return $this->belongsTo(Head::class, 'assignedHead');
-    }
+    }*/
 
     public function users()
     {
         return $this->belongsToMany(User::class, 'project_assigned_to_users');
     }
+
+    public function projectAssignedUsers()
+{
+    return $this->hasMany(ProjectAssignedToUsers::class);
+}
+
 }

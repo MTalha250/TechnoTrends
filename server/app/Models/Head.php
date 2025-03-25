@@ -24,7 +24,7 @@ class Head extends Model
     protected $hidden = [
         'password',
     ];
-    public function complaints()
+/*    public function complaints()
 {
     return $this->hasMany(Complaint::class, 'assignedHead');
 }
@@ -32,6 +32,6 @@ class Head extends Model
 public function projects()
 {
     return $this->hasMany(Project::class, 'assignedHead');
-}
+}*/
 
 }

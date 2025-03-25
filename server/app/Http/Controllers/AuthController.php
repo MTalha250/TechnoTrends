@@ -48,7 +48,8 @@ class AuthController extends Controller
                 $role = 'director';
             }
         } elseif ($role == 'head') {
-            $user = Head::with(['complaints', 'projects'])->where('email', $email)->first();
+         //   $user = Head::with(['complaints', 'projects'])->where('email', $email)->first();
+         $user = Head::where('email', $email)->first();
         } elseif ($role == 'user') {
             $user = User::with(['complaints', 'projects'])->where('email', $email)->first();
         } else {
@@ -90,7 +91,7 @@ class AuthController extends Controller
             $role = $user->isDirector ? 'director' : 'admin';
             Log::info('Admin data loaded', ['user_id' => $user->id]);
         } elseif ($user instanceof \App\Models\Head) {
-            $user->load(['complaints', 'projects']);
+           // $user->load(['complaints', 'projects']);
             $role = 'head';
             Log::info('Head data loaded', ['user_id' => $user->id]);
         } elseif ($user instanceof \App\Models\User) {
@@ -100,13 +101,6 @@ class AuthController extends Controller
         } else {
             Log::warning('Unknown user type encountered', ['user_id' => $user->id]);
         }
-    
-        Log::info('User details response prepared', [
-            'user_id' => $user->id,
-            'role' => $role,
-            'complaints_count' => $user->complaints->count() ?? 0,
-            'projects_count' => $user->projects->count() ?? 0,
-        ]);
     
         return response()->json([
             'role'=> $role,

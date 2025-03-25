@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Models\Head;
 
 
-
 class AdminController extends Controller
 {
     public function index()
@@ -118,5 +117,6 @@ public function getPendingHeadAdminsAndUsers()
         'users' => $users,
     ]);
 }
+
 
 }

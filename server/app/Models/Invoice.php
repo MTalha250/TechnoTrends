@@ -30,7 +30,8 @@ class Invoice extends Model
     ];
 
     protected $casts = [
-        'dueDate' => 'datetime',
+        'jcReference' => 'array',
+        'dcReference' => 'array',
     ];
 
     public function project()

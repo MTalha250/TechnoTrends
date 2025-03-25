@@ -9,6 +9,9 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ProjectAssignedToUserController;
+use App\Http\Controllers\ComplaintAssignedToUserController;
 Route::post('/login', [AuthController::class, 'login']); // Create admin
 Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
@@ -44,6 +47,8 @@ Route::prefix('user')->group(function () {
     Route::delete('/{id}', [UserController::class, 'destroy']); // Delete user
 });
 
+Route::put('/complaint-assigned-users/update/{id}', [ComplaintAssignedToUserController::class, 'updateComplaintAssignedToUser']);
+Route::put('/project-assigned-users/update/{id}', [ProjectAssignedToUserController::class, 'updateProjectAssignedToUser']);
 
 Route::post('projects/{id}/assign-head', [ProjectController::class, 'assignToHead']);
 Route::post('projects/{id}/assign-workers', [ProjectController::class, 'assignToWorkers']);

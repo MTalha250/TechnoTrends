@@ -18,7 +18,6 @@ class Complaint extends Model
         'description',
         'dueDate',
         'createdBy',
-        'assignedHead',
         'jcReference',
         'jcImage',
         'photos',
@@ -33,14 +32,21 @@ class Complaint extends Model
         'dcDate',
         'quotation',
         'quotationDate',
-        'remarksDate'
+        'remarksDate',
+        'isDcDateEdited',
+        'isJcDateEdited',
+        'isQuotationDateEdited',
+        'isRemarksDateEdited',
+        'isPoDateEdited',
+        'isDueDateEdited'
 
     ];
 
     protected $casts = [
         'photos' => 'array',
         'visitDates' => 'array',
-        'dueDate' => 'datetime',
+        'jcReference' => 'array',
+        'dcReference' => 'array',
     ];
 
     public function admin()
@@ -48,13 +54,19 @@ class Complaint extends Model
         return $this->belongsTo(Admin::class, 'createdBy');
     }
 
-    public function head()
+    /*public function head()
     {
         return $this->belongsTo(Head::class, 'assignedHead');
-    }
+    }*/
 
     public function users()
     {
         return $this->belongsToMany(User::class, 'complaints_assigned_to_users')->withTimestamps();
+    }
+
+
+    public function complaintAssignedUsers()
+    {
+        return $this->hasMany(complaintAssignedToUsers::class,'complaint_id');
     }
 }

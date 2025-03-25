@@ -11,5 +11,7 @@ class ProjectAssignedToUsers extends Model
     protected $fillable = [
         'project_id',
         'user_id',
+        'statusByUser',
+        'reason',
     ];
 }
