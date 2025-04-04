@@ -45,17 +45,22 @@ type Project = {
   surveyDate: Date | null;
   quotationReference: string;
   quotationDate: Date | null;
-  jcReference: string;
-  jcDate: Date | null;
-  dcReference: string;
-  dcDate: Date | null;
+  jcReferences: {
+    jcReference: string;
+    jcDate: Date | null;
+    isJcDateEdited: boolean;
+  }[];
+  dcReferences: {
+    dcReference: string;
+    dcDate: Date | null;
+    isDcDateEdited: boolean;
+  }[];
   status: "Pending" | "In Progress" | "Completed" | "Cancelled";
-  admin: Admin;
-  head: Head;
   users: User[];
   remarks: string;
   remarksDate: Date | null;
   dueDate: Date | null;
+  createdBy: string;
   created_at: string;
   updated_at: string;
 };
@@ -72,10 +77,16 @@ type Complaint = {
   head: Head;
   admin: Admin;
   users: User[];
-  jcReference: string;
-  jcDate: Date | null;
-  dcReference: string;
-  dcDate: Date | null;
+  jcReferences: {
+    jcReference: string;
+    jcDate: Date | null;
+    isJcDateEdited: boolean;
+  }[];
+  dcReferences: {
+    dcReference: string;
+    dcDate: Date | null;
+    isDcDateEdited: boolean;
+  }[];
   quotation: string;
   quotationDate: Date | null;
   photos: string[];
@@ -92,10 +103,16 @@ type Invoice = {
   clientName: string;
   poNumber: string;
   poDate: Date | null;
-  jcReference: string;
-  jcDate: Date | null;
-  dcReference: string;
-  dcDate: Date;
+  jcReferences: {
+    jcReference: string;
+    jcDate: Date | null;
+    isJcDateEdited: boolean;
+  }[];
+  dcReferences: {
+    dcReference: string;
+    dcDate: Date | null;
+    isDcDateEdited: boolean;
+  }[];
   invoiceReference: string;
   invoiceDate: Date | null;
   amount: string;

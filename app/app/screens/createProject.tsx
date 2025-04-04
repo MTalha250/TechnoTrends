@@ -18,19 +18,21 @@ import useAuthStore from "@/store/authStore";
 import { ActivityIndicator } from "react-native-paper";
 
 const CreateProject = () => {
-  const [project, setProject] = useState<Partial<Project>>({
+  const [project, setProject] = useState({
     clientName: "",
     description: "",
-    surveyPhotos: [],
+    surveyPhotos: [] as string[],
     quotationReference: "",
     poNumber: "",
-    jcReference: "",
-    dcReference: "",
+    jcReference: [] as { jcReference: string }[],
+    dcReference: [] as { dcReference: string }[],
     remarks: "",
     dueDate: null,
   });
   const { user } = useAuthStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [jcReference, setJcReference] = useState("");
+  const [dcReference, setDcReference] = useState("");
   const [loading, setLoading] = useState(false);
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -56,7 +58,7 @@ const CreateProject = () => {
       setLoading(true);
       await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/projects`, {
         ...project,
-        assignedBy: user?.id,
+        createdBy: user?.name,
         status: "Pending",
       });
       Alert.alert("Success", "Project created successfully");
@@ -66,8 +68,8 @@ const CreateProject = () => {
         surveyPhotos: [],
         quotationReference: "",
         poNumber: "",
-        jcReference: "",
-        dcReference: "",
+        jcReference: [],
+        dcReference: [],
         remarks: "",
         dueDate: null,
       });
@@ -132,20 +134,112 @@ const CreateProject = () => {
               onChangeText={(text) => handleChange("quotationReference", text)}
               icon="attach-money"
             />
-            <InputField
-              label="JC Reference"
-              placeholder="Enter JC reference"
-              value={project.jcReference || ""}
-              onChangeText={(text) => handleChange("jcReference", text)}
-              icon="receipt"
-            />
-            <InputField
-              label="DC Reference"
-              placeholder="Enter DC reference"
-              value={project.dcReference || ""}
-              onChangeText={(text) => handleChange("dcReference", text)}
-              icon="receipt"
-            />
+            <View className="flex-row items-center">
+              <InputField
+                label="JC Reference"
+                placeholder="Enter JC reference"
+                value={jcReference || ""}
+                onChangeText={(text) => setJcReference(text)}
+                icon="receipt"
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (jcReference) {
+                    setProject((prev) => ({
+                      ...prev,
+                      jcReference: [
+                        ...(prev.jcReference || []),
+                        { jcReference: jcReference },
+                      ],
+                    }));
+                    setJcReference("");
+                  } else {
+                    Alert.alert("Error", "Please select a visit date");
+                  }
+                }}
+                className="bg-primary rounded-full p-2 ml-4"
+              >
+                <MaterialIcons name="add" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            {project.jcReference?.length > 0 && (
+              <View className="flex-row flex-wrap mb-6">
+                {project.jcReference?.map((jc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                  >
+                    <Text>{jc.jcReference}</Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setProject((prev) => ({
+                          ...prev,
+                          jcReference: prev.jcReference?.filter(
+                            (_, i) => i !== index
+                          ),
+                        }))
+                      }
+                      className="ml-2"
+                    >
+                      <MaterialIcons name="close" size={20} color="#A82F39" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+            <View className="flex-row items-center">
+              <InputField
+                label="DC Reference"
+                placeholder="Enter DC reference"
+                value={dcReference || ""}
+                onChangeText={(text) => setDcReference(text)}
+                icon="receipt"
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (dcReference) {
+                    setProject((prev) => ({
+                      ...prev,
+                      dcReference: [
+                        ...(prev.dcReference || []),
+                        { dcReference: dcReference },
+                      ],
+                    }));
+                    setDcReference("");
+                  } else {
+                    Alert.alert("Error", "Please select a visit date");
+                  }
+                }}
+                className="bg-primary rounded-full p-2 ml-4"
+              >
+                <MaterialIcons name="add" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            {project.dcReference?.length > 0 && (
+              <View className="flex-row flex-wrap mb-6">
+                {project.dcReference?.map((dc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                  >
+                    <Text>{dc.dcReference}</Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setProject((prev) => ({
+                          ...prev,
+                          dcReference: prev.dcReference?.filter(
+                            (_, i) => i !== index
+                          ),
+                        }))
+                      }
+                      className="ml-2"
+                    >
+                      <MaterialIcons name="close" size={20} color="#A82F39" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
             <InputField
               label="Remarks"
               placeholder="Enter remarks"

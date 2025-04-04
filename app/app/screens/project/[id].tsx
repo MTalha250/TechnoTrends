@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Dropdown } from "react-native-element-dropdown";
 import { Modal, Portal, Button } from "react-native-paper";
 import { router, useLocalSearchParams } from "expo-router";
 import axios from "axios";
@@ -49,15 +48,17 @@ const getAvatarColor = (name: string) => {
 const ProjectDetail = () => {
   const { id } = useLocalSearchParams();
   const [project, setProject] = useState<Project | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [heads, setHeads] = useState<Head[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [selectedHead, setSelectedHead] = useState<string | null>(null);
+  const [userIds, setUserIds] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [jcReference, setJcReference] = useState("");
+  const [dcReference, setDcReference] = useState("");
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -80,9 +81,11 @@ const ProjectDetail = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}`
       );
       setProject(response.data);
-      if (response.data.head) {
-        setSelectedHead(response.data.head.id.toString());
-      }
+      const response2 = await axios.get<User[]>(
+        `${process.env.EXPO_PUBLIC_API_URL}/user`
+      );
+      setUsers(response2.data);
+      setUserIds(response.data.users.map((user) => user.id.toString()));
     } catch (error) {
       Alert.alert("Error", "Failed to fetch project details");
     } finally {
@@ -90,20 +93,8 @@ const ProjectDetail = () => {
     }
   };
 
-  const fetchHeads = async () => {
-    try {
-      const response = await axios.get<Head[]>(
-        `${process.env.EXPO_PUBLIC_API_URL}/head`
-      );
-      setHeads(response.data);
-    } catch (error) {
-      console.error("Error fetching heads:", error);
-    }
-  };
-
   useEffect(() => {
     fetchProject();
-    fetchHeads();
   }, [id]);
 
   const handleSaveChanges = async () => {
@@ -118,8 +109,8 @@ const ProjectDetail = () => {
         description: project?.description,
         poNumber: project?.poNumber,
         quotationReference: project?.quotationReference,
-        jcReference: project?.jcReference,
-        dcReference: project?.dcReference,
+        jcReference: project?.jcReferences,
+        dcReference: project?.dcReferences,
         remarks: project?.remarks,
         dueDate: project?.dueDate,
         surveyPhotos: project?.surveyPhotos,
@@ -135,20 +126,18 @@ const ProjectDetail = () => {
     }
   };
 
-  // Assign head
-  const handleAssignHead = async () => {
-    if (!selectedHead) return;
-
+  const handleAssignUsers = async () => {
     try {
       await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}/assign-head`,
-        { head_id: selectedHead }
+        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}/assign-workers`,
+        { worker_ids: userIds }
       );
-      Alert.alert("Success", "Head assigned successfully");
+      Alert.alert("Success", "Users updated successfully");
       setModalVisible(false);
       fetchProject();
     } catch (error) {
-      Alert.alert("Error", "Failed to assign head");
+      console.log("Error assigning users", error);
+      Alert.alert("Error", "Failed to assign users");
     }
   };
 
@@ -177,7 +166,6 @@ const ProjectDetail = () => {
       medium: "w-12 h-12 text-base",
       large: "w-16 h-16 text-lg",
     };
-
     return (
       <View
         className={`${backgroundColor} ${sizeClasses[size]} rounded-full items-center justify-center`}
@@ -209,7 +197,6 @@ const ProjectDetail = () => {
         >
           <MaterialIcons name="close" size={24} color="white" />
         </TouchableOpacity>
-
         <View className="flex-1 items-center justify-center">
           <Image
             source={{ uri: imageUrl }}
@@ -234,7 +221,6 @@ const ProjectDetail = () => {
       full: "w-full h-48",
       thumbnail: "w-32 h-32",
     };
-
     return (
       <TouchableOpacity
         onPress={() => {
@@ -273,39 +259,20 @@ const ProjectDetail = () => {
   // Section Components
   const AssignedPersonnelSection = () => (
     <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-      <Text className="text-lg font-bold mb-4">Assigned Personnel</Text>
-
-      {/* Assigned Head */}
-      <View className="mb-6">
-        <Text className="font-medium mb-3">Head:</Text>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <Avatar
-              name={project?.head?.name || "Not Assigned"}
-              size="medium"
-            />
-            <View className="ml-3">
-              <Text className="font-semibold">
-                {project?.head?.name || "Not assigned"}
-              </Text>
-              <Text className="text-gray-500 text-sm">Project Head</Text>
-            </View>
-          </View>
-          {project?.status !== "Completed" && (
-            <TouchableOpacity
-              onPress={() => setModalVisible(true)}
-              className="bg-primary px-4 py-2 rounded-lg"
-            >
-              <Text className="text-white">Change Head</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-bold">Assigned Workers</Text>
+        <TouchableOpacity
+          onPress={() => {
+            setUserIds(project?.users.map((user) => user.id.toString()) || []);
+            setModalVisible(true);
+          }}
+          className="bg-primary px-4 py-2 rounded-lg"
+        >
+          <Text className="text-white">Edit</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* Assigned Workers */}
-      {project?.users && project.users.length > 0 && (
+      {project?.users && project.users.length > 0 ? (
         <View>
-          <Text className="font-medium mb-3">Workers:</Text>
           <View className="gap-4">
             {project?.users.map((worker) => (
               <View key={worker.id} className="flex-row items-center">
@@ -318,6 +285,8 @@ const ProjectDetail = () => {
             ))}
           </View>
         </View>
+      ) : (
+        <Text className="text-gray-500 italic">No workers assigned</Text>
       )}
     </View>
   );
@@ -399,7 +368,6 @@ const ProjectDetail = () => {
             <Text className="font-medium">{project.status}</Text>
           </View>
         </View>
-
         {/* Edit/Save Button */}
         <TouchableOpacity
           onPress={() => {
@@ -422,7 +390,6 @@ const ProjectDetail = () => {
             </Text>
           )}
         </TouchableOpacity>
-
         {/* Project Details Form */}
         <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <InputField
@@ -442,7 +409,6 @@ const ProjectDetail = () => {
             onChangeText={(value) => handleFieldChange("description", value)}
             readonly={!editMode}
           />
-
           <InputField
             label="PO Number"
             value={project.poNumber || ""}
@@ -461,22 +427,174 @@ const ProjectDetail = () => {
             readonly={!editMode}
             placeholder="Enter quotation reference"
           />
-          <InputField
-            label="JC Reference"
-            value={project.jcReference || ""}
-            icon="receipt"
-            onChangeText={(value) => handleFieldChange("jcReference", value)}
-            readonly={!editMode}
-            placeholder="Enter JC reference"
-          />
-          <InputField
-            label="DC Reference"
-            value={project.dcReference || ""}
-            icon="receipt"
-            onChangeText={(value) => handleFieldChange("dcReference", value)}
-            readonly={!editMode}
-            placeholder="Enter DC reference"
-          />
+          {editMode ? (
+            <View>
+              <View className="flex-row items-center">
+                <InputField
+                  label="JC Reference"
+                  placeholder="Enter JC reference"
+                  value={jcReference || ""}
+                  onChangeText={(text) => setJcReference(text)}
+                  icon="receipt"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    if (jcReference) {
+                      setProject((prev: any) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          jcReferences: [
+                            ...(prev.jcReferences || []),
+                            { jcReference },
+                          ],
+                        };
+                      });
+                      setJcReference("");
+                    } else {
+                      Alert.alert("Error", "Please select a visit date");
+                    }
+                  }}
+                  className="bg-primary rounded-full p-2 ml-4"
+                >
+                  <MaterialIcons name="add" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              {project.jcReferences?.length > 0 && (
+                <View className="flex-row flex-wrap mb-6">
+                  {project.jcReferences?.map((jc, index) => (
+                    <View
+                      key={index}
+                      className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                    >
+                      <Text>{jc.jcReference}</Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setProject((prev) => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              jcReferences: prev.jcReferences?.filter(
+                                (_: any, i: number) => i !== index
+                              ),
+                            };
+                          })
+                        }
+                        className="ml-2"
+                      >
+                        <MaterialIcons name="close" size={20} color="#A82F39" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                JC References
+              </Text>
+              <View className="flex-row flex-wrap">
+                {project.jcReferences?.map((jc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
+                  >
+                    <Text>
+                      {jc.jcReference}{" "}
+                      {jc.jcDate
+                        ? ` (${new Date(jc.jcDate).toDateString()})`
+                        : ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+          {editMode ? (
+            <View>
+              <View className="flex-row items-center">
+                <InputField
+                  label="DC Reference"
+                  placeholder="Enter DC reference"
+                  value={dcReference || ""}
+                  onChangeText={(text) => setDcReference(text)}
+                  icon="receipt"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    if (dcReference) {
+                      setProject((prev: any) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          dcReferences: [
+                            ...(prev.dcReferences || []),
+                            { dcReference },
+                          ],
+                        };
+                      });
+                      setDcReference("");
+                    } else {
+                      Alert.alert("Error", "Please select a visit date");
+                    }
+                  }}
+                  className="bg-primary rounded-full p-2 ml-4"
+                >
+                  <MaterialIcons name="add" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              {project.dcReferences?.length > 0 && (
+                <View className="flex-row flex-wrap mb-6">
+                  {project.dcReferences?.map((dc, index) => (
+                    <View
+                      key={index}
+                      className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                    >
+                      <Text>{dc.dcReference}</Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setProject((prev) => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              dcReferences: prev.dcReferences?.filter(
+                                (_: any, i: number) => i !== index
+                              ),
+                            };
+                          })
+                        }
+                        className="ml-2"
+                      >
+                        <MaterialIcons name="close" size={20} color="#A82F39" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                DC References
+              </Text>
+              <View className="flex-row flex-wrap">
+                {project.dcReferences?.map((dc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
+                  >
+                    <Text>
+                      {dc.dcReference}{" "}
+                      {dc.dcDate
+                        ? ` (${new Date(dc.dcDate).toDateString()})`
+                        : ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
           <InputField
             label="Remarks"
             value={project.remarks || ""}
@@ -519,7 +637,6 @@ const ProjectDetail = () => {
                   </Text>
                 </TouchableOpacity>
               ) : null}
-
               {(showDatePicker || Platform.OS === "ios") && (
                 <DateTimePicker
                   value={
@@ -535,11 +652,18 @@ const ProjectDetail = () => {
           )}
         </View>
         <AssignedPersonnelSection />
-        <ImagesSection />
+        {((project.surveyPhotos && project.surveyPhotos.length > 0) ||
+          editMode) && <ImagesSection />}
+
         <Portal>
           <Modal
             visible={modalVisible}
-            onDismiss={() => setModalVisible(false)}
+            onDismiss={() => {
+              setModalVisible(false);
+              setUserIds(
+                project?.users.map((user) => user.id.toString()) || []
+              );
+            }}
             contentContainerStyle={{
               backgroundColor: "white",
               padding: 20,
@@ -547,30 +671,58 @@ const ProjectDetail = () => {
               borderRadius: 12,
             }}
           >
-            <Text className="text-lg font-bold mb-4">Assign Project Head</Text>
-            <Dropdown
-              style={{
-                backgroundColor: "white",
-                borderRadius: 12,
-                borderColor: "#ddd",
-                borderWidth: 1,
-                padding: 14,
-              }}
-              placeholderStyle={{ color: "#6b7280" }}
-              selectedTextStyle={{ color: "#374151" }}
-              data={heads.map((head) => ({
-                label: head.name,
-                value: head.id.toString(),
-              }))}
-              labelField="label"
-              valueField="value"
-              placeholder="Select Head"
-              value={selectedHead}
-              onChange={(item) => setSelectedHead(item.value)}
-            />
+            <Text className="text-lg font-bold mb-2">Assign Users</Text>
+            {users.length > 0 ? (
+              <>
+                <Text className="text-gray-600 mb-2">
+                  Select users to assign:
+                </Text>
+                <ScrollView className="max-h-80">
+                  {users.map((user) => (
+                    <TouchableOpacity
+                      key={user.id}
+                      className={`flex-row items-center p-3 mb-2 rounded-lg border ${
+                        userIds.includes(user.id.toString())
+                          ? "border-primary bg-primary/10"
+                          : "border-gray-200"
+                      }`}
+                      onPress={() => {
+                        // Toggle selection
+                        if (userIds.includes(user.id.toString())) {
+                          setUserIds(
+                            userIds.filter((id) => id !== user.id.toString())
+                          );
+                        } else {
+                          setUserIds([...userIds, user.id.toString()]);
+                        }
+                      }}
+                    >
+                      <Avatar name={user.name} size="small" />
+                      <Text className="ml-3 flex-1">{user.name}</Text>
+                      {userIds.includes(user.id.toString()) && (
+                        <MaterialIcons
+                          name="check-circle"
+                          size={24}
+                          color="#A82F39"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            ) : (
+              <Text className="text-gray-500 italic mb-4">
+                No users available
+              </Text>
+            )}
             <View className="flex-row mt-6 gap-4">
               <Button
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  setModalVisible(false);
+                  setUserIds(
+                    project?.users.map((user) => user.id.toString()) || []
+                  );
+                }}
                 mode="outlined"
                 style={{ flex: 1 }}
                 textColor="#374151"
@@ -578,17 +730,16 @@ const ProjectDetail = () => {
                 Cancel
               </Button>
               <Button
-                onPress={() => {
-                  handleAssignHead();
-                }}
+                onPress={handleAssignUsers}
                 mode="contained"
                 style={{ flex: 1, backgroundColor: "#A82F39" }}
               >
-                Assign
+                Update
               </Button>
             </View>
           </Modal>
         </Portal>
+
         <ImageViewerModal
           visible={imageModalVisible}
           imageUrl={selectedImage || ""}

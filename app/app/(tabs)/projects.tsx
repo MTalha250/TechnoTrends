@@ -69,7 +69,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
       }`}
     >
       <View className="w-40 px-3">
-        <Text className="text-gray-800 text-lg font-medium">
+        <Text numberOfLines={1} className="text-gray-800 text-lg font-medium">
           {item.clientName}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500">
@@ -85,6 +85,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         }`}
       >
         <Text
+          numberOfLines={1}
           className={`${
             hasValue(item.surveyDate) ? "text-green-700" : "text-red-700"
           } font-medium text-nowrap`}
@@ -92,7 +93,10 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
           {formatDate(item.surveyDate)}
         </Text>
         {item.surveyPhotos && item.surveyPhotos.length > 0 ? (
-          <Text className="text-xs text-gray-500 mt-1 flex-row items-center">
+          <Text
+            numberOfLines={1}
+            className="text-xs text-gray-500 mt-1 flex-row items-center"
+          >
             <MaterialIcons
               name="photo-library"
               size={12}
@@ -118,6 +122,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         }`}
       >
         <Text
+          numberOfLines={1}
           className={`${
             hasValue(item.quotationReference)
               ? "text-green-700"
@@ -126,7 +131,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         >
           {item.quotationReference || "None"}
         </Text>
-        <Text className="text-xs text-gray-500 mt-1">
+        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
           {formatDate(item.quotationDate)}
         </Text>
       </View>
@@ -143,60 +148,81 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         }`}
       >
         <Text
+          numberOfLines={1}
           className={`${
             hasValue(item.poNumber) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
           {item.poNumber || "None"}
         </Text>
-        <Text className="text-xs text-gray-500 mt-1">
+        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
           {formatDate(item.poDate)}
         </Text>
       </View>
 
       <View
         className={`w-32 px-3 py-2 ${
-          hasValue(item.dcReference) && hasValue(item.dcDate)
+          hasValue(
+            item.dcReferences[item.dcReferences.length - 1]?.dcReference
+          ) && hasValue(item.dcReferences[item.dcReferences.length - 1]?.dcDate)
             ? "bg-green-50"
             : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.dcReference) && hasValue(item.dcDate)
+          hasValue(
+            item.dcReferences[item.dcReferences.length - 1]?.dcReference
+          ) && hasValue(item.dcReferences[item.dcReferences.length - 1]?.dcDate)
             ? "border-green-100"
             : "border-red-100"
         }`}
       >
         <Text
+          numberOfLines={1}
           className={`${
-            hasValue(item.dcReference) ? "text-green-700" : "text-red-700"
+            hasValue(
+              item.dcReferences[item.dcReferences.length - 1]?.dcReference
+            )
+              ? "text-green-700"
+              : "text-red-700"
           } font-medium`}
         >
-          {item.dcReference || "None"}
+          {item.dcReferences[item.dcReferences.length - 1]?.dcReference ||
+            "None"}
         </Text>
-        <Text className="text-xs text-gray-500 mt-1">
-          {formatDate(item.dcDate)}
+        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
+          {formatDate(item.dcReferences[item.dcReferences.length - 1]?.dcDate)}
         </Text>
       </View>
 
       <View
         className={`w-32 px-3 py-2 ${
-          hasValue(item.jcReference) && hasValue(item.jcDate)
+          hasValue(
+            item.jcReferences[item.jcReferences.length - 1]?.jcReference
+          ) && hasValue(item.jcReferences[item.jcReferences.length - 1]?.jcDate)
             ? "bg-green-50"
             : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.jcReference) && hasValue(item.jcDate)
+          hasValue(
+            item.jcReferences[item.jcReferences.length - 1]?.jcReference
+          ) && hasValue(item.jcReferences[item.jcReferences.length - 1]?.jcDate)
             ? "border-green-100"
             : "border-red-100"
         }`}
       >
         <Text
+          numberOfLines={1}
           className={`${
-            hasValue(item.jcReference) ? "text-green-700" : "text-red-700"
+            hasValue(
+              item.jcReferences[item.jcReferences.length - 1]?.jcReference
+            )
+              ? "text-green-700"
+              : "text-red-700"
           } font-medium`}
         >
-          {item.jcReference || "None"}
+          {item.jcReferences[item.jcReferences.length - 1]?.jcReference ||
+            "None"}
         </Text>
-        <Text className="text-xs text-gray-500 mt-1">
-          {formatDate(item.jcDate)}
+        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
+          {formatDate(item.jcReferences[item.jcReferences.length - 1]?.jcDate)}
         </Text>
       </View>
 
@@ -215,7 +241,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         >
           {item.remarks || "None"}
         </Text>
-        <Text className="text-xs text-gray-500 mt-1">
+        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
           {formatDate(item.remarksDate)}
         </Text>
       </View>
@@ -233,6 +259,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
           }`}
         >
           <Text
+            numberOfLines={1}
             className={`text-xs text-center font-semibold ${
               item.status === "Completed"
                 ? "text-green-800"
@@ -248,7 +275,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         </View>
         <View className="flex-row items-center mt-2">
           <MaterialIcons name="event" size={12} color="#6B7280" />
-          <Text className="text-xs text-gray-500 ml-1">
+          <Text numberOfLines={1} className="text-xs text-gray-500 ml-1">
             Due: {formatDate(item.dueDate)}
           </Text>
         </View>

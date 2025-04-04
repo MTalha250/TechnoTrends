@@ -54,11 +54,34 @@ const SignUp = () => {
     return null;
   };
 
+  const renderLabel3 = () => {
+    if (formData.department || isFocus) {
+      return (
+        <Text
+          className={
+            `absolute bg-[#f6fcff] left-3 -translate-y-1/2 top-0 z-10 px-2 text-sm text-gray-700 ` +
+            (isFocus ? "text-[#A82F39]" : "")
+          }
+        >
+          Department
+        </Text>
+      );
+    }
+    return null;
+  };
+
   const roles = [
     { label: "Director", value: "director" },
     { label: "Admin", value: "admin" },
-    { label: "Department Head", value: "head" },
+    { label: "Head", value: "head" },
     { label: "Worker", value: "user" },
+  ];
+  const departments = [
+    { label: "Accounts", value: "accounts" },
+    { label: "Technical", value: "technical" },
+    { label: "IT", value: "it" },
+    { label: "Sales", value: "sales" },
+    { label: "Store", value: "store" },
   ];
 
   const fetchHeads = async () => {
@@ -144,6 +167,91 @@ const SignUp = () => {
             resizeMode="contain"
           />
           <View className="w-full gap-3">
+            <View className="w-full">
+              {renderLabel()}
+              <Dropdown
+                style={[
+                  {
+                    width: "100%",
+                    backgroundColor: "transparent",
+                    borderColor: "#87858e",
+                    borderRadius: 10,
+                    padding: 14,
+                    borderWidth: 1,
+                  },
+                  isFocus && { borderColor: "#A82F39" },
+                ]}
+                data={roles}
+                labelField="label"
+                valueField="value"
+                placeholder={!isFocus ? "Role" : ""}
+                value={formData.role}
+                onFocus={() => setIsFocus(true)}
+                onBlur={() => setIsFocus(false)}
+                onChange={(item) => {
+                  setFormData({ ...formData, role: item.value });
+                  setIsFocus(false);
+                }}
+              />
+            </View>
+            {formData.role === "head" && (
+              <View className="w-full">
+                {renderLabel3()}
+                <Dropdown
+                  style={[
+                    {
+                      width: "100%",
+                      backgroundColor: "transparent",
+                      borderColor: "#87858e",
+                      borderRadius: 10,
+                      padding: 14,
+                      borderWidth: 1,
+                    },
+                    isFocus && { borderColor: "#A82F39" },
+                  ]}
+                  data={departments}
+                  labelField="label"
+                  valueField="value"
+                  placeholder={!isFocus ? "Department" : ""}
+                  value={formData.department}
+                  onFocus={() => setIsFocus(true)}
+                  onBlur={() => setIsFocus(false)}
+                  onChange={(item) => {
+                    setFormData({ ...formData, department: item.value });
+                    setIsFocus(false);
+                  }}
+                />
+              </View>
+            )}
+            {formData.role === "user" && (
+              <View className="w-full">
+                {renderLabel2()}
+                <Dropdown
+                  style={[
+                    {
+                      width: "100%",
+                      backgroundColor: "transparent",
+                      borderColor: "#87858e",
+                      borderRadius: 10,
+                      padding: 14,
+                      borderWidth: 1,
+                    },
+                    isFocus && { borderColor: "#A82F39" },
+                  ]}
+                  data={heads}
+                  labelField="name"
+                  valueField="id"
+                  placeholder={!isFocus ? "Head" : ""}
+                  value={formData.head_id}
+                  onFocus={() => setIsFocus(true)}
+                  onBlur={() => setIsFocus(false)}
+                  onChange={(item) => {
+                    setFormData({ ...formData, head_id: item.id.toString() });
+                    setIsFocus(false);
+                  }}
+                />
+              </View>
+            )}
             <TextInput
               label="Name"
               mode="outlined"
@@ -220,80 +328,6 @@ const SignUp = () => {
                 setFormData({ ...formData, confirmPassword: text })
               }
             />
-            <View className="w-full">
-              {renderLabel()}
-              <Dropdown
-                style={[
-                  {
-                    width: "100%",
-                    backgroundColor: "transparent",
-                    borderColor: "#87858e",
-                    borderRadius: 10,
-                    padding: 14,
-                    borderWidth: 1,
-                  },
-                  isFocus && { borderColor: "#A82F39" },
-                ]}
-                data={roles}
-                labelField="label"
-                valueField="value"
-                placeholder={!isFocus ? "Role" : ""}
-                value={formData.role}
-                onFocus={() => setIsFocus(true)}
-                onBlur={() => setIsFocus(false)}
-                onChange={(item) => {
-                  setFormData({ ...formData, role: item.value });
-                  setIsFocus(false);
-                }}
-              />
-            </View>
-            {formData.role === "head" && (
-              <TextInput
-                label="Department"
-                mode="outlined"
-                style={{
-                  width: "100%",
-                  backgroundColor: "transparent",
-                }}
-                activeOutlineColor="#A82F39"
-                theme={{
-                  roundness: 10,
-                }}
-                value={formData.department}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, department: text })
-                }
-              />
-            )}
-            {formData.role === "user" && (
-              <View className="w-full">
-                {renderLabel2()}
-                <Dropdown
-                  style={[
-                    {
-                      width: "100%",
-                      backgroundColor: "transparent",
-                      borderColor: "#87858e",
-                      borderRadius: 10,
-                      padding: 14,
-                      borderWidth: 1,
-                    },
-                    isFocus && { borderColor: "#A82F39" },
-                  ]}
-                  data={heads}
-                  labelField="name"
-                  valueField="id"
-                  placeholder={!isFocus ? "Head" : ""}
-                  value={formData.head_id}
-                  onFocus={() => setIsFocus(true)}
-                  onBlur={() => setIsFocus(false)}
-                  onChange={(item) => {
-                    setFormData({ ...formData, head_id: item.id.toString() });
-                    setIsFocus(false);
-                  }}
-                />
-              </View>
-            )}
           </View>
           <Button
             onPress={handleSubmit}

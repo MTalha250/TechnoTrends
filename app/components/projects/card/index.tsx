@@ -38,7 +38,7 @@ const ProjectCard = ({ item }: { item: Partial<Project> }) => {
           </Text>
         </View>
       </View>
-      <Text className="mb-4">
+      <Text className="mb-2 mt-2">
         {item.description ? item.description : "No description"}
       </Text>
       <Divider />
