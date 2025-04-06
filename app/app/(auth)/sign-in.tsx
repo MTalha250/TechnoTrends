@@ -57,7 +57,8 @@ const SignIn = () => {
       setToken(data.token);
       setRole(data.role);
       setUser(data.user);
-      router.push("/dashboard");
+      if (data.role === "user") router.push("/userDashboard");
+      else router.push("/dashboard");
       Alert.alert("Success", "Logged in successfully");
     } catch (error: any) {
       if (error.response.status === 404) {

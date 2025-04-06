@@ -74,8 +74,8 @@ const Profile = () => {
     });
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setUser(null);
     setToken(null);
     setRole(null);

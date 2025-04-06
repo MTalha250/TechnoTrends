@@ -18,7 +18,7 @@ import useAuthStore from "@/store/authStore";
 import axios from "axios";
 import ProjectCard from "@/components/projects/card";
 
-const Dashboard = () => {
+const UserDashboard = () => {
   const { user, token } = useAuthStore();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -30,28 +30,26 @@ const Dashboard = () => {
   const [summaryData, setSummaryData] = useState({
     projects: 0,
     complaints: 0,
-    invoices: 0,
   });
 
   const fetchDashboardData = async () => {
     try {
       setRefreshing(true);
       const response = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/dashboard/admin`,
+        `${process.env.EXPO_PUBLIC_API_URL}/user/dashboard/${user?.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setComplaints(response.data.all_complaints);
-      setProjects(response.data.all_projects);
+      setComplaints(response.data.complaints);
+      setProjects(response.data.projects);
       setRecentComplaints(response.data.recent_complaints);
       setRecentProjects(response.data.recent_projects);
       setSummaryData({
-        projects: response.data.total_projects,
-        complaints: response.data.total_complaints,
-        invoices: response.data.total_invoices,
+        projects: response.data.projects.length,
+        complaints: response.data.complaints.length,
       });
     } catch (error) {
       console.log(error);
@@ -62,7 +60,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [user?.id]);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -99,11 +97,6 @@ const Dashboard = () => {
               title: "Total Complaints",
               value: summaryData.complaints,
               icon: "report-gmailerrorred",
-            },
-            {
-              title: "Pending Invoices",
-              value: summaryData.invoices,
-              icon: "receipt-long",
             },
           ]}
           renderItem={({ item }) => (
@@ -155,4 +148,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default UserDashboard;

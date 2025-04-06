@@ -50,8 +50,9 @@ const ComplaintDetail = () => {
   const { id } = useLocalSearchParams();
   const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [loading, setLoading] = useState(true);
-  const [heads, setHeads] = useState<Head[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [userIds, setUserIds] = useState<string[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [selectedHead, setSelectedHead] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -60,6 +61,8 @@ const ComplaintDetail = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
   const [visitDate, setVisitDate] = useState<Date | null>(null);
+  const [jcReference, setJcReference] = useState("");
+  const [dcReference, setDcReference] = useState("");
   const showDatePickerModal = () => {
     setShowDatePicker(true);
   };
@@ -91,9 +94,11 @@ const ComplaintDetail = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`
       );
       setComplaint(response.data);
-      if (response.data.head) {
-        setSelectedHead(response.data.head.id.toString());
-      }
+      const response2 = await axios.get<User[]>(
+        `${process.env.EXPO_PUBLIC_API_URL}/user`
+      );
+      setUsers(response2.data);
+      setUserIds(response.data.users.map((user) => user.id.toString()));
     } catch (error) {
       Alert.alert("Error", "Failed to fetch complaint details");
     } finally {
@@ -101,20 +106,8 @@ const ComplaintDetail = () => {
     }
   };
 
-  const fetchHeads = async () => {
-    try {
-      const response = await axios.get<Head[]>(
-        `${process.env.EXPO_PUBLIC_API_URL}/head`
-      );
-      setHeads(response.data);
-    } catch (error) {
-      console.error("Error fetching heads:", error);
-    }
-  };
-
   useEffect(() => {
     fetchComplaint();
-    fetchHeads();
   }, [id]);
 
   const handleSaveChanges = async () => {
@@ -134,8 +127,8 @@ const ComplaintDetail = () => {
         photos: complaint?.photos,
         poNumber: complaint?.poNumber,
         remarks: complaint?.remarks,
-        dcReference: complaint?.dcReference,
-        jcReference: complaint?.jcReference,
+        dcReference: complaint?.dcReferences,
+        jcReference: complaint?.jcReferences,
         quotation: complaint?.quotation,
       });
       Alert.alert("Success", "Complaint updated successfully");
@@ -149,19 +142,18 @@ const ComplaintDetail = () => {
     }
   };
 
-  const handleAssignHead = async () => {
-    if (!selectedHead) return;
-
+  const handleAssignUsers = async () => {
     try {
       await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}/assign-head`,
-        { head_id: selectedHead }
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}/assign-workers`,
+        { worker_ids: userIds }
       );
-      Alert.alert("Success", "Head assigned successfully");
+      Alert.alert("Success", "Users updated successfully");
       setModalVisible(false);
       fetchComplaint();
     } catch (error) {
-      Alert.alert("Error", "Failed to assign head");
+      console.log("Error assigning users", error);
+      Alert.alert("Error", "Failed to assign users");
     }
   };
 
@@ -287,39 +279,22 @@ const ComplaintDetail = () => {
   // Section Components
   const AssignedPersonnelSection = () => (
     <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-      <Text className="text-lg font-bold mb-4">Assigned Personnel</Text>
-
-      {/* Assigned Head */}
-      <View className="mb-6">
-        <Text className="font-medium mb-3">Head:</Text>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <Avatar
-              name={complaint?.head?.name || "Not Assigned"}
-              size="medium"
-            />
-            <View className="ml-3">
-              <Text className="font-semibold">
-                {complaint?.head?.name || "Not assigned"}
-              </Text>
-              <Text className="text-gray-500 text-sm">Complaint Head</Text>
-            </View>
-          </View>
-          {complaint?.status !== "Completed" && (
-            <TouchableOpacity
-              onPress={() => setModalVisible(true)}
-              className="bg-primary px-4 py-2 rounded-lg"
-            >
-              <Text className="text-white">Change Head</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-bold">Assigned Workers</Text>
+        <TouchableOpacity
+          onPress={() => {
+            setUserIds(
+              complaint?.users.map((user) => user.id.toString()) || []
+            );
+            setModalVisible(true);
+          }}
+          className="bg-primary px-4 py-2 rounded-lg"
+        >
+          <Text className="text-white">Edit</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* Assigned Workers */}
-      {complaint?.users && complaint.users.length > 0 && (
+      {complaint?.users && complaint.users.length > 0 ? (
         <View>
-          <Text className="font-medium mb-3">Workers:</Text>
           <View className="gap-4">
             {complaint?.users.map((worker) => (
               <View key={worker.id} className="flex-row items-center">
@@ -332,6 +307,8 @@ const ComplaintDetail = () => {
             ))}
           </View>
         </View>
+      ) : (
+        <Text className="text-gray-500 italic">No workers assigned</Text>
       )}
     </View>
   );
@@ -571,22 +548,174 @@ const ComplaintDetail = () => {
             placeholder="PO number"
             onChangeText={(value) => handleFieldChange("poNumber", value)}
           />
-          <InputField
-            label="JC Reference"
-            value={complaint.jcReference || ""}
-            icon="receipt"
-            readonly={!editMode}
-            onChangeText={(value) => handleFieldChange("jcReference", value)}
-            placeholder="JC reference"
-          />
-          <InputField
-            label="DC Reference"
-            value={complaint.dcReference || ""}
-            icon="receipt"
-            readonly={!editMode}
-            placeholder="DC reference"
-            onChangeText={(value) => handleFieldChange("dcReference", value)}
-          />
+          {editMode ? (
+            <View>
+              <View className="flex-row items-center">
+                <InputField
+                  label="JC Reference"
+                  placeholder="Enter JC reference"
+                  value={jcReference || ""}
+                  onChangeText={(text) => setJcReference(text)}
+                  icon="receipt"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    if (jcReference) {
+                      setComplaint((prev: any) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          jcReferences: [
+                            ...(prev.jcReferences || []),
+                            { jcReference },
+                          ],
+                        };
+                      });
+                      setJcReference("");
+                    } else {
+                      Alert.alert("Error", "Please select a visit date");
+                    }
+                  }}
+                  className="bg-primary rounded-full p-2 ml-4"
+                >
+                  <MaterialIcons name="add" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              {complaint.jcReferences?.length > 0 && (
+                <View className="flex-row flex-wrap mb-6">
+                  {complaint.jcReferences?.map((jc, index) => (
+                    <View
+                      key={index}
+                      className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                    >
+                      <Text>{jc.jcReference}</Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setComplaint((prev) => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              jcReferences: prev.jcReferences?.filter(
+                                (_: any, i: number) => i !== index
+                              ),
+                            };
+                          })
+                        }
+                        className="ml-2"
+                      >
+                        <MaterialIcons name="close" size={20} color="#A82F39" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                JC References
+              </Text>
+              <View className="flex-row flex-wrap">
+                {complaint.jcReferences?.map((jc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
+                  >
+                    <Text>
+                      {jc.jcReference}{" "}
+                      {jc.jcDate
+                        ? ` (${new Date(jc.jcDate).toDateString()})`
+                        : ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+          {editMode ? (
+            <View>
+              <View className="flex-row items-center">
+                <InputField
+                  label="DC Reference"
+                  placeholder="Enter DC reference"
+                  value={dcReference || ""}
+                  onChangeText={(text) => setDcReference(text)}
+                  icon="receipt"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    if (dcReference) {
+                      setComplaint((prev: any) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          dcReferences: [
+                            ...(prev.dcReferences || []),
+                            { dcReference },
+                          ],
+                        };
+                      });
+                      setDcReference("");
+                    } else {
+                      Alert.alert("Error", "Please select a visit date");
+                    }
+                  }}
+                  className="bg-primary rounded-full p-2 ml-4"
+                >
+                  <MaterialIcons name="add" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              {complaint.dcReferences?.length > 0 && (
+                <View className="flex-row flex-wrap mb-6">
+                  {complaint.dcReferences?.map((dc, index) => (
+                    <View
+                      key={index}
+                      className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                    >
+                      <Text>{dc.dcReference}</Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setComplaint((prev) => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              dcReferences: prev.dcReferences?.filter(
+                                (_: any, i: number) => i !== index
+                              ),
+                            };
+                          })
+                        }
+                        className="ml-2"
+                      >
+                        <MaterialIcons name="close" size={20} color="#A82F39" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                DC References
+              </Text>
+              <View className="flex-row flex-wrap">
+                {complaint.dcReferences?.map((dc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
+                  >
+                    <Text>
+                      {dc.dcReference}{" "}
+                      {dc.dcDate
+                        ? ` (${new Date(dc.dcDate).toDateString()})`
+                        : ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
           <InputField
             label="Remarks"
             value={complaint.remarks || ""}
@@ -707,12 +836,19 @@ const ComplaintDetail = () => {
           )}
         </View>
         <AssignedPersonnelSection />
-        <ImagesSection />
+        {((complaint.photos && complaint.photos.length > 0) || editMode) && (
+          <ImagesSection />
+        )}
 
         <Portal>
           <Modal
             visible={modalVisible}
-            onDismiss={() => setModalVisible(false)}
+            onDismiss={() => {
+              setModalVisible(false);
+              setUserIds(
+                complaint?.users.map((user) => user.id.toString()) || []
+              );
+            }}
             contentContainerStyle={{
               backgroundColor: "white",
               padding: 20,
@@ -720,32 +856,58 @@ const ComplaintDetail = () => {
               borderRadius: 12,
             }}
           >
-            <Text className="text-lg font-bold mb-4">
-              Assign Complaint Head
-            </Text>
-            <Dropdown
-              style={{
-                backgroundColor: "white",
-                borderRadius: 12,
-                borderColor: "#ddd",
-                borderWidth: 1,
-                padding: 14,
-              }}
-              placeholderStyle={{ color: "#6b7280" }}
-              selectedTextStyle={{ color: "#374151" }}
-              data={heads.map((head) => ({
-                label: head.name,
-                value: head.id.toString(),
-              }))}
-              labelField="label"
-              valueField="value"
-              placeholder="Select Head"
-              value={selectedHead}
-              onChange={(item) => setSelectedHead(item.value)}
-            />
+            <Text className="text-lg font-bold mb-2">Assign Users</Text>
+            {users.length > 0 ? (
+              <>
+                <Text className="text-gray-600 mb-2">
+                  Select users to assign:
+                </Text>
+                <ScrollView className="max-h-80">
+                  {users.map((user) => (
+                    <TouchableOpacity
+                      key={user.id}
+                      className={`flex-row items-center p-3 mb-2 rounded-lg border ${
+                        userIds.includes(user.id.toString())
+                          ? "border-primary bg-primary/10"
+                          : "border-gray-200"
+                      }`}
+                      onPress={() => {
+                        // Toggle selection
+                        if (userIds.includes(user.id.toString())) {
+                          setUserIds(
+                            userIds.filter((id) => id !== user.id.toString())
+                          );
+                        } else {
+                          setUserIds([...userIds, user.id.toString()]);
+                        }
+                      }}
+                    >
+                      <Avatar name={user.name} size="small" />
+                      <Text className="ml-3 flex-1">{user.name}</Text>
+                      {userIds.includes(user.id.toString()) && (
+                        <MaterialIcons
+                          name="check-circle"
+                          size={24}
+                          color="#A82F39"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            ) : (
+              <Text className="text-gray-500 italic mb-4">
+                No users available
+              </Text>
+            )}
             <View className="flex-row mt-6 gap-4">
               <Button
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  setModalVisible(false);
+                  setUserIds(
+                    complaint?.users.map((user) => user.id.toString()) || []
+                  );
+                }}
                 mode="outlined"
                 style={{ flex: 1 }}
                 textColor="#374151"
@@ -753,11 +915,11 @@ const ComplaintDetail = () => {
                 Cancel
               </Button>
               <Button
-                onPress={handleAssignHead}
+                onPress={handleAssignUsers}
                 mode="contained"
                 style={{ flex: 1, backgroundColor: "#A82F39" }}
               >
-                Assign
+                Update
               </Button>
             </View>
           </Modal>

@@ -25,15 +25,15 @@ const priorities = [
 ];
 
 const CreateComplaint = () => {
-  const [complaint, setComplaint] = useState<Partial<Complaint>>({
+  const [complaint, setComplaint] = useState({
     clientName: "",
     description: "",
-    visitDates: [],
-    photos: [],
+    visitDates: [] as Date[],
+    photos: [] as string[],
     quotation: "",
     poNumber: "",
-    jcReference: "",
-    dcReference: "",
+    jcReference: [] as { jcReference: string }[],
+    dcReference: [] as { dcReference: string }[],
     remarks: "",
     complaintReference: "",
     priority: undefined,
@@ -43,6 +43,8 @@ const CreateComplaint = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
   const [visitDate, setVisitDate] = useState<Date | null>(null);
+  const [jcReference, setJcReference] = useState("");
+  const [dcReference, setDcReference] = useState("");
   const [loading, setLoading] = useState(false);
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -92,8 +94,8 @@ const CreateComplaint = () => {
         photos: [],
         quotation: "",
         poNumber: "",
-        jcReference: "",
-        dcReference: "",
+        jcReference: [],
+        dcReference: [],
         remarks: "",
         complaintReference: "",
         priority: undefined,
@@ -225,20 +227,112 @@ const CreateComplaint = () => {
               icon="receipt"
               placeholder="Enter PO number"
             />
-            <InputField
-              label="JC Reference"
-              value={complaint.jcReference || ""}
-              onChangeText={(text) => handleChange("jcReference", text)}
-              icon="receipt"
-              placeholder="Enter JC reference"
-            />
-            <InputField
-              label="DC Reference"
-              value={complaint.dcReference || ""}
-              onChangeText={(text) => handleChange("dcReference", text)}
-              icon="receipt"
-              placeholder="Enter DC reference"
-            />
+            <View className="flex-row items-center">
+              <InputField
+                label="JC Reference"
+                placeholder="Enter JC reference"
+                value={jcReference || ""}
+                onChangeText={(text) => setJcReference(text)}
+                icon="receipt"
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (jcReference) {
+                    setComplaint((prev) => ({
+                      ...prev,
+                      jcReference: [
+                        ...(prev.jcReference || []),
+                        { jcReference: jcReference },
+                      ],
+                    }));
+                    setJcReference("");
+                  } else {
+                    Alert.alert("Error", "Please select a visit date");
+                  }
+                }}
+                className="bg-primary rounded-full p-2 ml-4"
+              >
+                <MaterialIcons name="add" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            {complaint.jcReference?.length > 0 && (
+              <View className="flex-row flex-wrap mb-6">
+                {complaint.jcReference?.map((jc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                  >
+                    <Text>{jc.jcReference}</Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setComplaint((prev) => ({
+                          ...prev,
+                          jcReference: prev.jcReference?.filter(
+                            (_, i) => i !== index
+                          ),
+                        }))
+                      }
+                      className="ml-2"
+                    >
+                      <MaterialIcons name="close" size={20} color="#A82F39" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+            <View className="flex-row items-center">
+              <InputField
+                label="DC Reference"
+                placeholder="Enter DC reference"
+                value={dcReference || ""}
+                onChangeText={(text) => setDcReference(text)}
+                icon="receipt"
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (dcReference) {
+                    setComplaint((prev) => ({
+                      ...prev,
+                      dcReference: [
+                        ...(prev.dcReference || []),
+                        { dcReference: dcReference },
+                      ],
+                    }));
+                    setDcReference("");
+                  } else {
+                    Alert.alert("Error", "Please select a visit date");
+                  }
+                }}
+                className="bg-primary rounded-full p-2 ml-4"
+              >
+                <MaterialIcons name="add" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            {complaint.dcReference?.length > 0 && (
+              <View className="flex-row flex-wrap mb-6">
+                {complaint.dcReference?.map((dc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                  >
+                    <Text>{dc.dcReference}</Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setComplaint((prev) => ({
+                          ...prev,
+                          dcReference: prev.dcReference?.filter(
+                            (_, i) => i !== index
+                          ),
+                        }))
+                      }
+                      className="ml-2"
+                    >
+                      <MaterialIcons name="close" size={20} color="#A82F39" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
             <InputField
               label="Remarks"
               value={complaint.remarks || ""}

@@ -5,9 +5,6 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  Image,
-  Modal as RNModal,
-  Dimensions,
   ActivityIndicator,
   Platform,
 } from "react-native";
@@ -25,8 +22,12 @@ const InvoiceDetail = () => {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [editProject, setEditProject] = useState(false);
+  const [projectSaving, setProjectSaving] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [jcReference, setJcReference] = useState("");
+  const [dcReference, setDcReference] = useState("");
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -74,10 +75,6 @@ const InvoiceDetail = () => {
         amount: invoice?.amount,
         paymentTerms: invoice?.paymentTerms,
         creditDays: invoice?.creditDays,
-        dueDate: invoice?.dueDate,
-        poNumber: invoice?.poNumber,
-        dcReference: invoice?.dcReference,
-        jcReference: invoice?.jcReference,
       });
       Alert.alert("Success", "Invoice updated successfully");
       setEditMode(false);
@@ -86,6 +83,31 @@ const InvoiceDetail = () => {
       Alert.alert("Error", "Failed to update invoice");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveProjectChanges = async () => {
+    if (!invoice?.project?.id) {
+      Alert.alert("Error", "No project linked to this invoice");
+      return;
+    }
+    try {
+      setProjectSaving(true);
+      await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/projects/${invoice.project.id}`,
+        {
+          poNumber: invoice.project.poNumber,
+          jcReference: invoice.project.jcReferences,
+          dcReference: invoice.project.dcReferences,
+        }
+      );
+      Alert.alert("Success", "Project updated successfully");
+      setEditProject(false);
+      fetchInvoice();
+    } catch (error) {
+      Alert.alert("Error", "Failed to update project");
+    } finally {
+      setProjectSaving(false);
     }
   };
 
@@ -331,30 +353,228 @@ const InvoiceDetail = () => {
               )}
             </View>
           )}
+        </View>
+        <TouchableOpacity
+          onPress={() => {
+            if (editProject) {
+              handleSaveProjectChanges();
+            } else {
+              setEditProject(true);
+            }
+          }}
+          disabled={projectSaving}
+          className={`mb-4 p-3 rounded-xl ${
+            editProject ? "bg-green-600" : "bg-primary"
+          } ${projectSaving ? "opacity-50" : ""}`}
+        >
+          {projectSaving ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white text-center font-semibold">
+              {editProject ? "Save Changes" : "Edit Project Details"}
+            </Text>
+          )}
+        </TouchableOpacity>
+        <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <InputField
             label="PO Number"
-            value={invoice.poNumber || ""}
+            value={invoice.project?.poNumber || ""}
             icon="receipt"
-            onChangeText={(value) => handleFieldChange("poNumber", value)}
-            readonly={!editMode}
-            placeholder="Enter PO number"
+            onChangeText={(value) =>
+              setInvoice((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  project: {
+                    ...prev.project,
+                    poNumber: value,
+                  },
+                };
+              })
+            }
+            readonly={!editProject}
+            placeholder="Enter  PO number"
           />
-          <InputField
-            label="DC Reference"
-            value={invoice.dcReference || ""}
-            icon="receipt"
-            onChangeText={(value) => handleFieldChange("dcReference", value)}
-            readonly={!editMode}
-            placeholder="Enter DC reference"
-          />
-          <InputField
-            label="JC Reference"
-            value={invoice.jcReference || ""}
-            icon="receipt"
-            onChangeText={(value) => handleFieldChange("jcReference", value)}
-            readonly={!editMode}
-            placeholder="Enter JC reference"
-          />
+          {editProject ? (
+            <View>
+              <View className="flex-row items-center">
+                <InputField
+                  label="JC Reference"
+                  placeholder="Enter JC reference"
+                  value={jcReference || ""}
+                  onChangeText={(text) => setJcReference(text)}
+                  icon="receipt"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    if (jcReference) {
+                      setInvoice((prev: any) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          project: {
+                            ...prev.project,
+                            jcReferences: [
+                              ...(prev.project.jcReferences || []),
+                              { jcReference },
+                            ],
+                          },
+                        };
+                      });
+                      setJcReference("");
+                    } else {
+                      Alert.alert("Error", "Please enter a JC reference");
+                    }
+                  }}
+                  className="bg-primary rounded-full p-2 ml-4"
+                >
+                  <MaterialIcons name="add" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              {invoice.project.jcReferences?.length > 0 && (
+                <View className="flex-row flex-wrap mb-6">
+                  {invoice.project.jcReferences?.map((jc, index) => (
+                    <View
+                      key={index}
+                      className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                    >
+                      <Text>{jc.jcReference}</Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setInvoice((prev) => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              project: {
+                                ...prev.project,
+                                jcReferences: prev.project.jcReferences?.filter(
+                                  (_: any, i: number) => i !== index
+                                ),
+                              },
+                            };
+                          })
+                        }
+                        className="ml-2"
+                      >
+                        <MaterialIcons name="close" size={20} color="#A82F39" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                JC References
+              </Text>
+              <View className="flex-row flex-wrap">
+                {invoice.project.jcReferences?.map((jc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
+                  >
+                    <Text>
+                      {jc.jcReference}{" "}
+                      {jc.jcDate
+                        ? ` (${new Date(jc.jcDate).toDateString()})`
+                        : ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+          {editProject ? (
+            <View>
+              <View className="flex-row items-center">
+                <InputField
+                  label="DC Reference"
+                  placeholder="Enter DC reference"
+                  value={dcReference || ""}
+                  onChangeText={(text) => setDcReference(text)}
+                  icon="receipt"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    if (dcReference) {
+                      setInvoice((prev: any) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          project: {
+                            ...prev.project,
+                            dcReferences: [
+                              ...(prev.project.dcReferences || []),
+                              { dcReference, dcDate: new Date() },
+                            ],
+                          },
+                        };
+                      });
+                      setDcReference("");
+                    } else {
+                      Alert.alert("Error", "Please enter a DC reference");
+                    }
+                  }}
+                  className="bg-primary rounded-full p-2 ml-4"
+                >
+                  <MaterialIcons name="add" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+              {invoice.project.dcReferences?.length > 0 && (
+                <View className="flex-row flex-wrap mb-6">
+                  {invoice.project.dcReferences?.map((dc, index) => (
+                    <View
+                      key={index}
+                      className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
+                    >
+                      <Text>{dc.dcReference}</Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setInvoice((prev) => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              project: {
+                                ...prev.project,
+                                dcReferences: prev.project.dcReferences?.filter(
+                                  (_: any, i: number) => i !== index
+                                ),
+                              },
+                            };
+                          })
+                        }
+                        className="ml-2"
+                      >
+                        <MaterialIcons name="close" size={20} color="#A82F39" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                DC References
+              </Text>
+              <View className="flex-row flex-wrap">
+                {invoice.project.dcReferences?.map((dc, index) => (
+                  <View
+                    key={index}
+                    className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
+                  >
+                    <Text>
+                      {dc.dcReference}{" "}
+                      {dc.dcDate
+                        ? ` (${new Date(dc.dcDate).toDateString()})`
+                        : ""}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
         <LinkedProjectSection />
       </ScrollView>

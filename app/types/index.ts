@@ -14,7 +14,7 @@ type Head = {
   name: string;
   email: string;
   phone: string;
-  department: string;
+  department: "accounts" | "technical" | "it" | "sales" | "store";
   status: "pending" | "approved" | "rejected";
   assignedComplaints: Complaint[];
   assignedProjects: Project[];
@@ -100,19 +100,6 @@ type Complaint = {
 
 type Invoice = {
   id: number;
-  clientName: string;
-  poNumber: string;
-  poDate: Date | null;
-  jcReferences: {
-    jcReference: string;
-    jcDate: Date | null;
-    isJcDateEdited: boolean;
-  }[];
-  dcReferences: {
-    dcReference: string;
-    dcDate: Date | null;
-    isDcDateEdited: boolean;
-  }[];
   invoiceReference: string;
   invoiceDate: Date | null;
   amount: string;

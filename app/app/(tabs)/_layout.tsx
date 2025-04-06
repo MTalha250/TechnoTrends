@@ -7,7 +7,7 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Platform } from "react-native";
 import useAuthStore from "@/store/authStore";
 const AdminLayout = () => {
-  const { user } = useAuthStore();
+  const { user, role } = useAuthStore();
 
   if (!user) return <Redirect href="/sign-in" />;
 
@@ -39,6 +39,24 @@ const AdminLayout = () => {
       <Tabs.Screen
         name="dashboard"
         options={{
+          href:
+            role === "director" || role === "admin" || role === "head"
+              ? "/dashboard"
+              : null,
+          title: "Dashboard",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons
+              name="view-dashboard-outline"
+              size={28}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="userDashboard"
+        options={{
+          href: role === "user" ? "/userDashboard" : null,
           title: "Dashboard",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
@@ -54,6 +72,25 @@ const AdminLayout = () => {
       <Tabs.Screen
         name="projects"
         options={{
+          href:
+            role === "director" ||
+            role === "admin" ||
+            (role === "head" &&
+              (user.department === "technical" ||
+                user.department === "it" ||
+                user.department === "store"))
+              ? "/projects"
+              : null,
+          title: "Projects",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="folder-open" size={28} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="userProjects"
+        options={{
+          href: role === "user" ? "/userProjects" : null,
           title: "Projects",
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="folder-open" size={28} color={color} />
@@ -65,6 +102,29 @@ const AdminLayout = () => {
       <Tabs.Screen
         name="complaints"
         options={{
+          href:
+            role === "director" ||
+            role === "admin" ||
+            (role === "head" &&
+              (user.department === "technical" ||
+                user.department === "it" ||
+                user.department === "store"))
+              ? "/complaints"
+              : null,
+          title: "Complaints",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons
+              name="report-gmailerrorred"
+              size={28}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="userComplaints"
+        options={{
+          href: role === "user" ? "/userComplaints" : null,
           title: "Complaints",
           tabBarIcon: ({ color }) => (
             <MaterialIcons
@@ -81,6 +141,13 @@ const AdminLayout = () => {
         name="invoices"
         options={{
           title: "Invoices",
+          href:
+            role === "director" ||
+            role === "admin" ||
+            (role === "head" &&
+              (user.department === "accounts" || user.department === "sales"))
+              ? "/invoices"
+              : null,
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="receipt-long" size={28} color={color} />
           ),
@@ -91,6 +158,7 @@ const AdminLayout = () => {
       <Tabs.Screen
         name="approvals"
         options={{
+          href: role === "director" || role === "admin" ? "/approvals" : null,
           title: "Approvals",
           tabBarIcon: ({ color }) => (
             <MaterialIcons

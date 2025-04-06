@@ -33,7 +33,12 @@ export default function AuthLayout() {
     handleLoginBack();
   }, []);
 
-  if (user) return <Redirect href="/dashboard" />;
+  if (user)
+    return role === "user" ? (
+      <Redirect href="/userDashboard" />
+    ) : (
+      <Redirect href="/dashboard" />
+    );
 
   return (
     <Stack>
