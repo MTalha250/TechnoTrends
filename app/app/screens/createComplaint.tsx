@@ -83,7 +83,7 @@ const CreateComplaint = () => {
       setLoading(true);
       await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/complaints`, {
         ...complaint,
-        assignedBy: user?.id,
+        createdBy: user?.name,
         status: "Pending",
       });
       Alert.alert("Success", "Complaint created successfully");
@@ -247,7 +247,7 @@ const CreateComplaint = () => {
                     }));
                     setJcReference("");
                   } else {
-                    Alert.alert("Error", "Please select a visit date");
+                    Alert.alert("Error", "Please enter a JC reference");
                   }
                 }}
                 className="bg-primary rounded-full p-2 ml-4"
@@ -300,7 +300,7 @@ const CreateComplaint = () => {
                     }));
                     setDcReference("");
                   } else {
-                    Alert.alert("Error", "Please select a visit date");
+                    Alert.alert("Error", "Please enter a DC reference");
                   }
                 }}
                 className="bg-primary rounded-full p-2 ml-4"
@@ -368,7 +368,7 @@ const CreateComplaint = () => {
                   <DateTimePicker
                     value={visitDate || new Date()}
                     mode="date"
-                    minimumDate={new Date()}
+                    maximumDate={new Date()}
                     accentColor="#A82F39"
                     onChange={handleVisitDateChange}
                   />

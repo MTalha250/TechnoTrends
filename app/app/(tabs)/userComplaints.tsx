@@ -323,6 +323,7 @@ const UserComplaints = () => {
       const response = await axios.get<Complaint[]>(
         `${process.env.EXPO_PUBLIC_API_URL}/assigned/complaints/user/${user?.id}`
       );
+      console.log(response.data);
       setComplaints(response.data);
     } catch (error) {
       console.error("Error fetching complaints:", error);

@@ -75,12 +75,14 @@ const Profile = () => {
   };
 
   const handleLogout = async () => {
+    setLoading(true);
     await logout();
     setUser(null);
     setToken(null);
     setRole(null);
     Alert.alert("Success", "Logged out successfully");
     router.push("/sign-in");
+    setLoading(false);
   };
 
   return (
@@ -194,11 +196,12 @@ const Profile = () => {
           {/* Logout Button */}
           <TouchableOpacity
             onPress={handleLogout}
+            disabled={loading}
             className="bg-primary rounded-2xl p-4 mt-4 flex-row justify-center items-center"
           >
             <MaterialIcons name="logout" size={24} color="white" />
             <Text className="text-lg font-semibold ml-2 text-white">
-              Logout
+              {loading ? <ActivityIndicator color="white" /> : "Logout"}
             </Text>
           </TouchableOpacity>
         </View>

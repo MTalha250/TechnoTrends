@@ -19,6 +19,7 @@ import axios from "axios";
 import InputField from "@/components/inputField";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import PhotosUploader from "@/components/uploader";
+import useAuthStore from "@/store/authStore";
 
 const getInitials = (name: string) => {
   return name
@@ -59,6 +60,7 @@ const ProjectDetail = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [jcReference, setJcReference] = useState("");
   const [dcReference, setDcReference] = useState("");
+  const { role } = useAuthStore();
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -355,8 +357,9 @@ const ProjectDetail = () => {
               <Text className="text-2xl font-bold text-gray-800">
                 Project Details
               </Text>
-              <Text className="text-gray-600">
-                View details of the selected project
+              <Text className="text-gray-600 text-sm">
+                Created by {project.createdBy} on{" "}
+                {new Date(project.created_at).toDateString()}
               </Text>
             </View>
           </View>
@@ -452,7 +455,7 @@ const ProjectDetail = () => {
                       });
                       setJcReference("");
                     } else {
-                      Alert.alert("Error", "Please select a visit date");
+                      Alert.alert("Error", "Please enter a JC reference");
                     }
                   }}
                   className="bg-primary rounded-full p-2 ml-4"
@@ -536,7 +539,7 @@ const ProjectDetail = () => {
                       });
                       setDcReference("");
                     } else {
-                      Alert.alert("Error", "Please select a visit date");
+                      Alert.alert("Error", "Please enter a DC reference");
                     }
                   }}
                   className="bg-primary rounded-full p-2 ml-4"
@@ -651,7 +654,7 @@ const ProjectDetail = () => {
             </View>
           )}
         </View>
-        <AssignedPersonnelSection />
+        {role !== "user" && <AssignedPersonnelSection />}
         {((project.surveyPhotos && project.surveyPhotos.length > 0) ||
           editMode) && <ImagesSection />}
 

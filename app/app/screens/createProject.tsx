@@ -154,7 +154,7 @@ const CreateProject = () => {
                     }));
                     setJcReference("");
                   } else {
-                    Alert.alert("Error", "Please select a visit date");
+                    Alert.alert("Error", "Please enter a JC reference");
                   }
                 }}
                 className="bg-primary rounded-full p-2 ml-4"
@@ -207,7 +207,7 @@ const CreateProject = () => {
                     }));
                     setDcReference("");
                   } else {
-                    Alert.alert("Error", "Please select a visit date");
+                    Alert.alert("Error", "Please enter a DC reference");
                   }
                 }}
                 className="bg-primary rounded-full p-2 ml-4"

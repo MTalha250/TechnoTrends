@@ -20,6 +20,7 @@ import axios from "axios";
 import InputField from "@/components/inputField";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import PhotosUploader from "@/components/uploader";
+import useAuthStore from "@/store/authStore";
 
 const getInitials = (name: string) => {
   return name
@@ -63,6 +64,7 @@ const ComplaintDetail = () => {
   const [visitDate, setVisitDate] = useState<Date | null>(null);
   const [jcReference, setJcReference] = useState("");
   const [dcReference, setDcReference] = useState("");
+  const { role } = useAuthStore();
   const showDatePickerModal = () => {
     setShowDatePicker(true);
   };
@@ -377,8 +379,9 @@ const ComplaintDetail = () => {
               <Text className="text-2xl font-bold text-gray-800">
                 Complaint Details
               </Text>
-              <Text className="text-gray-600">
-                View details of the selected complaint
+              <Text className="text-gray-600 text-sm">
+                Created by {complaint.createdBy} on{" "}
+                {new Date(complaint.created_at).toDateString()}
               </Text>
             </View>
           </View>
@@ -573,7 +576,7 @@ const ComplaintDetail = () => {
                       });
                       setJcReference("");
                     } else {
-                      Alert.alert("Error", "Please select a visit date");
+                      Alert.alert("Error", "Please enter a JC reference");
                     }
                   }}
                   className="bg-primary rounded-full p-2 ml-4"
@@ -657,7 +660,7 @@ const ComplaintDetail = () => {
                       });
                       setDcReference("");
                     } else {
-                      Alert.alert("Error", "Please select a visit date");
+                      Alert.alert("Error", "Please enter a DC reference");
                     }
                   }}
                   className="bg-primary rounded-full p-2 ml-4"
@@ -753,7 +756,7 @@ const ComplaintDetail = () => {
                   <DateTimePicker
                     value={visitDate || new Date()}
                     mode="date"
-                    minimumDate={new Date()}
+                    maximumDate={new Date()}
                     accentColor="#A82F39"
                     onChange={handleVisitDateChange}
                   />
@@ -835,7 +838,7 @@ const ComplaintDetail = () => {
             </View>
           )}
         </View>
-        <AssignedPersonnelSection />
+        {role !== "user" && <AssignedPersonnelSection />}
         {((complaint.photos && complaint.photos.length > 0) || editMode) && (
           <ImagesSection />
         )}

@@ -74,8 +74,7 @@ type Complaint = {
   poDate: Date | null;
   visitDates: Date[];
   dueDate: Date | null;
-  head: Head;
-  admin: Admin;
+  createdBy: string;
   users: User[];
   jcReferences: {
     jcReference: string;
