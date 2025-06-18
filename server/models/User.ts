@@ -12,6 +12,7 @@ export interface IUser extends Document {
   assignedProjects: mongoose.Types.ObjectId[];
   resetCode?: string;
   resetCodeExpires?: Date;
+  pushToken?: string;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -71,6 +72,9 @@ const UserSchema = new Schema<IUser>(
     },
     resetCodeExpires: {
       type: Date,
+    },
+    pushToken: {
+      type: String,
     },
   },
   {

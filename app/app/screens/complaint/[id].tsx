@@ -183,6 +183,43 @@ const ComplaintDetail = () => {
     }
   };
 
+  const handleDeleteComplaint = async () => {
+    Alert.alert(
+      "Delete Complaint",
+      "Are you sure you want to delete this complaint? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setSaving(true);
+              await axios.delete(
+                `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              Alert.alert("Success", "Complaint deleted successfully");
+              router.back();
+            } catch (error) {
+              console.log("Error deleting complaint", error);
+              Alert.alert("Error", "Failed to delete complaint");
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleFieldChange = (field: string, value: string) => {
     setComplaint((prev) => {
       if (!prev) return prev;
@@ -415,30 +452,49 @@ const ComplaintDetail = () => {
             </View>
           </View>
         </View>
+        <View className="flex-row gap-2 justify-center mb-4">
+          {/* Edit/Save Button */}
+          <TouchableOpacity
+            onPress={() => {
+              if (editMode) {
+                handleSaveChanges();
+              } else {
+                setEditMode(true);
+              }
+            }}
+            disabled={saving}
+            className={`p-3 rounded-xl ${
+              editMode ? "bg-green-600 w-full" : "bg-primary w-[48%]"
+            } ${saving ? "opacity-50" : ""}`}
+          >
+            {saving ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white text-center font-semibold">
+                {editMode ? "Save Changes" : "Edit Complaint"}
+              </Text>
+            )}
+          </TouchableOpacity>
 
-        {/* Edit/Save Button */}
-        <TouchableOpacity
-          onPress={() => {
-            if (editMode) {
-              handleSaveChanges();
-            } else {
-              setEditMode(true);
-            }
-          }}
-          disabled={saving}
-          className={`mb-4 p-3 rounded-xl ${
-            editMode ? "bg-green-600" : "bg-primary"
-          } ${saving ? "opacity-50" : ""}`}
-        >
-          {saving ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white text-center font-semibold">
-              {editMode ? "Save Changes" : "Edit Complaint"}
-            </Text>
+          {/* Delete Button - Only for Admin+ */}
+          {(role === "admin" || role === "director") && !editMode && (
+            <TouchableOpacity
+              onPress={handleDeleteComplaint}
+              disabled={saving}
+              className={`w-[48%] p-3 rounded-xl bg-red-600 ${
+                saving ? "opacity-50" : ""
+              }`}
+            >
+              {saving ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white text-center font-semibold">
+                  Delete Complaint
+                </Text>
+              )}
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
-
+        </View>
         {/* Complaint Details Form */}
         <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <InputField

@@ -11,7 +11,8 @@ import { ActivityIndicator } from "react-native-paper";
 
 const SignIn = () => {
   const [isFocus, setIsFocus] = useState(false);
-  const { setToken, setRole, setUser } = useAuthStore();
+  const { setToken, setRole, setUser, registerForNotifications } =
+    useAuthStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<LoginRequest>({
     email: "",
@@ -57,6 +58,14 @@ const SignIn = () => {
       setToken(data.token);
       setRole(data.role);
       setUser(data.user);
+
+      // Register for push notifications after successful login
+      try {
+        await registerForNotifications();
+      } catch (error) {
+        console.error("Failed to register for notifications:", error);
+      }
+
       if (data.role === "user") router.push("/userDashboard");
       else router.push("/dashboard");
       Alert.alert("Success", data.message);

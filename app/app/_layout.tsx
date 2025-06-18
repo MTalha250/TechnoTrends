@@ -6,13 +6,39 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import "../global.css";
+import NotificationService from "@/services/notificationService";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
+
+    // Setup notification listeners
+    const notificationListener =
+      NotificationService.addNotificationReceivedListener((notification) => {
+        console.log("Notification received:", notification);
+      });
+
+    const responseListener =
+      NotificationService.addNotificationResponseReceivedListener(
+        (response) => {
+          console.log("Notification response:", response);
+          // Handle notification tap here - navigate to specific screens based on data
+          const data = response.notification.request.content.data;
+          if (data?.type) {
+            // You can add navigation logic here based on notification type
+            console.log("Notification type:", data.type);
+          }
+        }
+      );
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
   }, []);
+
   const pathname = usePathname();
   useEffect(() => {
     const updateOrientation = async () => {

@@ -1,6 +1,6 @@
 import { Complaint, User } from "../models";
 import { Request, Response } from "express";
-import { sendNotificationToAdmins } from "./User";
+import { sendNotificationToAdmins, sendNotificationToUsers } from "./User";
 
 interface ComplaintRequest {
   complaintReference?: string;
@@ -186,7 +186,17 @@ export const createComplaint = async (
               This is an automated notification from TechnoTrends.
             </p>
           </div>
-        `
+        `,
+        "⚠️ New Complaint Submitted",
+        `${creator?.name || "Someone"} submitted a ${(
+          priority || "medium"
+        ).toLowerCase()} priority complaint for ${clientName || "a client"}.`,
+        {
+          type: "complaint_created",
+          complaintId: (newComplaint._id as any).toString(),
+          clientName: clientName || "Unknown",
+          priority: priority || "Medium",
+        }
       );
     } catch (emailError) {
       console.error(
@@ -213,6 +223,8 @@ export const getComplaints = async (
 ): Promise<void> => {
   try {
     const complaints = await Complaint.find()
+      .where("status")
+      .ne("Cancelled")
       .populate("createdBy", "name email")
       .populate("users", "name email")
       .sort({ createdAt: -1 });
@@ -320,12 +332,15 @@ export const deleteComplaint = async (
   try {
     const { id } = req.params;
 
-    const deletedComplaint = await Complaint.findByIdAndDelete(id);
+    const complaint = await Complaint.findById(id);
 
-    if (!deletedComplaint) {
+    if (!complaint) {
       res.status(404).json({ message: "Complaint not found" });
       return;
     }
+
+    complaint.status = "Cancelled";
+    await complaint.save();
 
     res.status(200).json({ message: "Complaint deleted successfully" });
   } catch (error) {
@@ -373,6 +388,40 @@ export const assignUsersToComplaint = async (
       updatedComplaint.status = autoStatus;
     }
 
+    // Send notifications to newly assigned users
+    try {
+      const currentUserIds = currentComplaint.users.map((u) => u.toString());
+      const newlyAssignedUserIds = userIds.filter(
+        (userId: string) => !currentUserIds.includes(userId)
+      );
+
+      if (newlyAssignedUserIds.length > 0) {
+        const complaintWithDetails = await Complaint.findById(id).populate(
+          "createdBy",
+          "name"
+        );
+
+        await sendNotificationToUsers(
+          newlyAssignedUserIds,
+          "⚠️ New Complaint Assignment",
+          `You've been assigned to complaint: ${
+            complaintWithDetails?.clientName || "Unknown Client"
+          }`,
+          {
+            type: "complaint_assigned",
+            complaintId: id,
+            clientName: complaintWithDetails?.clientName || "Unknown Client",
+            priority: complaintWithDetails?.priority || "Medium",
+          }
+        );
+      }
+    } catch (notificationError) {
+      console.error(
+        "Failed to send assignment notifications:",
+        notificationError
+      );
+    }
+
     res.status(200).json({
       message: "Users assigned to complaint successfully",
       complaint: updatedComplaint,
@@ -391,6 +440,8 @@ export const getComplaintsByUser = async (
 ): Promise<void> => {
   try {
     const complaints = await Complaint.find({ users: req.userId })
+      .where("status")
+      .ne("Cancelled")
       .populate("createdBy", "name email")
       .populate("users", "name email")
       .sort({ createdAt: -1 });
@@ -412,6 +463,8 @@ export const getComplaintsByStatus = async (
     const { status } = req.params;
 
     const complaints = await Complaint.find({ status })
+      .where("status")
+      .ne("Cancelled")
       .populate("createdBy", "name email")
       .populate("users", "name email")
       .sort({ createdAt: -1 });
@@ -433,6 +486,8 @@ export const getComplaintsByPriority = async (
     const { priority } = req.params;
 
     const complaints = await Complaint.find({ priority })
+      .where("status")
+      .ne("Cancelled")
       .populate("createdBy", "name email")
       .populate("users", "name email")
       .sort({ createdAt: -1 });

@@ -12,6 +12,7 @@ import {
   deleteUser,
   forgotPassword,
   verifyResetCode,
+  updatePushToken,
 } from "../controllers/User";
 import { verifyDirector, verifyHead, verifyToken } from "../middlewares";
 
@@ -20,6 +21,7 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-reset-code", verifyResetCode);
+router.post("/update-push-token", verifyToken, updatePushToken);
 router.get("/profile", verifyToken, getUser);
 router.get("/", verifyToken, verifyHead, getUsers);
 router.put("/profile", verifyToken, updateUser);

@@ -9,14 +9,34 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "background-processing",
+          "background-fetch"
+        ]
+      },
+      "bundleIdentifier": "com.talhaad126.technotrends"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon-small.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.talhaad126.technotrends"
+      "package": "com.talhaad126.technotrends",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "com.google.android.c2dm.permission.RECEIVE"
+      ]
+    },
+    "notification": {
+      "icon": "./assets/images/icon-small.png",
+      "color": "#A82F39",
+      "iosDisplayInForeground": true,
+      "androidMode": "default",
+      "androidCollapsedTitle": "TechnoTrends"
     },
     "web": {
       "bundler": "metro",
@@ -40,7 +60,15 @@
           "initialOrientation": "DEFAULT"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon-small.png",
+          "color": "#A82F39",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

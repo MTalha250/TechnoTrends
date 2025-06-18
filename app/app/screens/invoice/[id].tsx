@@ -29,7 +29,7 @@ const InvoiceDetail = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [jcReference, setJcReference] = useState("");
   const [dcReference, setDcReference] = useState("");
-  const { token } = useAuthStore();
+  const { token, role } = useAuthStore();
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -130,6 +130,43 @@ const InvoiceDetail = () => {
     } finally {
       setProjectSaving(false);
     }
+  };
+
+  const handleDeleteInvoice = async () => {
+    Alert.alert(
+      "Delete Invoice",
+      "Are you sure you want to delete this invoice? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setSaving(true);
+              await axios.delete(
+                `${process.env.EXPO_PUBLIC_API_URL}/invoices/${id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              Alert.alert("Success", "Invoice deleted successfully");
+              router.back();
+            } catch (error) {
+              console.log("Error deleting invoice", error);
+              Alert.alert("Error", "Failed to delete invoice");
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleFieldChange = (field: string, value: string) => {
@@ -233,27 +270,48 @@ const InvoiceDetail = () => {
         </View>
 
         {/* Edit/Save Button */}
-        <TouchableOpacity
-          onPress={() => {
-            if (editMode) {
-              handleSaveChanges();
-            } else {
-              setEditMode(true);
-            }
-          }}
-          disabled={saving}
-          className={`mb-4 p-3 rounded-xl ${
-            editMode ? "bg-green-600" : "bg-primary"
-          } ${saving ? "opacity-50" : ""}`}
-        >
-          {saving ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white text-center font-semibold">
-              {editMode ? "Save Changes" : "Edit Invoice"}
-            </Text>
+        <View className="flex-row gap-2 justify-center mb-4">
+          <TouchableOpacity
+            onPress={() => {
+              if (editMode) {
+                handleSaveChanges();
+              } else {
+                setEditMode(true);
+              }
+            }}
+            disabled={saving}
+            className={`p-3 rounded-xl ${
+              editMode ? "bg-green-600 w-full" : "bg-primary w-[48%]"
+            } ${saving ? "opacity-50" : ""}`}
+          >
+            {saving ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white text-center font-semibold">
+                {editMode ? "Save Changes" : "Edit Invoice"}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Delete Button - Only for Admin+ */}
+          {(role === "admin" || role === "director") && !editMode && (
+            <TouchableOpacity
+              onPress={handleDeleteInvoice}
+              disabled={saving}
+              className={`w-[48%] p-3 rounded-xl bg-red-600 ${
+                saving ? "opacity-50" : ""
+              }`}
+            >
+              {saving ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white text-center font-semibold">
+                  Delete Invoice
+                </Text>
+              )}
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
 
         {/* Invoice Details Form */}
         <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">

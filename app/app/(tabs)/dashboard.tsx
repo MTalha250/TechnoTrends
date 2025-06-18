@@ -17,6 +17,7 @@ import Chart from "@/components/dashboard/chart";
 import useAuthStore from "@/store/authStore";
 import axios from "axios";
 import ProjectCard from "@/components/projects/card";
+import NotificationService from "@/services/notificationService";
 
 const Dashboard = () => {
   const { user, token } = useAuthStore();
@@ -60,6 +61,18 @@ const Dashboard = () => {
     }
   };
 
+  const testNotification = async () => {
+    try {
+      await NotificationService.scheduleLocalNotification(
+        "🔔 Test Notification",
+        "This is a test notification from TechnoTrends!",
+        { type: "test", timestamp: new Date().toISOString() }
+      );
+    } catch (error) {
+      console.error("Failed to send test notification:", error);
+    }
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -81,12 +94,20 @@ const Dashboard = () => {
             <Text className="text-2xl font-bold">Dashboard</Text>
             <Text className="text-gray-600">Welcome back, {user?.name}</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => router.push("/screens/profile")}
-            className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
-          >
-            <FontAwesome5 name="user-alt" size={20} color="white" />
-          </TouchableOpacity>
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={testNotification}
+              className="flex-row items-center gap-2 bg-green-600 px-4 py-3 rounded-xl"
+            >
+              <MaterialIcons name="notifications" size={20} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile")}
+              className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
+            >
+              <FontAwesome5 name="user-alt" size={20} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
         <FlatList
           data={[

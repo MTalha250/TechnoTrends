@@ -166,6 +166,43 @@ const ProjectDetail = () => {
     }
   };
 
+  const handleDeleteProject = async () => {
+    Alert.alert(
+      "Delete Project",
+      "Are you sure you want to delete this project? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setSaving(true);
+              await axios.delete(
+                `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              Alert.alert("Success", "Project deleted successfully");
+              router.back();
+            } catch (error) {
+              console.log("Error deleting project", error);
+              Alert.alert("Error", "Failed to delete project");
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleFieldChange = (field: string, value: string) => {
     setProject((prev) => {
       if (!prev) return prev;
@@ -394,28 +431,48 @@ const ProjectDetail = () => {
             <Text className="font-medium">{project.status}</Text>
           </View>
         </View>
-        {/* Edit/Save Button */}
-        <TouchableOpacity
-          onPress={() => {
-            if (editMode) {
-              handleSaveChanges();
-            } else {
-              setEditMode(true);
-            }
-          }}
-          disabled={saving}
-          className={`mb-4 p-3 rounded-xl ${
-            editMode ? "bg-green-600" : "bg-primary"
-          } ${saving ? "opacity-50" : ""}`}
-        >
-          {saving ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white text-center font-semibold">
-              {editMode ? "Save Changes" : "Edit Project"}
-            </Text>
+        <View className="flex-row gap-2 justify-center mb-4">
+          {/* Edit/Save Button */}
+          <TouchableOpacity
+            onPress={() => {
+              if (editMode) {
+                handleSaveChanges();
+              } else {
+                setEditMode(true);
+              }
+            }}
+            disabled={saving}
+            className={`p-3 rounded-xl ${
+              editMode ? "bg-green-600 w-full" : "bg-primary w-[48%]"
+            } ${saving ? "opacity-50" : ""}`}
+          >
+            {saving ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white text-center font-semibold">
+                {editMode ? "Save Changes" : "Edit Project"}
+              </Text>
+            )}
+          </TouchableOpacity>
+          {/* Delete Button - Only for Admin+ */}
+          {(role === "admin" || role === "director") && !editMode && (
+            <TouchableOpacity
+              onPress={handleDeleteProject}
+              disabled={saving}
+              className={`w-[48%] p-3 rounded-xl bg-red-600 ${
+                saving ? "opacity-50" : ""
+              }`}
+            >
+              {saving ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white text-center font-semibold">
+                  Delete Project
+                </Text>
+              )}
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
         {/* Project Details Form */}
         <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <InputField

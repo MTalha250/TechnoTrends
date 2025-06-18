@@ -4,10 +4,54 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 
+// Helper function to send push notifications
+export const sendPushNotifications = async (
+  tokens: string[],
+  title: string,
+  body: string,
+  data?: any
+): Promise<void> => {
+  try {
+    if (tokens.length === 0) return;
+
+    const messages = tokens.map((token) => ({
+      to: token,
+      sound: "default",
+      title,
+      body,
+      data: data || {},
+    }));
+
+    // Split into chunks of 100 (Expo's limit)
+    const chunks = [];
+    for (let i = 0; i < messages.length; i += 100) {
+      chunks.push(messages.slice(i, i + 100));
+    }
+
+    // Send each chunk
+    for (const chunk of chunks) {
+      await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Accept-encoding": "gzip, deflate",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(chunk),
+      });
+    }
+  } catch (error) {
+    console.error("Failed to send push notifications:", error);
+  }
+};
+
 // Helper function to send notifications to directors and admins
 export const sendNotificationToAdmins = async (
   subject: string,
-  htmlContent: string
+  htmlContent: string,
+  pushTitle?: string,
+  pushBody?: string,
+  pushData?: any
 ): Promise<void> => {
   try {
     // Get all directors and admins
@@ -17,6 +61,17 @@ export const sendNotificationToAdmins = async (
     });
 
     if (adminUsers.length === 0) return;
+
+    // Send push notifications if push details provided
+    if (pushTitle && pushBody) {
+      const pushTokens = adminUsers
+        .filter((user) => user.pushToken)
+        .map((user) => user.pushToken!);
+
+      if (pushTokens.length > 0) {
+        await sendPushNotifications(pushTokens, pushTitle, pushBody, pushData);
+      }
+    }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -41,6 +96,62 @@ export const sendNotificationToAdmins = async (
   } catch (error) {
     console.error("Failed to send admin notifications:", error);
     // Don't throw error to avoid breaking the main flow
+  }
+};
+
+// Helper function to send notifications to specific users
+export const sendNotificationToUsers = async (
+  userIds: string[],
+  pushTitle: string,
+  pushBody: string,
+  pushData?: any,
+  emailSubject?: string,
+  emailContent?: string
+): Promise<void> => {
+  try {
+    if (userIds.length === 0) return;
+
+    // Get users by IDs
+    const users = await User.find({
+      _id: { $in: userIds },
+      status: "Approved",
+    });
+
+    if (users.length === 0) return;
+
+    // Send push notifications
+    const pushTokens = users
+      .filter((user) => user.pushToken)
+      .map((user) => user.pushToken!);
+
+    if (pushTokens.length > 0) {
+      await sendPushNotifications(pushTokens, pushTitle, pushBody, pushData);
+    }
+
+    // Send emails if email details provided
+    if (emailSubject && emailContent) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+
+      const emailPromises = users.map((user) => {
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: emailSubject,
+          html: emailContent,
+        };
+        return transporter.sendMail(mailOptions);
+      });
+
+      await Promise.all(emailPromises);
+    }
+  } catch (error) {
+    console.error("Failed to send user notifications:", error);
   }
 };
 
@@ -74,6 +185,10 @@ interface VerifyResetCodeRequest {
   email: string;
   code: string;
   newPassword: string;
+}
+
+interface UpdatePushTokenRequest {
+  pushToken: string;
 }
 
 export const register = async (
@@ -310,6 +425,7 @@ export const getPendingUsers = async (
     res.status(500).json({ message: errorMessage });
   }
 };
+
 export const changeUserStatus = async (
   req: Request,
   res: Response
@@ -323,9 +439,19 @@ export const changeUserStatus = async (
       return;
     }
 
-    // Send email notification if user is approved
+    // Send email and push notification if user is approved
     if (status === "Approved") {
       try {
+        // Send push notification if user has a push token
+        if (user.pushToken) {
+          await sendPushNotifications(
+            [user.pushToken],
+            "Account Approved! 🎉",
+            `Welcome to TechnoTrends, ${user.name}! Your account has been approved.`,
+            { type: "user_approved", userId: user._id }
+          );
+        }
+
         const transporter = nodemailer.createTransport({
           service: "gmail",
           auth: {
@@ -373,9 +499,9 @@ export const changeUserStatus = async (
         };
 
         await transporter.sendMail(mailOptions);
-      } catch (emailError) {
-        console.error("Failed to send approval email:", emailError);
-        // Don't fail the request if email fails
+      } catch (error) {
+        console.error("Failed to send approval notifications:", error);
+        // Don't fail the request if notifications fail
       }
     }
 
@@ -564,5 +690,27 @@ export const verifyResetCode = async (
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
     res.status(500).json({ message: errorMessage });
+  }
+};
+
+export const updatePushToken = async (
+  req: Request<{}, {}, UpdatePushTokenRequest>,
+  res: Response
+): Promise<void> => {
+  try {
+    const { pushToken } = req.body;
+
+    if (!pushToken) {
+      res.status(400).json({ message: "Push token is required" });
+      return;
+    }
+
+    // Update user's push token
+    await User.findByIdAndUpdate(req.userId, { pushToken });
+
+    res.status(200).json({ message: "Push token updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };

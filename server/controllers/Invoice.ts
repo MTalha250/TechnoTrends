@@ -103,7 +103,17 @@ export const createInvoice = async (
               This is an automated notification from TechnoTrends.
             </p>
           </div>
-        `
+        `,
+        "💰 New Invoice Created",
+        `${creator?.name || "Someone"} created an invoice for $${
+          amount || "0"
+        }${projectDetails ? ` (${projectDetails.clientName})` : ""}.`,
+        {
+          type: "invoice_created",
+          invoiceId: (newInvoice._id as any).toString(),
+          amount: amount || "0",
+          clientName: projectDetails?.clientName || "Unknown",
+        }
       );
     } catch (emailError) {
       console.error(
@@ -130,6 +140,8 @@ export const getInvoices = async (
 ): Promise<void> => {
   try {
     const invoices = await Invoice.find()
+      .where("status")
+      .ne("Cancelled")
       .populate("project createdBy")
       .sort({ createdAt: -1 });
 
@@ -216,12 +228,15 @@ export const deleteInvoice = async (
   try {
     const { id } = req.params;
 
-    const deletedInvoice = await Invoice.findByIdAndDelete(id);
+    const invoice = await Invoice.findById(id);
 
-    if (!deletedInvoice) {
+    if (!invoice) {
       res.status(404).json({ message: "Invoice not found" });
       return;
     }
+
+    invoice.status = "Cancelled";
+    await invoice.save();
 
     res.status(200).json({ message: "Invoice deleted successfully" });
   } catch (error) {
@@ -240,6 +255,8 @@ export const getInvoicesByStatus = async (
     const { status } = req.params;
 
     const invoices = await Invoice.find({ status })
+      .where("status")
+      .ne("Cancelled")
       .populate("project", "clientName description status")
       .populate("createdBy", "name email")
       .sort({ createdAt: -1 });
@@ -261,6 +278,8 @@ export const getInvoicesByPaymentTerms = async (
     const { paymentTerms } = req.params;
 
     const invoices = await Invoice.find({ paymentTerms })
+      .where("status")
+      .ne("Cancelled")
       .populate("project", "clientName description status")
       .populate("createdBy", "name email")
       .sort({ createdAt: -1 });
@@ -282,6 +301,8 @@ export const getInvoicesByProject = async (
     const { projectId } = req.params;
 
     const invoices = await Invoice.find({ project: projectId })
+      .where("status")
+      .ne("Cancelled")
       .populate("project", "clientName description status")
       .populate("createdBy", "name email")
       .sort({ createdAt: -1 });
@@ -306,6 +327,8 @@ export const getOverdueInvoices = async (
       dueDate: { $lt: currentDate },
       status: { $ne: "Completed" },
     })
+      .where("status")
+      .ne("Cancelled")
       .populate("project", "clientName description status")
       .populate("createdBy", "name email")
       .sort({ dueDate: 1 });

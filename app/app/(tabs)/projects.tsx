@@ -14,13 +14,7 @@ import InputField from "@/components/inputField";
 import axios from "axios";
 import useAuthStore from "@/store/authStore";
 
-const statusOptions = [
-  "All",
-  "Pending",
-  "In Progress",
-  "Completed",
-  "Cancelled",
-];
+const statusOptions = ["All", "Pending", "In Progress", "Completed"];
 
 const formatDate = (date: Date | null | string): string => {
   if (!date) return "No date";

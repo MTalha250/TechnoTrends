@@ -5,7 +5,8 @@ import { loginBack } from "@/hooks/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AuthLayout() {
-  const { setToken, setUser, setRole, role, user } = useAuthStore();
+  const { setToken, setUser, setRole, role, user, registerForNotifications } =
+    useAuthStore();
 
   const handleLoginBack = async () => {
     try {
@@ -21,6 +22,13 @@ export default function AuthLayout() {
       setRole(res?.role);
       if (res?.token) {
         setToken(res.token);
+      }
+
+      // Register for notifications after login back
+      try {
+        await registerForNotifications();
+      } catch (error) {
+        console.error("Failed to register for notifications:", error);
       }
     } catch (error: any) {
       setToken("");

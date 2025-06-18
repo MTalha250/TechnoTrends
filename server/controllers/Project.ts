@@ -1,7 +1,7 @@
 import { Project, Invoice, User } from "../models";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { sendNotificationToAdmins } from "./User";
+import { sendNotificationToAdmins, sendNotificationToUsers } from "./User";
 
 interface ProjectRequest {
   clientName?: string;
@@ -188,7 +188,16 @@ export const createProject = async (
               This is an automated notification from TechnoTrends.
             </p>
           </div>
-        `
+        `,
+        "📋 New Project Created",
+        `${creator?.name || "Someone"} created a new project for ${
+          clientName || "a client"
+        }.`,
+        {
+          type: "project_created",
+          projectId: (newProject._id as mongoose.Types.ObjectId).toString(),
+          clientName: clientName || "Unknown",
+        }
       );
     } catch (emailError) {
       console.error(
@@ -216,6 +225,8 @@ export const getProjects = async (
 ): Promise<void> => {
   try {
     const projects = await Project.find()
+      .where("status")
+      .ne("Cancelled")
       .populate("createdBy", "name email")
       .populate("users", "name email")
       .sort({ createdAt: -1 });
@@ -347,13 +358,13 @@ export const deleteProject = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const deletedProject = await Project.findByIdAndDelete(id);
-
-    if (!deletedProject) {
+    const project = await Project.findById(id);
+    if (!project) {
       res.status(404).json({ message: "Project not found" });
       return;
     }
+    project.status = "Cancelled";
+    await project.save();
 
     res.status(200).json({ message: "Project deleted successfully" });
   } catch (error) {
@@ -400,6 +411,39 @@ export const assignUsersToProject = async (
       updatedProject.status = autoStatus;
     }
 
+    // Send notifications to newly assigned users
+    try {
+      const currentUserIds = currentProject.users.map((u) => u.toString());
+      const newlyAssignedUserIds = userIds.filter(
+        (userId: string) => !currentUserIds.includes(userId)
+      );
+
+      if (newlyAssignedUserIds.length > 0) {
+        const projectWithDetails = await Project.findById(id).populate(
+          "createdBy",
+          "name"
+        );
+
+        await sendNotificationToUsers(
+          newlyAssignedUserIds,
+          "📋 New Project Assignment",
+          `You've been assigned to project: ${
+            projectWithDetails?.clientName || "Unknown Client"
+          }`,
+          {
+            type: "project_assigned",
+            projectId: id,
+            clientName: projectWithDetails?.clientName || "Unknown Client",
+          }
+        );
+      }
+    } catch (notificationError) {
+      console.error(
+        "Failed to send assignment notifications:",
+        notificationError
+      );
+    }
+
     res.status(200).json({
       message: "Users assigned to project successfully",
       project: updatedProject,
@@ -418,6 +462,8 @@ export const getProjectsByUser = async (
 ): Promise<void> => {
   try {
     const projects = await Project.find({ users: req.userId })
+      .where("status")
+      .ne("Cancelled")
       .populate("createdBy", "name email")
       .populate("users", "name email")
       .sort({ createdAt: -1 });
@@ -439,6 +485,8 @@ export const getProjectsByStatus = async (
     const { status } = req.params;
 
     const projects = await Project.find({ status })
+      .where("status")
+      .ne("Cancelled")
       .populate("createdBy", "name email")
       .populate("users", "name email")
       .sort({ createdAt: -1 });
