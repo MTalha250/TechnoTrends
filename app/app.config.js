@@ -17,14 +17,15 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/icon-small.png",
-        backgroundColor: "#ffffff",
+        foregroundImage:
+          "./assets/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png",
+        backgroundColor: "#fcece8",
       },
       package: "com.talhaad126.technotrends",
       googleServicesFile:
         process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
       notification: {
-        icon: "./assets/images/icon-small.png",
+        icon: "./assets/icons/android/mipmap-xxxhdpi/ic_launcher.png",
         color: "#A82F39",
         androidMode: "default",
         androidCollapsedTitle: "#{unread_notifications} new interactions",
@@ -57,7 +58,7 @@ export default {
       [
         "expo-notifications",
         {
-          icon: "./assets/images/icon-small.png",
+          icon: "./assets/icons/android/mipmap-xxxhdpi/ic_launcher.png",
           color: "#A82F39",
           defaultChannel: "default",
         },
