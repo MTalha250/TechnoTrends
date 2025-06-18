@@ -14,7 +14,7 @@ import InputField from "@/components/inputField";
 import axios from "axios";
 import useAuthStore from "@/store/authStore";
 
-const typeOptions = ["All", "Admins", "Heads", "Users"];
+const typeOptions = ["All", "Directors", "Admins", "Heads", "Users"];
 const statusOptions = ["All", "Pending", "Approved", "Rejected"];
 const tabOptions = ["Pending Requests", "Approved Users"];
 
@@ -291,7 +291,7 @@ const Approvals = () => {
 
         <View className={`${isCompact ? "w-36" : "w-52"} px-3 mx-1`}>
           <Text
-            className={`text-gray-800 ${isCompact ? "text-sm" : "text-base"}`}
+            className={`text-gray-800 ${isCompact ? "text-xs" : "text-sm"}`}
           >
             {item.email || "No email"}
           </Text>
@@ -316,10 +316,12 @@ const Approvals = () => {
         <View className={`${isCompact ? "w-28" : "w-40"} px-3 mx-1`}>
           <View
             className={`py-2 px-3 rounded-full ${
-              item.role === "head"
-                ? "bg-blue-100"
+              item.role === "director"
+                ? "bg-red-100"
                 : item.role === "admin"
                 ? "bg-purple-100"
+                : item.role === "head"
+                ? "bg-blue-100"
                 : "bg-green-100"
             }`}
           >
@@ -327,14 +329,18 @@ const Approvals = () => {
               className={`text-center font-semibold ${
                 isCompact ? "text-xs" : "text-xs"
               } ${
-                item.role === "head"
-                  ? "text-blue-800"
+                item.role === "director"
+                  ? "text-red-800"
                   : item.role === "admin"
                   ? "text-purple-800"
+                  : item.role === "head"
+                  ? "text-blue-800"
                   : "text-green-800"
               }`}
             >
-              {item.role === "head"
+              {item.role === "director"
+                ? "Director"
+                : item.role === "head"
                 ? "Department Head"
                 : item.role === "admin"
                 ? "Administrator"
@@ -454,10 +460,12 @@ const Approvals = () => {
         <View className={`${isCompact ? "w-28" : "w-40"} px-3 mx-1`}>
           <View
             className={`py-2 px-3 rounded-full ${
-              item.role === "head"
-                ? "bg-blue-100"
+              item.role === "director"
+                ? "bg-red-100"
                 : item.role === "admin"
                 ? "bg-purple-100"
+                : item.role === "head"
+                ? "bg-blue-100"
                 : "bg-green-100"
             }`}
           >
@@ -465,14 +473,18 @@ const Approvals = () => {
               className={`text-center font-semibold ${
                 isCompact ? "text-xs" : "text-xs"
               } ${
-                item.role === "head"
-                  ? "text-blue-800"
+                item.role === "director"
+                  ? "text-red-800"
                   : item.role === "admin"
                   ? "text-purple-800"
+                  : item.role === "head"
+                  ? "text-blue-800"
                   : "text-green-800"
               }`}
             >
-              {item.role === "head"
+              {item.role === "director"
+                ? "Director"
+                : item.role === "head"
                 ? "Department Head"
                 : item.role === "admin"
                 ? "Administrator"

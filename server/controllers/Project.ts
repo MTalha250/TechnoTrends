@@ -461,7 +461,9 @@ export const getProjectsByUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const projects = await Project.find({ users: req.userId })
+    const projects = await Project.find({
+      users: { $in: [req.userId] },
+    })
       .where("status")
       .ne("Cancelled")
       .populate("createdBy", "name email")

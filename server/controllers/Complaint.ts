@@ -439,7 +439,9 @@ export const getComplaintsByUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const complaints = await Complaint.find({ users: req.userId })
+    const complaints = await Complaint.find({
+      users: { $in: [req.userId] },
+    })
       .where("status")
       .ne("Cancelled")
       .populate("createdBy", "name email")
