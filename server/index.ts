@@ -22,10 +22,7 @@ app.use(
         callback(null, true);
         return;
       }
-      const allowedOrigins = [
-        "http://localhost:19006",
-        "exp://localhost:19000",
-      ];
+      const allowedOrigins = ["*"];
 
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
