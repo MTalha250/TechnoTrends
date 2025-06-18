@@ -37,24 +37,24 @@ const Dashboard = () => {
     try {
       setRefreshing(true);
       const response = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/dashboard/admin`,
+        `${process.env.EXPO_PUBLIC_API_URL}/dashboard`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setComplaints(response.data.all_complaints);
-      setProjects(response.data.all_projects);
-      setRecentComplaints(response.data.recent_complaints);
-      setRecentProjects(response.data.recent_projects);
+      setComplaints(response.data.allComplaints || []);
+      setProjects(response.data.allProjects || []);
+      setRecentComplaints(response.data.recentComplaints || []);
+      setRecentProjects(response.data.recentProjects || []);
       setSummaryData({
-        projects: response.data.total_projects,
-        complaints: response.data.total_complaints,
-        invoices: response.data.total_invoices,
+        projects: response.data.activeProjects || 0,
+        complaints: response.data.activeComplaints || 0,
+        invoices: response.data.activeInvoices || 0,
       });
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching dashboard data:", error);
     } finally {
       setRefreshing(false);
     }
@@ -96,12 +96,12 @@ const Dashboard = () => {
               icon: "folder-open",
             },
             {
-              title: "Total Complaints",
+              title: "Active Complaints",
               value: summaryData.complaints,
               icon: "report-gmailerrorred",
             },
             {
-              title: "Pending Invoices",
+              title: "Active Invoices",
               value: summaryData.invoices,
               icon: "receipt-long",
             },
@@ -114,7 +114,7 @@ const Dashboard = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerClassName="mb-8 p-1 gap-4"
         />
-        <Chart projects={projects} complaints={complaints} />
+        <Chart projects={projects as any} complaints={complaints as any} />
         <View className="my-6 flex-row justify-between items-center">
           <Text className="text-xl font-bold">Recent Projects</Text>
           <TouchableOpacity
@@ -129,7 +129,7 @@ const Dashboard = () => {
         </View>
         <View className="flex-col gap-4">
           {recentProjects.map((item) => (
-            <ProjectCard key={item.id} item={item} />
+            <ProjectCard key={item._id} item={item} />
           ))}
         </View>
         <View className="my-6 flex-row justify-between items-center">
@@ -147,7 +147,7 @@ const Dashboard = () => {
 
         <View className="flex-col gap-4 mb-20">
           {recentComplaints.map((item) => (
-            <ComplaintCard key={item.id} item={item} />
+            <ComplaintCard key={item._id} item={item} />
           ))}
         </View>
       </ScrollView>

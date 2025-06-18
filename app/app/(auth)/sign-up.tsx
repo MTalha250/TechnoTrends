@@ -5,22 +5,19 @@ import { TextInput, Button, ActivityIndicator } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import { Link, router } from "expo-router";
-import axios from "axios";
 import { register } from "@/hooks/auth";
 
 const SignUp = () => {
   const [isFocus, setIsFocus] = useState(false);
-  const [heads, setHeads] = useState<Head[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SignUpRequest>({
     name: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
-    role: "",
-    department: "",
-    head_id: "",
+    role: "user" as const,
+    department: undefined,
   });
   const renderLabel = () => {
     if (formData.role || isFocus) {
@@ -32,22 +29,6 @@ const SignUp = () => {
           }
         >
           Role
-        </Text>
-      );
-    }
-    return null;
-  };
-
-  const renderLabel2 = () => {
-    if (formData.head_id || isFocus) {
-      return (
-        <Text
-          className={
-            `absolute bg-[#f6fcff] left-3 -translate-y-1/2 top-0 z-10 px-2 text-sm text-gray-700 ` +
-            (isFocus ? "text-[#A82F39]" : "")
-          }
-        >
-          Head
         </Text>
       );
     }
@@ -84,21 +65,6 @@ const SignUp = () => {
     { label: "Store", value: "store" },
   ];
 
-  const fetchHeads = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/head`
-      );
-      setHeads(response.data);
-    } catch (error: any) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchHeads();
-  }, []);
-
   const handleSubmit = async () => {
     if (
       !formData.name ||
@@ -123,15 +89,16 @@ const SignUp = () => {
       Alert.alert("Error", "Please fill all the fields");
       return;
     }
-    if (formData.role === "user" && !formData.head_id) {
-      Alert.alert("Error", "Please fill all the fields");
-      return;
-    }
     try {
       setLoading(true);
       const { message } = await register({
-        ...formData,
-        email: formData.email.toLowerCase(),
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        role: formData.role,
+        department: formData.department,
       });
       Alert.alert("Success", message);
       setFormData({
@@ -140,13 +107,12 @@ const SignUp = () => {
         phone: "",
         password: "",
         confirmPassword: "",
-        role: "",
-        department: "",
-        head_id: "",
+        role: "user" as const,
+        department: undefined,
       });
       router.push("/sign-in");
     } catch (error: any) {
-      if (error.response?.status === 422) {
+      if (error.response?.status === 400) {
         Alert.alert("Error", "Email already exists");
         return;
       }
@@ -189,7 +155,7 @@ const SignUp = () => {
                 onFocus={() => setIsFocus(true)}
                 onBlur={() => setIsFocus(false)}
                 onChange={(item) => {
-                  setFormData({ ...formData, role: item.value });
+                  setFormData({ ...formData, role: item.value as any });
                   setIsFocus(false);
                 }}
               />
@@ -217,36 +183,10 @@ const SignUp = () => {
                   onFocus={() => setIsFocus(true)}
                   onBlur={() => setIsFocus(false)}
                   onChange={(item) => {
-                    setFormData({ ...formData, department: item.value });
-                    setIsFocus(false);
-                  }}
-                />
-              </View>
-            )}
-            {formData.role === "user" && (
-              <View className="w-full">
-                {renderLabel2()}
-                <Dropdown
-                  style={[
-                    {
-                      width: "100%",
-                      backgroundColor: "transparent",
-                      borderColor: "#87858e",
-                      borderRadius: 10,
-                      padding: 14,
-                      borderWidth: 1,
-                    },
-                    isFocus && { borderColor: "#A82F39" },
-                  ]}
-                  data={heads}
-                  labelField="name"
-                  valueField="id"
-                  placeholder={!isFocus ? "Head" : ""}
-                  value={formData.head_id}
-                  onFocus={() => setIsFocus(true)}
-                  onBlur={() => setIsFocus(false)}
-                  onChange={(item) => {
-                    setFormData({ ...formData, head_id: item.id.toString() });
+                    setFormData({
+                      ...formData,
+                      department: item.value as any,
+                    });
                     setIsFocus(false);
                   }}
                 />

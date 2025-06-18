@@ -18,22 +18,23 @@ import useAuthStore from "@/store/authStore";
 import { ActivityIndicator } from "react-native-paper";
 
 const CreateProject = () => {
-  const [project, setProject] = useState({
+  const [project, setProject] = useState<CreateProjectRequest>({
     clientName: "",
     description: "",
     surveyPhotos: [] as string[],
-    quotationReference: "",
-    poNumber: "",
-    jcReference: [] as { jcReference: string }[],
-    dcReference: [] as { dcReference: string }[],
-    remarks: "",
-    dueDate: null,
+    quotation: { value: "", isEdited: false },
+    po: { value: "", isEdited: false },
+    jcReferences: [] as Array<{ value: string; isEdited: boolean }>,
+    dcReferences: [] as Array<{ value: string; isEdited: boolean }>,
+    remarks: { value: "", isEdited: false },
+    dueDate: undefined,
   });
-  const { user } = useAuthStore();
+  const { token } = useAuthStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [jcReference, setJcReference] = useState("");
   const [dcReference, setDcReference] = useState("");
   const [loading, setLoading] = useState(false);
+
   const showDatePickerModal = () => {
     setShowDatePicker(true);
   };
@@ -45,7 +46,10 @@ const CreateProject = () => {
     }
   };
 
-  const handleChange = (field: keyof Project, value: string | Date | null) => {
+  const handleChange = (
+    field: keyof CreateProjectRequest,
+    value: string | Date | null
+  ) => {
     setProject((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -54,24 +58,25 @@ const CreateProject = () => {
       Alert.alert("Error", "Client name is required");
       return;
     }
+    console.log(project);
     try {
       setLoading(true);
-      await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/projects`, {
-        ...project,
-        createdBy: user?.name,
-        status: "Pending",
+      await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/projects`, project, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       Alert.alert("Success", "Project created successfully");
       setProject({
         clientName: "",
         description: "",
         surveyPhotos: [],
-        quotationReference: "",
-        poNumber: "",
-        jcReference: [],
-        dcReference: [],
-        remarks: "",
-        dueDate: null,
+        quotation: { value: "", isEdited: false },
+        po: { value: "", isEdited: false },
+        jcReferences: [],
+        dcReferences: [],
+        remarks: { value: "", isEdited: false },
+        dueDate: undefined,
       });
       router.back();
     } catch (error) {
@@ -120,20 +125,33 @@ const CreateProject = () => {
               icon="description"
               placeholder="Enter project description"
             />
+
             <InputField
               label="PO Number"
-              value={project.poNumber || ""}
-              onChangeText={(text) => handleChange("poNumber", text)}
+              value={project.po?.value || ""}
+              onChangeText={(text) =>
+                setProject((prev) => ({
+                  ...prev,
+                  po: { value: text, isEdited: false },
+                }))
+              }
               icon="receipt"
               placeholder="Enter project order number"
             />
+
             <InputField
               label="Quotation"
               placeholder="Enter quotation reference"
-              value={project.quotationReference || ""}
-              onChangeText={(text) => handleChange("quotationReference", text)}
+              value={project.quotation?.value || ""}
+              onChangeText={(text) =>
+                setProject((prev) => ({
+                  ...prev,
+                  quotation: { value: text, isEdited: false },
+                }))
+              }
               icon="attach-money"
             />
+
             <View className="flex-row items-center">
               <InputField
                 label="JC Reference"
@@ -147,9 +165,9 @@ const CreateProject = () => {
                   if (jcReference) {
                     setProject((prev) => ({
                       ...prev,
-                      jcReference: [
-                        ...(prev.jcReference || []),
-                        { jcReference: jcReference },
+                      jcReferences: [
+                        ...(prev.jcReferences || []),
+                        { value: jcReference, isEdited: false },
                       ],
                     }));
                     setJcReference("");
@@ -162,19 +180,19 @@ const CreateProject = () => {
                 <MaterialIcons name="add" size={24} color="white" />
               </TouchableOpacity>
             </View>
-            {project.jcReference?.length > 0 && (
+            {project.jcReferences && project.jcReferences.length > 0 && (
               <View className="flex-row flex-wrap mb-6">
-                {project.jcReference?.map((jc, index) => (
+                {project.jcReferences.map((jc, index) => (
                   <View
                     key={index}
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                   >
-                    <Text>{jc.jcReference}</Text>
+                    <Text>{jc.value}</Text>
                     <TouchableOpacity
                       onPress={() =>
                         setProject((prev) => ({
                           ...prev,
-                          jcReference: prev.jcReference?.filter(
+                          jcReferences: prev.jcReferences?.filter(
                             (_, i) => i !== index
                           ),
                         }))
@@ -187,6 +205,7 @@ const CreateProject = () => {
                 ))}
               </View>
             )}
+
             <View className="flex-row items-center">
               <InputField
                 label="DC Reference"
@@ -200,9 +219,9 @@ const CreateProject = () => {
                   if (dcReference) {
                     setProject((prev) => ({
                       ...prev,
-                      dcReference: [
-                        ...(prev.dcReference || []),
-                        { dcReference: dcReference },
+                      dcReferences: [
+                        ...(prev.dcReferences || []),
+                        { value: dcReference, isEdited: false },
                       ],
                     }));
                     setDcReference("");
@@ -215,19 +234,19 @@ const CreateProject = () => {
                 <MaterialIcons name="add" size={24} color="white" />
               </TouchableOpacity>
             </View>
-            {project.dcReference?.length > 0 && (
+            {project.dcReferences && project.dcReferences.length > 0 && (
               <View className="flex-row flex-wrap mb-6">
-                {project.dcReference?.map((dc, index) => (
+                {project.dcReferences.map((dc, index) => (
                   <View
                     key={index}
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                   >
-                    <Text>{dc.dcReference}</Text>
+                    <Text>{dc.value}</Text>
                     <TouchableOpacity
                       onPress={() =>
                         setProject((prev) => ({
                           ...prev,
-                          dcReference: prev.dcReference?.filter(
+                          dcReferences: prev.dcReferences?.filter(
                             (_, i) => i !== index
                           ),
                         }))
@@ -240,13 +259,20 @@ const CreateProject = () => {
                 ))}
               </View>
             )}
+
             <InputField
               label="Remarks"
               placeholder="Enter remarks"
-              value={project.remarks || ""}
-              onChangeText={(text) => handleChange("remarks", text)}
+              value={project.remarks?.value || ""}
+              onChangeText={(text) =>
+                setProject((prev) => ({
+                  ...prev,
+                  remarks: { value: text, isEdited: false },
+                }))
+              }
               icon="notes"
             />
+
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
                 Due Date <Text className="text-gray-400">(Optional)</Text>
@@ -280,6 +306,7 @@ const CreateProject = () => {
                 />
               )}
             </View>
+
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide">
                 Survey Photos (Max 5){" "}

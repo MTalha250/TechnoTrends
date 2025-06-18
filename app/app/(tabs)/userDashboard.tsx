@@ -36,23 +36,25 @@ const UserDashboard = () => {
     try {
       setRefreshing(true);
       const response = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/user/dashboard/${user?.id}`,
+        `${process.env.EXPO_PUBLIC_API_URL}/dashboard/user`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setComplaints(response.data.complaints);
-      setProjects(response.data.projects);
-      setRecentComplaints(response.data.recent_complaints);
-      setRecentProjects(response.data.recent_projects);
+
+      setComplaints(response.data.userComplaints || []);
+      setProjects(response.data.userProjects || []);
+
+      setRecentComplaints(response.data.recentComplaints || []);
+      setRecentProjects(response.data.recentProjects || []);
       setSummaryData({
-        projects: response.data.projects.length,
-        complaints: response.data.complaints.length,
+        projects: response.data.activeProjects || 0,
+        complaints: response.data.activeComplaints || 0,
       });
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching user dashboard data:", error);
     } finally {
       setRefreshing(false);
     }
@@ -60,7 +62,7 @@ const UserDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [user?.id]);
+  }, [user?._id]);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -107,12 +109,12 @@ const UserDashboard = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerClassName="mb-8 p-1 gap-4"
         />
-        <Chart projects={projects} complaints={complaints} />
+        <Chart projects={projects as any} complaints={complaints as any} />
         <View className="my-6 flex-row justify-between items-center">
           <Text className="text-xl font-bold">Recent Projects</Text>
           <TouchableOpacity
             className="flex-row items-center gap-2"
-            onPress={() => router.push("/projects")}
+            onPress={() => router.push("/userProjects")}
           >
             <Text>View All</Text>
             <View className="animate-bounceX">
@@ -122,14 +124,14 @@ const UserDashboard = () => {
         </View>
         <View className="flex-col gap-4">
           {recentProjects.map((item) => (
-            <ProjectCard key={item.id} item={item} />
+            <ProjectCard key={item._id} item={item} />
           ))}
         </View>
         <View className="my-6 flex-row justify-between items-center">
           <Text className="text-xl font-bold">Recent Complaints</Text>
           <TouchableOpacity
             className="flex-row items-center gap-2"
-            onPress={() => router.push("/complaints")}
+            onPress={() => router.push("/userComplaints")}
           >
             <Text>View All</Text>
             <View className="animate-bounceX">
@@ -140,7 +142,7 @@ const UserDashboard = () => {
 
         <View className="flex-col gap-4 mb-20">
           {recentComplaints.map((item) => (
-            <ComplaintCard key={item.id} item={item} />
+            <ComplaintCard key={item._id} item={item} />
           ))}
         </View>
       </ScrollView>

@@ -25,21 +25,21 @@ const priorities = [
 ];
 
 const CreateComplaint = () => {
-  const [complaint, setComplaint] = useState({
+  const [complaint, setComplaint] = useState<CreateComplaintRequest>({
     clientName: "",
     description: "",
     visitDates: [] as Date[],
     photos: [] as string[],
-    quotation: "",
-    poNumber: "",
-    jcReference: [] as { jcReference: string }[],
-    dcReference: [] as { dcReference: string }[],
-    remarks: "",
+    quotation: { value: "", isEdited: false },
+    po: { value: "", isEdited: false },
+    jcReferences: [] as Array<{ value: string; isEdited: boolean }>,
+    dcReferences: [] as Array<{ value: string; isEdited: boolean }>,
+    remarks: { value: "", isEdited: false },
     complaintReference: "",
     priority: undefined,
-    dueDate: null,
+    dueDate: undefined,
   });
-  const { user } = useAuthStore();
+  const { token } = useAuthStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
   const [visitDate, setVisitDate] = useState<Date | null>(null);
@@ -68,7 +68,7 @@ const CreateComplaint = () => {
     }
   };
   const handleChange = (
-    field: keyof Complaint,
+    field: keyof CreateComplaintRequest,
     value: string | Date | null
   ) => {
     setComplaint((prev) => ({ ...prev, [field]: value }));
@@ -81,25 +81,29 @@ const CreateComplaint = () => {
     }
     try {
       setLoading(true);
-      await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/complaints`, {
-        ...complaint,
-        createdBy: user?.name,
-        status: "Pending",
-      });
+      await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints`,
+        complaint,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       Alert.alert("Success", "Complaint created successfully");
       setComplaint({
         clientName: "",
         description: "",
         visitDates: [],
         photos: [],
-        quotation: "",
-        poNumber: "",
-        jcReference: [],
-        dcReference: [],
-        remarks: "",
+        quotation: { value: "", isEdited: false },
+        po: { value: "", isEdited: false },
+        jcReferences: [],
+        dcReferences: [],
+        remarks: { value: "", isEdited: false },
         complaintReference: "",
         priority: undefined,
-        dueDate: null,
+        dueDate: undefined,
       });
       router.back();
     } catch (error: any) {
@@ -215,15 +219,25 @@ const CreateComplaint = () => {
             />
             <InputField
               label="Quotation"
-              value={complaint.quotation || ""}
-              onChangeText={(text) => handleChange("quotation", text)}
+              value={complaint.quotation?.value || ""}
+              onChangeText={(text) =>
+                setComplaint((prev) => ({
+                  ...prev,
+                  quotation: { value: text, isEdited: false },
+                }))
+              }
               icon="attach-money"
               placeholder="Enter quotation"
             />
             <InputField
               label="PO Number"
-              value={complaint.poNumber || ""}
-              onChangeText={(text) => handleChange("poNumber", text)}
+              value={complaint.po?.value || ""}
+              onChangeText={(text) =>
+                setComplaint((prev) => ({
+                  ...prev,
+                  po: { value: text, isEdited: false },
+                }))
+              }
               icon="receipt"
               placeholder="Enter PO number"
             />
@@ -240,9 +254,9 @@ const CreateComplaint = () => {
                   if (jcReference) {
                     setComplaint((prev) => ({
                       ...prev,
-                      jcReference: [
-                        ...(prev.jcReference || []),
-                        { jcReference: jcReference },
+                      jcReferences: [
+                        ...(prev.jcReferences || []),
+                        { value: jcReference, isEdited: false },
                       ],
                     }));
                     setJcReference("");
@@ -255,19 +269,19 @@ const CreateComplaint = () => {
                 <MaterialIcons name="add" size={24} color="white" />
               </TouchableOpacity>
             </View>
-            {complaint.jcReference?.length > 0 && (
+            {complaint.jcReferences && complaint.jcReferences.length > 0 && (
               <View className="flex-row flex-wrap mb-6">
-                {complaint.jcReference?.map((jc, index) => (
+                {complaint.jcReferences.map((jc, index) => (
                   <View
                     key={index}
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                   >
-                    <Text>{jc.jcReference}</Text>
+                    <Text>{jc.value}</Text>
                     <TouchableOpacity
                       onPress={() =>
                         setComplaint((prev) => ({
                           ...prev,
-                          jcReference: prev.jcReference?.filter(
+                          jcReferences: prev.jcReferences?.filter(
                             (_, i) => i !== index
                           ),
                         }))
@@ -293,9 +307,9 @@ const CreateComplaint = () => {
                   if (dcReference) {
                     setComplaint((prev) => ({
                       ...prev,
-                      dcReference: [
-                        ...(prev.dcReference || []),
-                        { dcReference: dcReference },
+                      dcReferences: [
+                        ...(prev.dcReferences || []),
+                        { value: dcReference, isEdited: false },
                       ],
                     }));
                     setDcReference("");
@@ -308,19 +322,19 @@ const CreateComplaint = () => {
                 <MaterialIcons name="add" size={24} color="white" />
               </TouchableOpacity>
             </View>
-            {complaint.dcReference?.length > 0 && (
+            {complaint.dcReferences && complaint.dcReferences.length > 0 && (
               <View className="flex-row flex-wrap mb-6">
-                {complaint.dcReference?.map((dc, index) => (
+                {complaint.dcReferences.map((dc, index) => (
                   <View
                     key={index}
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                   >
-                    <Text>{dc.dcReference}</Text>
+                    <Text>{dc.value}</Text>
                     <TouchableOpacity
                       onPress={() =>
                         setComplaint((prev) => ({
                           ...prev,
-                          dcReference: prev.dcReference?.filter(
+                          dcReferences: prev.dcReferences?.filter(
                             (_, i) => i !== index
                           ),
                         }))
@@ -335,8 +349,13 @@ const CreateComplaint = () => {
             )}
             <InputField
               label="Remarks"
-              value={complaint.remarks || ""}
-              onChangeText={(text) => handleChange("remarks", text)}
+              value={complaint.remarks?.value || ""}
+              onChangeText={(text) =>
+                setComplaint((prev) => ({
+                  ...prev,
+                  remarks: { value: text, isEdited: false },
+                }))
+              }
               icon="notes"
               placeholder="Enter remarks"
             />

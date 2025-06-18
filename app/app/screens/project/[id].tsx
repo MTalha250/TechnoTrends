@@ -60,7 +60,7 @@ const ProjectDetail = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [jcReference, setJcReference] = useState("");
   const [dcReference, setDcReference] = useState("");
-  const { role } = useAuthStore();
+  const { role, token } = useAuthStore();
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -80,14 +80,24 @@ const ProjectDetail = () => {
     try {
       setLoading(true);
       const response = await axios.get<Project>(
-        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}`
+        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setProject(response.data);
       const response2 = await axios.get<User[]>(
-        `${process.env.EXPO_PUBLIC_API_URL}/user`
+        `${process.env.EXPO_PUBLIC_API_URL}/users`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setUsers(response2.data);
-      setUserIds(response.data.users.map((user) => user.id.toString()));
+      setUserIds(response.data.users.map((user) => user._id));
     } catch (error) {
       Alert.alert("Error", "Failed to fetch project details");
     } finally {
@@ -106,17 +116,25 @@ const ProjectDetail = () => {
     }
     try {
       setSaving(true);
-      await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/projects/${id}`, {
-        clientName: project?.clientName,
-        description: project?.description,
-        poNumber: project?.poNumber,
-        quotationReference: project?.quotationReference,
-        jcReference: project?.jcReferences,
-        dcReference: project?.dcReferences,
-        remarks: project?.remarks,
-        dueDate: project?.dueDate,
-        surveyPhotos: project?.surveyPhotos,
-      });
+      await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}`,
+        {
+          clientName: project?.clientName,
+          description: project?.description,
+          po: project?.po,
+          quotation: project?.quotation,
+          jcReferences: project?.jcReferences,
+          dcReferences: project?.dcReferences,
+          remarks: project?.remarks,
+          dueDate: project?.dueDate,
+          surveyPhotos: project?.surveyPhotos,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       Alert.alert("Success", "Project updated successfully");
       setEditMode(false);
       fetchProject();
@@ -131,8 +149,13 @@ const ProjectDetail = () => {
   const handleAssignUsers = async () => {
     try {
       await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}/assign-workers`,
-        { worker_ids: userIds }
+        `${process.env.EXPO_PUBLIC_API_URL}/projects/${id}/assign-users`,
+        { userIds },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       Alert.alert("Success", "Users updated successfully");
       setModalVisible(false);
@@ -265,7 +288,7 @@ const ProjectDetail = () => {
         <Text className="text-lg font-bold">Assigned Workers</Text>
         <TouchableOpacity
           onPress={() => {
-            setUserIds(project?.users.map((user) => user.id.toString()) || []);
+            setUserIds(project?.users.map((user) => user._id) || []);
             setModalVisible(true);
           }}
           className="bg-primary px-4 py-2 rounded-lg"
@@ -277,7 +300,7 @@ const ProjectDetail = () => {
         <View>
           <View className="gap-4">
             {project?.users.map((worker) => (
-              <View key={worker.id} className="flex-row items-center">
+              <View key={worker._id} className="flex-row items-center">
                 <Avatar name={worker.name} size="medium" />
                 <View className="ml-3">
                   <Text className="font-semibold">{worker.name}</Text>
@@ -358,8 +381,8 @@ const ProjectDetail = () => {
                 Project Details
               </Text>
               <Text className="text-gray-600 text-sm">
-                Created by {project.createdBy} on{" "}
-                {new Date(project.created_at).toDateString()}
+                Created by {project.createdBy.name} on{" "}
+                {new Date(project.createdAt).toDateString()}
               </Text>
             </View>
           </View>
@@ -414,18 +437,42 @@ const ProjectDetail = () => {
           />
           <InputField
             label="PO Number"
-            value={project.poNumber || ""}
+            value={project.po?.value || ""}
             icon="receipt"
-            onChangeText={(value) => handleFieldChange("poNumber", value)}
+            onChangeText={(value) =>
+              setProject((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  po: {
+                    value,
+                    isEdited: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                };
+              })
+            }
             readonly={!editMode}
             placeholder="Enter PO number"
           />
           <InputField
             label="Quotation"
-            value={project.quotationReference || ""}
+            value={project.quotation?.value || ""}
             icon="attach-money"
             onChangeText={(value) =>
-              handleFieldChange("quotationReference", value)
+              setProject((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  quotation: {
+                    value,
+                    isEdited: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                };
+              })
             }
             readonly={!editMode}
             placeholder="Enter quotation reference"
@@ -449,7 +496,7 @@ const ProjectDetail = () => {
                           ...prev,
                           jcReferences: [
                             ...(prev.jcReferences || []),
-                            { jcReference },
+                            { value: jcReference, isEdited: true },
                           ],
                         };
                       });
@@ -470,7 +517,7 @@ const ProjectDetail = () => {
                       key={index}
                       className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                     >
-                      <Text>{jc.jcReference}</Text>
+                      <Text>{jc.value}</Text>
                       <TouchableOpacity
                         onPress={() =>
                           setProject((prev) => {
@@ -504,9 +551,9 @@ const ProjectDetail = () => {
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
                   >
                     <Text>
-                      {jc.jcReference}{" "}
-                      {jc.jcDate
-                        ? ` (${new Date(jc.jcDate).toDateString()})`
+                      {jc.value}{" "}
+                      {jc.updatedAt
+                        ? ` (${new Date(jc.updatedAt).toDateString()})`
                         : ""}
                     </Text>
                   </View>
@@ -533,7 +580,7 @@ const ProjectDetail = () => {
                           ...prev,
                           dcReferences: [
                             ...(prev.dcReferences || []),
-                            { dcReference },
+                            { value: dcReference, isEdited: true },
                           ],
                         };
                       });
@@ -554,7 +601,7 @@ const ProjectDetail = () => {
                       key={index}
                       className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                     >
-                      <Text>{dc.dcReference}</Text>
+                      <Text>{dc.value}</Text>
                       <TouchableOpacity
                         onPress={() =>
                           setProject((prev) => {
@@ -588,9 +635,9 @@ const ProjectDetail = () => {
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
                   >
                     <Text>
-                      {dc.dcReference}{" "}
-                      {dc.dcDate
-                        ? ` (${new Date(dc.dcDate).toDateString()})`
+                      {dc.value}{" "}
+                      {dc.updatedAt
+                        ? ` (${new Date(dc.updatedAt).toDateString()})`
                         : ""}
                     </Text>
                   </View>
@@ -600,9 +647,22 @@ const ProjectDetail = () => {
           )}
           <InputField
             label="Remarks"
-            value={project.remarks || ""}
+            value={project.remarks?.value || ""}
             icon="notes"
-            onChangeText={(value) => handleFieldChange("remarks", value)}
+            onChangeText={(value) =>
+              setProject((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  remarks: {
+                    value,
+                    isEdited: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                };
+              })
+            }
             readonly={!editMode}
             placeholder="Enter remarks"
           />
@@ -657,15 +717,12 @@ const ProjectDetail = () => {
         {role !== "user" && <AssignedPersonnelSection />}
         {((project.surveyPhotos && project.surveyPhotos.length > 0) ||
           editMode) && <ImagesSection />}
-
         <Portal>
           <Modal
             visible={modalVisible}
             onDismiss={() => {
               setModalVisible(false);
-              setUserIds(
-                project?.users.map((user) => user.id.toString()) || []
-              );
+              setUserIds(project?.users.map((user) => user._id) || []);
             }}
             contentContainerStyle={{
               backgroundColor: "white",
@@ -683,26 +740,24 @@ const ProjectDetail = () => {
                 <ScrollView className="max-h-80">
                   {users.map((user) => (
                     <TouchableOpacity
-                      key={user.id}
+                      key={user._id}
                       className={`flex-row items-center p-3 mb-2 rounded-lg border ${
-                        userIds.includes(user.id.toString())
+                        userIds.includes(user._id)
                           ? "border-primary bg-primary/10"
                           : "border-gray-200"
                       }`}
                       onPress={() => {
                         // Toggle selection
-                        if (userIds.includes(user.id.toString())) {
-                          setUserIds(
-                            userIds.filter((id) => id !== user.id.toString())
-                          );
+                        if (userIds.includes(user._id)) {
+                          setUserIds(userIds.filter((id) => id !== user._id));
                         } else {
-                          setUserIds([...userIds, user.id.toString()]);
+                          setUserIds([...userIds, user._id]);
                         }
                       }}
                     >
                       <Avatar name={user.name} size="small" />
                       <Text className="ml-3 flex-1">{user.name}</Text>
-                      {userIds.includes(user.id.toString()) && (
+                      {userIds.includes(user._id) && (
                         <MaterialIcons
                           name="check-circle"
                           size={24}
@@ -722,9 +777,7 @@ const ProjectDetail = () => {
               <Button
                 onPress={() => {
                   setModalVisible(false);
-                  setUserIds(
-                    project?.users.map((user) => user.id.toString()) || []
-                  );
+                  setUserIds(project?.users.map((user) => user._id) || []);
                 }}
                 mode="outlined"
                 style={{ flex: 1 }}
@@ -742,7 +795,6 @@ const ProjectDetail = () => {
             </View>
           </Modal>
         </Portal>
-
         <ImageViewerModal
           visible={imageModalVisible}
           imageUrl={selectedImage || ""}

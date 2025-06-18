@@ -16,6 +16,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import axios from "axios";
 import InputField from "@/components/inputField";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import useAuthStore from "@/store/authStore";
 
 const InvoiceDetail = () => {
   const { id } = useLocalSearchParams();
@@ -28,6 +29,7 @@ const InvoiceDetail = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [jcReference, setJcReference] = useState("");
   const [dcReference, setDcReference] = useState("");
+  const { token } = useAuthStore();
 
   const showDatePickerModal = () => {
     setShowDatePicker(true);
@@ -44,7 +46,12 @@ const InvoiceDetail = () => {
     try {
       setLoading(true);
       const response = await axios.get<Invoice>(
-        `${process.env.EXPO_PUBLIC_API_URL}/invoices/${id}`
+        `${process.env.EXPO_PUBLIC_API_URL}/invoices/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setInvoice(response.data);
     } catch (error) {
@@ -70,12 +77,21 @@ const InvoiceDetail = () => {
     }
     try {
       setSaving(true);
-      await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/invoices/${id}`, {
-        invoiceReference: invoice?.invoiceReference,
-        amount: invoice?.amount,
-        paymentTerms: invoice?.paymentTerms,
-        creditDays: invoice?.creditDays,
-      });
+      await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/invoices/${id}`,
+        {
+          invoiceReference: invoice?.invoiceReference,
+          amount: invoice?.amount,
+          paymentTerms: invoice?.paymentTerms,
+          creditDays: invoice?.creditDays,
+          dueDate: invoice?.dueDate,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       Alert.alert("Success", "Invoice updated successfully");
       setEditMode(false);
       fetchInvoice();
@@ -87,18 +103,23 @@ const InvoiceDetail = () => {
   };
 
   const handleSaveProjectChanges = async () => {
-    if (!invoice?.project?.id) {
+    if (!invoice?.project?._id) {
       Alert.alert("Error", "No project linked to this invoice");
       return;
     }
     try {
       setProjectSaving(true);
       await axios.put(
-        `${process.env.EXPO_PUBLIC_API_URL}/projects/${invoice.project.id}`,
+        `${process.env.EXPO_PUBLIC_API_URL}/projects/${invoice.project._id}`,
         {
-          poNumber: invoice.project.poNumber,
-          jcReference: invoice.project.jcReferences,
-          dcReference: invoice.project.dcReferences,
+          po: invoice.project.po,
+          jcReferences: invoice.project.jcReferences,
+          dcReferences: invoice.project.dcReferences,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       Alert.alert("Success", "Project updated successfully");
@@ -123,16 +144,12 @@ const InvoiceDetail = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "paid":
-        return "bg-green-200 text-green-800";
-      case "unpaid":
+      case "pending":
         return "bg-yellow-200 text-yellow-800";
+      case "completed":
+        return "bg-green-200 text-green-800";
       case "in progress":
         return "bg-blue-200 text-blue-800";
-      case "overdue":
-        return "bg-red-200 text-red-800";
-      case "cancelled":
-        return "bg-gray-200 text-gray-800";
       default:
         return "bg-gray-200 text-gray-800";
     }
@@ -143,7 +160,7 @@ const InvoiceDetail = () => {
       <Text className="text-lg font-bold mb-4">Linked Project</Text>
       {invoice?.project ? (
         <TouchableOpacity
-          onPress={() => router.push(`/screens/project/${invoice.project.id}`)}
+          onPress={() => router.push(`/screens/project/${invoice.project._id}`)}
           className="flex-row items-center justify-between"
         >
           <View>
@@ -378,7 +395,7 @@ const InvoiceDetail = () => {
         <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <InputField
             label="PO Number"
-            value={invoice.project?.poNumber || ""}
+            value={invoice.project?.po?.value || ""}
             icon="receipt"
             onChangeText={(value) =>
               setInvoice((prev) => {
@@ -387,7 +404,7 @@ const InvoiceDetail = () => {
                   ...prev,
                   project: {
                     ...prev.project,
-                    poNumber: value,
+                    po: { ...prev.project.po, value },
                   },
                 };
               })
@@ -416,7 +433,12 @@ const InvoiceDetail = () => {
                             ...prev.project,
                             jcReferences: [
                               ...(prev.project.jcReferences || []),
-                              { jcReference },
+                              {
+                                value: jcReference,
+                                isEdited: false,
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
+                              },
                             ],
                           },
                         };
@@ -438,7 +460,7 @@ const InvoiceDetail = () => {
                       key={index}
                       className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                     >
-                      <Text>{jc.jcReference}</Text>
+                      <Text>{jc.value}</Text>
                       <TouchableOpacity
                         onPress={() =>
                           setInvoice((prev) => {
@@ -475,9 +497,9 @@ const InvoiceDetail = () => {
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
                   >
                     <Text>
-                      {jc.jcReference}{" "}
-                      {jc.jcDate
-                        ? ` (${new Date(jc.jcDate).toDateString()})`
+                      {jc.value}{" "}
+                      {jc.updatedAt
+                        ? ` (${new Date(jc.updatedAt).toDateString()})`
                         : ""}
                     </Text>
                   </View>
@@ -506,7 +528,12 @@ const InvoiceDetail = () => {
                             ...prev.project,
                             dcReferences: [
                               ...(prev.project.dcReferences || []),
-                              { dcReference, dcDate: new Date() },
+                              {
+                                value: dcReference,
+                                isEdited: false,
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
+                              },
                             ],
                           },
                         };
@@ -528,7 +555,7 @@ const InvoiceDetail = () => {
                       key={index}
                       className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                     >
-                      <Text>{dc.dcReference}</Text>
+                      <Text>{dc.value}</Text>
                       <TouchableOpacity
                         onPress={() =>
                           setInvoice((prev) => {
@@ -565,9 +592,9 @@ const InvoiceDetail = () => {
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
                   >
                     <Text>
-                      {dc.dcReference}{" "}
-                      {dc.dcDate
-                        ? ` (${new Date(dc.dcDate).toDateString()})`
+                      {dc.value}{" "}
+                      {dc.updatedAt
+                        ? ` (${new Date(dc.updatedAt).toDateString()})`
                         : ""}
                     </Text>
                   </View>

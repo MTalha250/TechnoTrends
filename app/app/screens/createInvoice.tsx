@@ -15,37 +15,35 @@ import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
 import { ActivityIndicator } from "react-native-paper";
+import useAuthStore from "@/store/authStore";
 
 const paymentTerms = [
   { label: "Cash", value: "Cash" },
   { label: "Credit", value: "Credit" },
 ];
 
-interface Invoice {
-  invoiceReference: string;
-  linkedProject: string;
-  amount: string;
-  paymentTerms: string;
-  creditDays: string;
-  dueDate: Date | null;
-}
-
 const CreateInvoice = () => {
-  const [invoice, setInvoice] = useState<Invoice>({
+  const [invoice, setInvoice] = useState<CreateInvoiceRequest>({
     invoiceReference: "",
-    linkedProject: "",
+    project: "",
     amount: "",
     paymentTerms: "Cash",
     creditDays: "",
-    dueDate: null,
+    dueDate: undefined,
   });
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
+  const { token } = useAuthStore();
 
   const fetchProjects = async () => {
     try {
       const response = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/projects`
+        `${process.env.EXPO_PUBLIC_API_URL}/projects`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setProjects(response.data);
     } catch (error) {
@@ -69,13 +67,16 @@ const CreateInvoice = () => {
     }
   };
 
-  const handleChange = (field: keyof Invoice, value: string | Date | null) => {
+  const handleChange = (
+    field: keyof CreateInvoiceRequest,
+    value: string | Date | null
+  ) => {
     setInvoice((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async () => {
     if (
-      !invoice.linkedProject ||
+      !invoice.project ||
       !invoice.amount ||
       !invoice.paymentTerms ||
       !invoice.dueDate
@@ -89,18 +90,19 @@ const CreateInvoice = () => {
     }
     try {
       setLoading(true);
-      await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/invoices`, {
-        ...invoice,
-        status: "Pending",
+      await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/invoices`, invoice, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       Alert.alert("Success", "Invoice created successfully");
       setInvoice({
         invoiceReference: "",
-        linkedProject: "",
+        project: "",
         amount: "",
         paymentTerms: "Cash",
         creditDays: "",
-        dueDate: null,
+        dueDate: undefined,
       });
       router.back();
     } catch (error) {
@@ -160,11 +162,11 @@ const CreateInvoice = () => {
                   placeholderStyle={{ color: "#9CA3AF" }}
                   data={projects}
                   labelField="clientName"
-                  valueField="id"
+                  valueField="_id"
                   placeholder="Select Project"
-                  value={invoice.linkedProject}
+                  value={invoice.project}
                   onChange={(item) =>
-                    handleChange("linkedProject", item.id.toString())
+                    handleChange("project", item._id.toString())
                   }
                 />
               </View>

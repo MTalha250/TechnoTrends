@@ -2,31 +2,9 @@ import { create } from "zustand";
 
 type AuthStore = {
   token: string | null | undefined;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    isDirector: boolean;
-    status: "Pending" | "Approved" | "Rejected";
-    department: "accounts" | "technical" | "it" | "sales" | "store";
-    created_at: string;
-    updated_at: string;
-  } | null;
+  user: User | null;
   role: string | null | undefined;
-  setUser: (
-    user: {
-      id: number;
-      name: string;
-      email: string;
-      phone: string;
-      isDirector: boolean;
-      status: "Pending" | "Approved" | "Rejected";
-      department: "accounts" | "technical" | "it" | "sales" | "store";
-      created_at: string;
-      updated_at: string;
-    } | null
-  ) => void;
+  setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   setRole: (role: string | null) => void;
 };

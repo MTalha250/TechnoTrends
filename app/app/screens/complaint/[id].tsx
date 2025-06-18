@@ -64,7 +64,8 @@ const ComplaintDetail = () => {
   const [visitDate, setVisitDate] = useState<Date | null>(null);
   const [jcReference, setJcReference] = useState("");
   const [dcReference, setDcReference] = useState("");
-  const { role } = useAuthStore();
+  const { role, token } = useAuthStore();
+
   const showDatePickerModal = () => {
     setShowDatePicker(true);
   };
@@ -93,14 +94,24 @@ const ComplaintDetail = () => {
     try {
       setLoading(true);
       const response = await axios.get<Complaint>(
-        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setComplaint(response.data);
       const response2 = await axios.get<User[]>(
-        `${process.env.EXPO_PUBLIC_API_URL}/user`
+        `${process.env.EXPO_PUBLIC_API_URL}/users`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setUsers(response2.data);
-      setUserIds(response.data.users.map((user) => user.id.toString()));
+      setUserIds(response.data.users.map((user) => user._id));
     } catch (error) {
       Alert.alert("Error", "Failed to fetch complaint details");
     } finally {
@@ -119,20 +130,28 @@ const ComplaintDetail = () => {
     }
     try {
       setSaving(true);
-      await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`, {
-        clientName: complaint?.clientName,
-        description: complaint?.description,
-        visitDates: complaint?.visitDates,
-        dueDate: complaint?.dueDate,
-        complaintReference: complaint?.complaintReference,
-        priority: complaint?.priority,
-        photos: complaint?.photos,
-        poNumber: complaint?.poNumber,
-        remarks: complaint?.remarks,
-        dcReference: complaint?.dcReferences,
-        jcReference: complaint?.jcReferences,
-        quotation: complaint?.quotation,
-      });
+      await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}`,
+        {
+          clientName: complaint?.clientName,
+          description: complaint?.description,
+          visitDates: complaint?.visitDates,
+          dueDate: complaint?.dueDate,
+          complaintReference: complaint?.complaintReference,
+          priority: complaint?.priority,
+          photos: complaint?.photos,
+          po: complaint?.po,
+          remarks: complaint?.remarks,
+          dcReferences: complaint?.dcReferences,
+          jcReferences: complaint?.jcReferences,
+          quotation: complaint?.quotation,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       Alert.alert("Success", "Complaint updated successfully");
       setEditMode(false);
       fetchComplaint();
@@ -147,8 +166,13 @@ const ComplaintDetail = () => {
   const handleAssignUsers = async () => {
     try {
       await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}/assign-workers`,
-        { worker_ids: userIds }
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints/${id}/assign-users`,
+        { userIds },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       Alert.alert("Success", "Users updated successfully");
       setModalVisible(false);
@@ -267,12 +291,10 @@ const ComplaintDetail = () => {
     switch (status.toLowerCase()) {
       case "pending":
         return "bg-yellow-200 text-yellow-800";
+      case "completed":
+        return "bg-green-200 text-green-800";
       case "in progress":
         return "bg-blue-200 text-blue-800";
-      case "resolved":
-        return "bg-green-200 text-green-800";
-      case "closed":
-        return "bg-gray-200 text-gray-800";
       default:
         return "bg-gray-200 text-gray-800";
     }
@@ -285,9 +307,7 @@ const ComplaintDetail = () => {
         <Text className="text-lg font-bold">Assigned Workers</Text>
         <TouchableOpacity
           onPress={() => {
-            setUserIds(
-              complaint?.users.map((user) => user.id.toString()) || []
-            );
+            setUserIds(complaint?.users.map((user) => user._id) || []);
             setModalVisible(true);
           }}
           className="bg-primary px-4 py-2 rounded-lg"
@@ -299,7 +319,7 @@ const ComplaintDetail = () => {
         <View>
           <View className="gap-4">
             {complaint?.users.map((worker) => (
-              <View key={worker.id} className="flex-row items-center">
+              <View key={worker._id} className="flex-row items-center">
                 <Avatar name={worker.name} size="medium" />
                 <View className="ml-3">
                   <Text className="font-semibold">{worker.name}</Text>
@@ -380,8 +400,8 @@ const ComplaintDetail = () => {
                 Complaint Details
               </Text>
               <Text className="text-gray-600 text-sm">
-                Created by {complaint.createdBy} on{" "}
-                {new Date(complaint.created_at).toDateString()}
+                Created by {complaint.createdBy.name} on{" "}
+                {new Date(complaint.createdAt).toDateString()}
               </Text>
             </View>
           </View>
@@ -537,19 +557,45 @@ const ComplaintDetail = () => {
           />
           <InputField
             label="Quotation"
-            value={complaint.quotation || ""}
+            value={complaint.quotation?.value || ""}
             icon="attach-money"
             readonly={!editMode}
             placeholder="Quotation"
-            onChangeText={(value) => handleFieldChange("quotation", value)}
+            onChangeText={(value) =>
+              setComplaint((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  quotation: {
+                    value,
+                    isEdited: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                };
+              })
+            }
           />
           <InputField
             label="PO Number"
-            value={complaint.poNumber || ""}
+            value={complaint.po?.value || ""}
             icon="receipt"
             readonly={!editMode}
             placeholder="PO number"
-            onChangeText={(value) => handleFieldChange("poNumber", value)}
+            onChangeText={(value) =>
+              setComplaint((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  po: {
+                    value,
+                    isEdited: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                };
+              })
+            }
           />
           {editMode ? (
             <View>
@@ -570,7 +616,10 @@ const ComplaintDetail = () => {
                           ...prev,
                           jcReferences: [
                             ...(prev.jcReferences || []),
-                            { jcReference },
+                            {
+                              value: jcReference,
+                              isEdited: true,
+                            },
                           ],
                         };
                       });
@@ -591,7 +640,7 @@ const ComplaintDetail = () => {
                       key={index}
                       className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                     >
-                      <Text>{jc.jcReference}</Text>
+                      <Text>{jc.value}</Text>
                       <TouchableOpacity
                         onPress={() =>
                           setComplaint((prev) => {
@@ -625,9 +674,9 @@ const ComplaintDetail = () => {
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
                   >
                     <Text>
-                      {jc.jcReference}{" "}
-                      {jc.jcDate
-                        ? ` (${new Date(jc.jcDate).toDateString()})`
+                      {jc.value}{" "}
+                      {jc.updatedAt
+                        ? ` (${new Date(jc.updatedAt).toDateString()})`
                         : ""}
                     </Text>
                   </View>
@@ -654,7 +703,10 @@ const ComplaintDetail = () => {
                           ...prev,
                           dcReferences: [
                             ...(prev.dcReferences || []),
-                            { dcReference },
+                            {
+                              value: dcReference,
+                              isEdited: true,
+                            },
                           ],
                         };
                       });
@@ -675,7 +727,7 @@ const ComplaintDetail = () => {
                       key={index}
                       className="bg-gray-100 rounded-full p-2 mr-2 mb-2 flex-row items-center"
                     >
-                      <Text>{dc.dcReference}</Text>
+                      <Text>{dc.value}</Text>
                       <TouchableOpacity
                         onPress={() =>
                           setComplaint((prev) => {
@@ -709,9 +761,9 @@ const ComplaintDetail = () => {
                     className="bg-gray-100 rounded-full p-2 mr-2 mb-2"
                   >
                     <Text>
-                      {dc.dcReference}{" "}
-                      {dc.dcDate
-                        ? ` (${new Date(dc.dcDate).toDateString()})`
+                      {dc.value}{" "}
+                      {dc.updatedAt
+                        ? ` (${new Date(dc.updatedAt).toDateString()})`
                         : ""}
                     </Text>
                   </View>
@@ -721,11 +773,24 @@ const ComplaintDetail = () => {
           )}
           <InputField
             label="Remarks"
-            value={complaint.remarks || ""}
+            value={complaint.remarks?.value || ""}
             icon="notes"
             readonly={!editMode}
             placeholder="Remarks"
-            onChangeText={(value) => handleFieldChange("remarks", value)}
+            onChangeText={(value) =>
+              setComplaint((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  remarks: {
+                    value,
+                    isEdited: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                };
+              })
+            }
           />
           {editMode ? (
             <View className="mb-6">
@@ -848,9 +913,7 @@ const ComplaintDetail = () => {
             visible={modalVisible}
             onDismiss={() => {
               setModalVisible(false);
-              setUserIds(
-                complaint?.users.map((user) => user.id.toString()) || []
-              );
+              setUserIds(complaint?.users.map((user) => user._id) || []);
             }}
             contentContainerStyle={{
               backgroundColor: "white",
@@ -868,26 +931,24 @@ const ComplaintDetail = () => {
                 <ScrollView className="max-h-80">
                   {users.map((user) => (
                     <TouchableOpacity
-                      key={user.id}
+                      key={user._id}
                       className={`flex-row items-center p-3 mb-2 rounded-lg border ${
-                        userIds.includes(user.id.toString())
+                        userIds.includes(user._id)
                           ? "border-primary bg-primary/10"
                           : "border-gray-200"
                       }`}
                       onPress={() => {
                         // Toggle selection
-                        if (userIds.includes(user.id.toString())) {
-                          setUserIds(
-                            userIds.filter((id) => id !== user.id.toString())
-                          );
+                        if (userIds.includes(user._id)) {
+                          setUserIds(userIds.filter((id) => id !== user._id));
                         } else {
-                          setUserIds([...userIds, user.id.toString()]);
+                          setUserIds([...userIds, user._id]);
                         }
                       }}
                     >
                       <Avatar name={user.name} size="small" />
                       <Text className="ml-3 flex-1">{user.name}</Text>
-                      {userIds.includes(user.id.toString()) && (
+                      {userIds.includes(user._id) && (
                         <MaterialIcons
                           name="check-circle"
                           size={24}
@@ -907,9 +968,7 @@ const ComplaintDetail = () => {
               <Button
                 onPress={() => {
                   setModalVisible(false);
-                  setUserIds(
-                    complaint?.users.map((user) => user.id.toString()) || []
-                  );
+                  setUserIds(complaint?.users.map((user) => user._id) || []);
                 }}
                 mode="outlined"
                 style={{ flex: 1 }}

@@ -52,7 +52,7 @@ const ComplaintCard = ({ item }: { item: Partial<Complaint> }) => {
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() => router.push(`/screens/complaint/${item.id}`)}
+          onPress={() => router.push(`/screens/complaint/${item._id}`)}
           className="flex-row items-center gap-2 bg-primary px-4 py-2 rounded-lg"
         >
           <Text className="text-white">Details</Text>

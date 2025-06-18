@@ -49,6 +49,8 @@ const formatVisitDates = (dates: Date[]): string => {
 const hasValue = (value: any): boolean => {
   if (value === null || value === undefined) return false;
   if (typeof value === "string" && value.trim() === "") return false;
+  if (typeof value === "object" && value.value && value.value.trim() === "")
+    return false;
   return true;
 };
 
@@ -80,7 +82,7 @@ const ComplaintTableRow = ({
 
   return (
     <TouchableOpacity
-      onPress={() => router.push(`/screens/complaint/${item.id}`)}
+      onPress={() => router.push(`/screens/complaint/${item._id}`)}
       className={`flex-row py-4 border-b border-gray-200 items-center ${
         isEvenRow ? "bg-white" : "bg-gray-50"
       }`}
@@ -138,11 +140,9 @@ const ComplaintTableRow = ({
 
       <View
         className={`w-32 px-3 py-2 ${
-          hasValue(item.quotation) && hasValue(item.quotationDate)
-            ? "bg-green-50"
-            : "bg-red-50"
+          hasValue(item.quotation?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.quotation) && hasValue(item.quotationDate)
+          hasValue(item.quotation?.value)
             ? "border-green-100"
             : "border-red-100"
         }`}
@@ -150,51 +150,43 @@ const ComplaintTableRow = ({
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.quotation) ? "text-green-700" : "text-red-700"
+            hasValue(item.quotation?.value) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.quotation || "None"}
+          {item.quotation?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.quotationDate)}
+          {formatDate(item.quotation?.updatedAt)}
         </Text>
       </View>
 
       <View
         className={`w-32 px-3 py-2 ${
-          hasValue(item.poNumber) && hasValue(item.poDate)
-            ? "bg-green-50"
-            : "bg-red-50"
+          hasValue(item.po?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.poNumber) && hasValue(item.poDate)
-            ? "border-green-100"
-            : "border-red-100"
+          hasValue(item.po?.value) ? "border-green-100" : "border-red-100"
         }`}
       >
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.poNumber) ? "text-green-700" : "text-red-700"
+            hasValue(item.po?.value) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.poNumber || "None"}
+          {item.po?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.poDate)}
+          {formatDate(item.po?.updatedAt)}
         </Text>
       </View>
 
       <View
         className={`w-32 px-3 py-2 ${
-          hasValue(
-            item.dcReferences[item.dcReferences.length - 1]?.dcReference
-          ) && hasValue(item.dcReferences[item.dcReferences.length - 1]?.dcDate)
+          hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
             ? "bg-green-50"
             : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(
-            item.dcReferences[item.dcReferences.length - 1]?.dcReference
-          ) && hasValue(item.dcReferences[item.dcReferences.length - 1]?.dcDate)
+          hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
             ? "border-green-100"
             : "border-red-100"
         }`}
@@ -202,73 +194,65 @@ const ComplaintTableRow = ({
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(
-              item.dcReferences[item.dcReferences.length - 1]?.dcReference
-            )
+            hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
               ? "text-green-700"
               : "text-red-700"
           } font-medium`}
         >
-          {item.dcReferences[item.dcReferences.length - 1]?.dcReference ||
-            "None"}
-        </Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.dcReferences[item.dcReferences.length - 1]?.dcDate)}
-        </Text>
-      </View>
-
-      <View
-        className={`w-32 px-3 py-2 ${
-          hasValue(
-            item.jcReferences[item.jcReferences.length - 1]?.jcReference
-          ) && hasValue(item.jcReferences[item.jcReferences.length - 1]?.jcDate)
-            ? "bg-green-50"
-            : "bg-red-50"
-        } rounded-lg mx-1 border ${
-          hasValue(
-            item.jcReferences[item.jcReferences.length - 1]?.jcReference
-          ) && hasValue(item.jcReferences[item.jcReferences.length - 1]?.jcDate)
-            ? "border-green-100"
-            : "border-red-100"
-        }`}
-      >
-        <Text
-          numberOfLines={1}
-          className={`${
-            hasValue(
-              item.jcReferences[item.jcReferences.length - 1]?.jcReference
-            )
-              ? "text-green-700"
-              : "text-red-700"
-          } font-medium`}
-        >
-          {item.jcReferences[item.jcReferences.length - 1]?.jcReference ||
-            "None"}
+          {item.dcReferences[item.dcReferences.length - 1]?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
           {formatDate(
-            item.jcReferences[item.jcReferences.length - 1]?.jcDate
+            item.dcReferences[item.dcReferences.length - 1]?.updatedAt
+          )}
+        </Text>
+      </View>
+
+      <View
+        className={`w-32 px-3 py-2 ${
+          hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
+            ? "bg-green-50"
+            : "bg-red-50"
+        } rounded-lg mx-1 border ${
+          hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
+            ? "border-green-100"
+            : "border-red-100"
+        }`}
+      >
+        <Text
+          numberOfLines={1}
+          className={`${
+            hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
+              ? "text-green-700"
+              : "text-red-700"
+          } font-medium`}
+        >
+          {item.jcReferences[item.jcReferences.length - 1]?.value || "None"}
+        </Text>
+        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
+          {formatDate(
+            item.jcReferences[item.jcReferences.length - 1]?.updatedAt
           ) || "None"}
         </Text>
       </View>
 
       <View
         className={`w-56 px-3 py-2 ${
-          hasValue(item.remarks) ? "bg-green-50" : "bg-red-50"
+          hasValue(item.remarks?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.remarks) ? "border-green-100" : "border-red-100"
+          hasValue(item.remarks?.value) ? "border-green-100" : "border-red-100"
         }`}
       >
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.remarks) ? "text-green-700" : "text-red-700"
+            hasValue(item.remarks?.value) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.remarks || "None"}
+          {item.remarks?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.remarksDate)}
+          {formatDate(item.remarks?.updatedAt)}
         </Text>
       </View>
 
@@ -315,13 +299,18 @@ const UserComplaints = () => {
   const [searchText, setSearchText] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
 
   const fetchComplaints = async () => {
     try {
       setRefreshing(true);
       const response = await axios.get<Complaint[]>(
-        `${process.env.EXPO_PUBLIC_API_URL}/assigned/complaints/user/${user?.id}`
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints/user`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       console.log(response.data);
       setComplaints(response.data);
@@ -334,7 +323,7 @@ const UserComplaints = () => {
 
   useEffect(() => {
     fetchComplaints();
-  }, [user?.id]);
+  }, [user?._id]);
 
   const filteredComplaints = complaints.filter((complaint) => {
     const matchesStatus =
@@ -418,7 +407,7 @@ const UserComplaints = () => {
                   {filteredComplaints.length > 0 ? (
                     filteredComplaints.map((complaint, index) => (
                       <ComplaintTableRow
-                        key={complaint.id.toString()}
+                        key={complaint._id.toString()}
                         item={complaint}
                         index={index}
                       />

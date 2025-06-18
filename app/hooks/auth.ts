@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const login = async (email: string, password: string, role: string) => {
   const { data } = await axios.post(
-    `${process.env.EXPO_PUBLIC_API_URL}/login`,
+    `${process.env.EXPO_PUBLIC_API_URL}/users/login`,
     {
       email,
       password,
@@ -14,26 +14,16 @@ export const login = async (email: string, password: string, role: string) => {
   return data;
 };
 
-export const register = async (values: object) => {
+export const register = async (values: SignUpRequest) => {
   const { data } = await axios.post(
-    `${process.env.EXPO_PUBLIC_API_URL}/register`,
+    `${process.env.EXPO_PUBLIC_API_URL}/users/register`,
     values
   );
   return data;
 };
 
-export const logout = async () => {
-  await axios.post(
-    `${process.env.EXPO_PUBLIC_API_URL}/logout`,
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
-      },
-    }
-  );
-
-  await AsyncStorage.removeItem("token");
+export const logout = () => {
+  AsyncStorage.removeItem("token");
   return null;
 };
 
@@ -44,7 +34,7 @@ export const loginBack = async () => {
   }
 
   const { data } = await axios.get(
-    `${process.env.EXPO_PUBLIC_API_URL}/get/by-token`,
+    `${process.env.EXPO_PUBLIC_API_URL}/users/profile`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

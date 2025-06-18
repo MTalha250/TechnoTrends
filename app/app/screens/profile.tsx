@@ -18,12 +18,19 @@ import axios from "axios";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const { user, role, setRole, setToken, setUser } = useAuthStore();
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const { user, role, setRole, setToken, setUser, token } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [adminInfo, setAdminInfo] = useState({
     name: user?.name,
     email: user?.email,
     phone: user?.phone,
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const handleSave = async () => {
@@ -37,27 +44,22 @@ const Profile = () => {
     }
     try {
       setLoading(true);
-      let response;
-      if (role === "admin") {
-        response = await axios.put(
-          `${process.env.EXPO_PUBLIC_API_URL}/admin/${user?.id}`,
-          adminInfo
-        );
-      } else if (role === "head") {
-        response = await axios.put(
-          `${process.env.EXPO_PUBLIC_API_URL}/head/${user?.id}`,
-          adminInfo
-        );
-      } else {
-        response = await axios.put(
-          `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}`,
-          adminInfo
-        );
-      }
-      setUser(response.data);
+      const response = await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/users/profile`,
+        adminInfo,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setUser(response.data.user);
       Alert.alert("Success", "Profile updated successfully");
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        Alert.alert("Error", "Email already in use");
+        return;
+      }
       Alert.alert("Error", "An error occurred. Please try again later");
     } finally {
       setIsEditing(false);
@@ -74,9 +76,68 @@ const Profile = () => {
     });
   };
 
+  const handlePasswordChange = async () => {
+    if (
+      !passwordData.currentPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmPassword
+    ) {
+      Alert.alert("Error", "All password fields are required");
+      return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      Alert.alert("Error", "New passwords do not match");
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      Alert.alert("Error", "New password must be at least 6 characters long");
+      return;
+    }
+    try {
+      setPasswordLoading(true);
+      await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/users/reset-password`,
+        {
+          oldPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      Alert.alert("Success", "Password changed successfully");
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setIsChangingPassword(false);
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        Alert.alert("Error", "Current password is incorrect");
+        return;
+      }
+      Alert.alert("Error", "An error occurred. Please try again later");
+      console.log(error);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handlePasswordCancel = () => {
+    setIsChangingPassword(false);
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+  };
+
   const handleLogout = async () => {
     setLoading(true);
-    await logout();
+    logout();
     setUser(null);
     setToken(null);
     setRole(null);
@@ -191,6 +252,91 @@ const Profile = () => {
                 </TouchableOpacity>
               )}
             </View>
+          </View>
+
+          {/* Password Change Section */}
+          <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-lg font-bold text-gray-900">
+                Change Password
+              </Text>
+              {!isChangingPassword && (
+                <TouchableOpacity
+                  onPress={() => setIsChangingPassword(true)}
+                  className="bg-orange-500 px-4 py-2 rounded-xl"
+                >
+                  <Text className="text-white font-semibold">Change</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {isChangingPassword ? (
+              <View>
+                <InputField
+                  label="Current Password"
+                  value={passwordData.currentPassword}
+                  onChangeText={(text) =>
+                    setPasswordData({ ...passwordData, currentPassword: text })
+                  }
+                  icon="lock"
+                  keyboardType="default"
+                  placeholder="Enter current password"
+                  required
+                />
+                <InputField
+                  label="New Password"
+                  value={passwordData.newPassword}
+                  onChangeText={(text) =>
+                    setPasswordData({ ...passwordData, newPassword: text })
+                  }
+                  icon="lock-open"
+                  keyboardType="default"
+                  placeholder="Enter new password"
+                  required
+                />
+                <InputField
+                  label="Confirm New Password"
+                  value={passwordData.confirmPassword}
+                  onChangeText={(text) =>
+                    setPasswordData({ ...passwordData, confirmPassword: text })
+                  }
+                  icon="lock-outline"
+                  keyboardType="default"
+                  placeholder="Confirm new password"
+                  required
+                />
+
+                {/* Password Change Buttons */}
+                <View className="flex-row gap-4 mt-6">
+                  <TouchableOpacity
+                    onPress={handlePasswordChange}
+                    disabled={passwordLoading}
+                    className={`flex-1 bg-green-500 rounded-xl p-4 items-center ${
+                      passwordLoading ? "opacity-50" : ""
+                    }`}
+                  >
+                    {passwordLoading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text className="text-white font-semibold">
+                        Update Password
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handlePasswordCancel}
+                    disabled={passwordLoading}
+                    className="flex-1 bg-gray-200 rounded-xl p-4 items-center"
+                  >
+                    <Text className="text-gray-800 font-semibold">Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <Text className="text-gray-600">
+                Click "Change" to update your password securely
+              </Text>
+            )}
           </View>
 
           {/* Logout Button */}

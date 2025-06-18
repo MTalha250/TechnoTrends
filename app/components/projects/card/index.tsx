@@ -52,7 +52,7 @@ const ProjectCard = ({ item }: { item: Partial<Project> }) => {
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() => router.push(`/screens/project/${item.id}`)}
+          onPress={() => router.push(`/screens/project/${item._id}`)}
           className="flex-row items-center gap-2 px-4 py-2 rounded-lg bg-primary"
         >
           <Text className="text-white">Details</Text>

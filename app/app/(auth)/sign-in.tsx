@@ -13,10 +13,10 @@ const SignIn = () => {
   const [isFocus, setIsFocus] = useState(false);
   const { setToken, setRole, setUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginRequest>({
     email: "",
     password: "",
-    role: "",
+    role: "user" as const,
   });
 
   const renderLabel = () => {
@@ -50,7 +50,7 @@ const SignIn = () => {
     try {
       setLoading(true);
       const data = await login(
-        formData.email.toLowerCase(),
+        formData.email,
         formData.password,
         formData.role
       );
@@ -59,13 +59,13 @@ const SignIn = () => {
       setUser(data.user);
       if (data.role === "user") router.push("/userDashboard");
       else router.push("/dashboard");
-      Alert.alert("Success", "Logged in successfully");
+      Alert.alert("Success", data.message);
     } catch (error: any) {
       if (error.response.status === 404) {
         Alert.alert("Error", "User not found");
         return;
       }
-      if (error.response.status === 401) {
+      if (error.response.status === 400) {
         Alert.alert("Error", "Invalid credentials or you are not authorized");
         return;
       }
@@ -108,7 +108,7 @@ const SignIn = () => {
                 onFocus={() => setIsFocus(true)}
                 onBlur={() => setIsFocus(false)}
                 onChange={(item) => {
-                  setFormData({ ...formData, role: item.value });
+                  setFormData({ ...formData, role: item.value as any });
                   setIsFocus(false);
                 }}
               />
@@ -145,6 +145,12 @@ const SignIn = () => {
               }
             />
           </View>
+          <Link
+            href="/forgot-password"
+            className="text-lg font-light mt-4 px-2"
+          >
+            <Text className="text-gray-600">Forgot Password?</Text>
+          </Link>
           <Button
             onPress={handleSubmit}
             disabled={loading}

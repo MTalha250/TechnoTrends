@@ -41,6 +41,8 @@ const formatDate = (date: Date | null | string): string => {
 const hasValue = (value: any): boolean => {
   if (value === null || value === undefined) return false;
   if (typeof value === "string" && value.trim() === "") return false;
+  if (typeof value === "object" && value.value && value.value.trim() === "")
+    return false;
   return true;
 };
 
@@ -64,7 +66,7 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
 
   return (
     <TouchableOpacity
-      onPress={() => router.push(`/screens/project/${item.id}`)}
+      onPress={() => router.push(`/screens/project/${item._id}`)}
       className={`flex-row py-4 border-b border-gray-200 items-center ${
         isEvenRow ? "bg-white" : "bg-gray-50"
       }`}
@@ -113,11 +115,9 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
 
       <View
         className={`w-32 h-full px-3 py-2 ${
-          hasValue(item.quotationReference) && hasValue(item.quotationDate)
-            ? "bg-green-50"
-            : "bg-red-50"
+          hasValue(item.quotation?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.quotationReference) && hasValue(item.quotationDate)
+          hasValue(item.quotation?.value)
             ? "border-green-100"
             : "border-red-100"
         }`}
@@ -125,53 +125,43 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.quotationReference)
-              ? "text-green-700"
-              : "text-red-700"
+            hasValue(item.quotation?.value) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.quotationReference || "None"}
+          {item.quotation?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.quotationDate)}
+          {formatDate(item.quotation?.updatedAt)}
         </Text>
       </View>
 
       <View
         className={`w-32 px-3 py-2 ${
-          hasValue(item.poNumber) && hasValue(item.poDate)
-            ? "bg-green-50"
-            : "bg-red-50"
+          hasValue(item.po?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.poNumber) && hasValue(item.poDate)
-            ? "border-green-100"
-            : "border-red-100"
+          hasValue(item.po?.value) ? "border-green-100" : "border-red-100"
         }`}
       >
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.poNumber) ? "text-green-700" : "text-red-700"
+            hasValue(item.po?.value) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.poNumber || "None"}
+          {item.po?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.poDate)}
+          {formatDate(item.po?.updatedAt)}
         </Text>
       </View>
 
       <View
         className={`w-32 px-3 py-2 ${
-          hasValue(
-            item.dcReferences[item.dcReferences.length - 1]?.dcReference
-          ) && hasValue(item.dcReferences[item.dcReferences.length - 1]?.dcDate)
+          hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
             ? "bg-green-50"
             : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(
-            item.dcReferences[item.dcReferences.length - 1]?.dcReference
-          ) && hasValue(item.dcReferences[item.dcReferences.length - 1]?.dcDate)
+          hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
             ? "border-green-100"
             : "border-red-100"
         }`}
@@ -179,32 +169,27 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(
-              item.dcReferences[item.dcReferences.length - 1]?.dcReference
-            )
+            hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
               ? "text-green-700"
               : "text-red-700"
           } font-medium`}
         >
-          {item.dcReferences[item.dcReferences.length - 1]?.dcReference ||
-            "None"}
+          {item.dcReferences[item.dcReferences.length - 1]?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.dcReferences[item.dcReferences.length - 1]?.dcDate)}
+          {formatDate(
+            item.dcReferences[item.dcReferences.length - 1]?.updatedAt
+          )}
         </Text>
       </View>
 
       <View
         className={`w-32 px-3 py-2 ${
-          hasValue(
-            item.jcReferences[item.jcReferences.length - 1]?.jcReference
-          ) && hasValue(item.jcReferences[item.jcReferences.length - 1]?.jcDate)
+          hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
             ? "bg-green-50"
             : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(
-            item.jcReferences[item.jcReferences.length - 1]?.jcReference
-          ) && hasValue(item.jcReferences[item.jcReferences.length - 1]?.jcDate)
+          hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
             ? "border-green-100"
             : "border-red-100"
         }`}
@@ -212,38 +197,37 @@ const ProjectTableRow = ({ item, index }: { item: Project; index: number }) => {
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(
-              item.jcReferences[item.jcReferences.length - 1]?.jcReference
-            )
+            hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
               ? "text-green-700"
               : "text-red-700"
           } font-medium`}
         >
-          {item.jcReferences[item.jcReferences.length - 1]?.jcReference ||
-            "None"}
+          {item.jcReferences[item.jcReferences.length - 1]?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.jcReferences[item.jcReferences.length - 1]?.jcDate)}
+          {formatDate(
+            item.jcReferences[item.jcReferences.length - 1]?.updatedAt
+          )}
         </Text>
       </View>
 
       <View
         className={`w-56 px-3 py-2 ${
-          hasValue(item.remarks) ? "bg-green-50" : "bg-red-50"
+          hasValue(item.remarks?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.remarks) ? "border-green-100" : "border-red-100"
+          hasValue(item.remarks?.value) ? "border-green-100" : "border-red-100"
         }`}
       >
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.remarks) ? "text-green-700" : "text-red-700"
+            hasValue(item.remarks?.value) ? "text-green-700" : "text-red-700"
           } font-medium`}
         >
-          {item.remarks || "None"}
+          {item.remarks?.value || "None"}
         </Text>
         <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.remarksDate)}
+          {formatDate(item.remarks?.updatedAt)}
         </Text>
       </View>
 
@@ -290,13 +274,18 @@ const UserProjects = () => {
   const [searchText, setSearchText] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
 
   const fetchProjects = async () => {
     try {
       setRefreshing(true);
       const response = await axios.get<Project[]>(
-        `${process.env.EXPO_PUBLIC_API_URL}/assigned/projects/user/${user?.id}`
+        `${process.env.EXPO_PUBLIC_API_URL}/projects/user`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setProjects(response.data);
     } catch (error) {
@@ -308,7 +297,7 @@ const UserProjects = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [user?.id]);
+  }, [user?._id]);
 
   const filteredProjects = projects.filter((project) => {
     const matchesFilter =
@@ -389,7 +378,7 @@ const UserProjects = () => {
                   {filteredProjects.length > 0 ? (
                     filteredProjects.map((project, index) => (
                       <ProjectTableRow
-                        key={project.id.toString()}
+                        key={project._id.toString()}
                         item={project}
                         index={index}
                       />

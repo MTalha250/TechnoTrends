@@ -5,12 +5,14 @@ import {
   ScrollView,
   Text,
   RefreshControl,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import InputField from "@/components/inputField";
 import axios from "axios";
+import useAuthStore from "@/store/authStore";
 
 const statusOptions = [
   "All",
@@ -48,22 +50,74 @@ const formatVisitDates = (dates: Date[]): string => {
 const hasValue = (value: any): boolean => {
   if (value === null || value === undefined) return false;
   if (typeof value === "string" && value.trim() === "") return false;
+  if (typeof value === "object" && value.value && value.value.trim() === "")
+    return false;
   return true;
 };
 
-const ComplaintTableHeader = () => {
+const ComplaintTableHeader = ({ isCompact }: { isCompact: boolean }) => {
   return (
-    <View className="flex-row bg-gray-100 py-4 border-b border-gray-200 rounded-t-xl shadow-sm">
-      <Text className="w-40 font-bold px-3 mx-1 text-gray-800">Client</Text>
-      <Text className="w-40 font-bold px-3 mx-1 text-gray-800">
+    <View
+      className={`flex-row bg-gray-100 border-b border-gray-200 rounded-t-xl shadow-sm ${
+        isCompact ? "py-2" : "py-4"
+      }`}
+    >
+      <Text
+        className={`font-bold px-3 mx-1 text-gray-800 ${
+          isCompact ? "text-sm w-28" : "w-40"
+        }`}
+      >
+        Client
+      </Text>
+      <Text
+        className={`font-bold px-3 mx-1 text-gray-800 ${
+          isCompact ? "text-sm w-28" : "w-40"
+        }`}
+      >
         Visit Dates
       </Text>
-      <Text className="w-32 font-bold px-3 mx-1 text-gray-800">Quotation</Text>
-      <Text className="w-32 font-bold px-3 mx-1 text-gray-800">PO</Text>
-      <Text className="w-32 font-bold px-3 mx-1 text-gray-800">DC</Text>
-      <Text className="w-32 font-bold px-3 mx-1 text-gray-800">JC</Text>
-      <Text className="w-56 font-bold px-3 mx-1 text-gray-800">Remarks</Text>
-      <Text className="w-40 font-bold px-3 mx-1 text-gray-800">Status</Text>
+      <Text
+        className={`font-bold px-3 mx-1 text-gray-800 ${
+          isCompact ? "text-sm w-24" : "w-32"
+        }`}
+      >
+        Quotation
+      </Text>
+      <Text
+        className={`font-bold px-3 mx-1 text-gray-800 ${
+          isCompact ? "text-sm w-24" : "w-32"
+        }`}
+      >
+        PO
+      </Text>
+      <Text
+        className={`font-bold px-3 mx-1 text-gray-800 ${
+          isCompact ? "text-sm w-24" : "w-32"
+        }`}
+      >
+        DC
+      </Text>
+      <Text
+        className={`font-bold px-3 mx-1 text-gray-800 ${
+          isCompact ? "text-sm w-24" : "w-32"
+        }`}
+      >
+        JC
+      </Text>
+      <Text
+        className={`font-bold px-3 mx-1 text-gray-800 ${
+          isCompact ? "text-sm w-40" : "w-56"
+        }`}
+      >
+        Remarks
+      </Text>
+      <Text
+        className={`font-bold px-3 mx-1 text-gray-800 ${
+          isCompact ? "text-sm w-28" : "w-40"
+        }`}
+      >
+        Status
+      </Text>
     </View>
   );
 };
@@ -71,21 +125,28 @@ const ComplaintTableHeader = () => {
 const ComplaintTableRow = ({
   item,
   index,
+  isCompact,
 }: {
   item: Complaint;
   index: number;
+  isCompact: boolean;
 }) => {
   const isEvenRow = index % 2 === 0;
 
   return (
     <TouchableOpacity
-      onPress={() => router.push(`/screens/complaint/${item.id}`)}
-      className={`flex-row py-4 border-b border-gray-200 items-center ${
-        isEvenRow ? "bg-white" : "bg-gray-50"
-      }`}
+      onPress={() => router.push(`/screens/complaint/${item._id}`)}
+      className={`flex-row border-b border-gray-200 items-center ${
+        isCompact ? "py-2" : "py-4"
+      } ${isEvenRow ? "bg-white" : "bg-gray-50"}`}
     >
-      <View className="w-40 px-3">
-        <Text numberOfLines={1} className="text-gray-800 text-lg font-medium">
+      <View className={`${isCompact ? "w-28" : "w-40"} px-3`}>
+        <Text
+          numberOfLines={1}
+          className={`text-gray-800 font-medium ${
+            isCompact ? "text-sm" : "text-lg"
+          }`}
+        >
           {item.clientName}
         </Text>
         <View
@@ -99,7 +160,7 @@ const ComplaintTableRow = ({
         >
           <Text
             numberOfLines={1}
-            className={`text-xs ${
+            className={`${isCompact ? "text-xs" : "text-xs"} ${
               item.priority === "High"
                 ? "text-red-800"
                 : item.priority === "Medium"
@@ -113,7 +174,7 @@ const ComplaintTableRow = ({
       </View>
 
       <View
-        className={`w-40 h-full px-3 py-2 ${
+        className={`${isCompact ? "w-28" : "w-40"} h-full px-3 py-2 ${
           hasValue(item.visitDates) && item.visitDates.length > 0
             ? "bg-green-50"
             : "bg-red-50"
@@ -129,19 +190,17 @@ const ComplaintTableRow = ({
             hasValue(item.visitDates) && item.visitDates.length > 0
               ? "text-green-700"
               : "text-red-700"
-          } font-medium`}
+          } font-medium ${isCompact ? "text-xs" : "text-sm"}`}
         >
           {formatVisitDates(item.visitDates)}
         </Text>
       </View>
 
       <View
-        className={`w-32 px-3 py-2 ${
-          hasValue(item.quotation) && hasValue(item.quotationDate)
-            ? "bg-green-50"
-            : "bg-red-50"
+        className={`${isCompact ? "w-24" : "w-32"} px-3 py-2 ${
+          hasValue(item.quotation?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.quotation) && hasValue(item.quotationDate)
+          hasValue(item.quotation?.value)
             ? "border-green-100"
             : "border-red-100"
         }`}
@@ -149,51 +208,53 @@ const ComplaintTableRow = ({
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.quotation) ? "text-green-700" : "text-red-700"
-          } font-medium`}
+            hasValue(item.quotation?.value) ? "text-green-700" : "text-red-700"
+          } font-medium ${isCompact ? "text-xs" : "text-sm"}`}
         >
-          {item.quotation || "None"}
+          {item.quotation?.value || "None"}
         </Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.quotationDate)}
+        <Text
+          numberOfLines={1}
+          className={`text-gray-500 ${
+            isCompact ? "text-xs mt-0" : "text-xs mt-1"
+          }`}
+        >
+          {formatDate(item.quotation?.updatedAt)}
         </Text>
       </View>
 
       <View
-        className={`w-32 px-3 py-2 ${
-          hasValue(item.poNumber) && hasValue(item.poDate)
-            ? "bg-green-50"
-            : "bg-red-50"
+        className={`${isCompact ? "w-24" : "w-32"} px-3 py-2 ${
+          hasValue(item.po?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.poNumber) && hasValue(item.poDate)
-            ? "border-green-100"
-            : "border-red-100"
+          hasValue(item.po?.value) ? "border-green-100" : "border-red-100"
         }`}
       >
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.poNumber) ? "text-green-700" : "text-red-700"
-          } font-medium`}
+            hasValue(item.po?.value) ? "text-green-700" : "text-red-700"
+          } font-medium ${isCompact ? "text-xs" : "text-sm"}`}
         >
-          {item.poNumber || "None"}
+          {item.po?.value || "None"}
         </Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.poDate)}
+        <Text
+          numberOfLines={1}
+          className={`text-gray-500 ${
+            isCompact ? "text-xs mt-0" : "text-xs mt-1"
+          }`}
+        >
+          {formatDate(item.po?.updatedAt)}
         </Text>
       </View>
 
       <View
-        className={`w-32 px-3 py-2 ${
-          hasValue(
-            item.dcReferences[item.dcReferences.length - 1]?.dcReference
-          ) && hasValue(item.dcReferences[item.dcReferences.length - 1]?.dcDate)
+        className={`${isCompact ? "w-24" : "w-32"} px-3 py-2 ${
+          hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
             ? "bg-green-50"
             : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(
-            item.dcReferences[item.dcReferences.length - 1]?.dcReference
-          ) && hasValue(item.dcReferences[item.dcReferences.length - 1]?.dcDate)
+          hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
             ? "border-green-100"
             : "border-red-100"
         }`}
@@ -201,73 +262,80 @@ const ComplaintTableRow = ({
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(
-              item.dcReferences[item.dcReferences.length - 1]?.dcReference
-            )
+            hasValue(item.dcReferences[item.dcReferences.length - 1]?.value)
               ? "text-green-700"
               : "text-red-700"
-          } font-medium`}
+          } font-medium ${isCompact ? "text-xs" : "text-sm"}`}
         >
-          {item.dcReferences[item.dcReferences.length - 1]?.dcReference ||
-            "None"}
+          {item.dcReferences[item.dcReferences.length - 1]?.value || "None"}
         </Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.dcReferences[item.dcReferences.length - 1]?.dcDate)}
-        </Text>
-      </View>
-
-      <View
-        className={`w-32 px-3 py-2 ${
-          hasValue(
-            item.jcReferences[item.jcReferences.length - 1]?.jcReference
-          ) && hasValue(item.jcReferences[item.jcReferences.length - 1]?.jcDate)
-            ? "bg-green-50"
-            : "bg-red-50"
-        } rounded-lg mx-1 border ${
-          hasValue(
-            item.jcReferences[item.jcReferences.length - 1]?.jcReference
-          ) && hasValue(item.jcReferences[item.jcReferences.length - 1]?.jcDate)
-            ? "border-green-100"
-            : "border-red-100"
-        }`}
-      >
         <Text
           numberOfLines={1}
-          className={`${
-            hasValue(
-              item.jcReferences[item.jcReferences.length - 1]?.jcReference
-            )
-              ? "text-green-700"
-              : "text-red-700"
-          } font-medium`}
+          className={`text-gray-500 ${
+            isCompact ? "text-xs mt-0" : "text-xs mt-1"
+          }`}
         >
-          {item.jcReferences[item.jcReferences.length - 1]?.jcReference ||
-            "None"}
-        </Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
           {formatDate(
-            item.jcReferences[item.jcReferences.length - 1]?.jcDate
+            item.dcReferences[item.dcReferences.length - 1]?.updatedAt
+          )}
+        </Text>
+      </View>
+
+      <View
+        className={`${isCompact ? "w-24" : "w-32"} px-3 py-2 ${
+          hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
+            ? "bg-green-50"
+            : "bg-red-50"
+        } rounded-lg mx-1 border ${
+          hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
+            ? "border-green-100"
+            : "border-red-100"
+        }`}
+      >
+        <Text
+          numberOfLines={1}
+          className={`${
+            hasValue(item.jcReferences[item.jcReferences.length - 1]?.value)
+              ? "text-green-700"
+              : "text-red-700"
+          } font-medium ${isCompact ? "text-xs" : "text-sm"}`}
+        >
+          {item.jcReferences[item.jcReferences.length - 1]?.value || "None"}
+        </Text>
+        <Text
+          numberOfLines={1}
+          className={`text-gray-500 ${
+            isCompact ? "text-xs mt-0" : "text-xs mt-1"
+          }`}
+        >
+          {formatDate(
+            item.jcReferences[item.jcReferences.length - 1]?.updatedAt
           ) || "None"}
         </Text>
       </View>
 
       <View
-        className={`w-56 px-3 py-2 ${
-          hasValue(item.remarks) ? "bg-green-50" : "bg-red-50"
+        className={`${isCompact ? "w-40" : "w-56"} px-3 py-2 ${
+          hasValue(item.remarks?.value) ? "bg-green-50" : "bg-red-50"
         } rounded-lg mx-1 border ${
-          hasValue(item.remarks) ? "border-green-100" : "border-red-100"
+          hasValue(item.remarks?.value) ? "border-green-100" : "border-red-100"
         }`}
       >
         <Text
           numberOfLines={1}
           className={`${
-            hasValue(item.remarks) ? "text-green-700" : "text-red-700"
-          } font-medium`}
+            hasValue(item.remarks?.value) ? "text-green-700" : "text-red-700"
+          } font-medium ${isCompact ? "text-xs" : "text-sm"}`}
         >
-          {item.remarks || "None"}
+          {item.remarks?.value || "None"}
         </Text>
-        <Text numberOfLines={1} className="text-xs text-gray-500 mt-1">
-          {formatDate(item.remarksDate)}
+        <Text
+          numberOfLines={1}
+          className={`text-gray-500 ${
+            isCompact ? "text-xs mt-0" : "text-xs mt-1"
+          }`}
+        >
+          {formatDate(item.remarks?.updatedAt)}
         </Text>
       </View>
 
@@ -285,7 +353,9 @@ const ComplaintTableRow = ({
         >
           <Text
             numberOfLines={1}
-            className={`text-xs text-center font-semibold ${
+            className={`text-center font-semibold ${
+              isCompact ? "text-xs" : "text-xs"
+            } ${
               item.status === "Completed"
                 ? "text-green-800"
                 : item.status === "In Progress"
@@ -298,9 +368,20 @@ const ComplaintTableRow = ({
             {item.status}
           </Text>
         </View>
-        <View className="flex-row items-center mt-2">
-          <MaterialIcons name="event" size={12} color="#6B7280" />
-          <Text numberOfLines={1} className="text-xs text-gray-500 ml-1">
+        <View
+          className={`flex-row items-center ${isCompact ? "mt-1" : "mt-2"}`}
+        >
+          <MaterialIcons
+            name="event"
+            size={isCompact ? 10 : 12}
+            color="#6B7280"
+          />
+          <Text
+            numberOfLines={1}
+            className={`text-gray-500 ml-1 ${
+              isCompact ? "text-xs" : "text-xs"
+            }`}
+          >
             Due: {formatDate(item.dueDate)}
           </Text>
         </View>
@@ -314,12 +395,20 @@ const Complaints = () => {
   const [searchText, setSearchText] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [isCompactMode, setIsCompactMode] = useState(false);
+  const { token } = useAuthStore();
 
   const fetchComplaints = async () => {
     try {
       setRefreshing(true);
       const response = await axios.get<Complaint[]>(
-        `${process.env.EXPO_PUBLIC_API_URL}/complaints`
+        `${process.env.EXPO_PUBLIC_API_URL}/complaints`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setComplaints(response.data);
     } catch (error) {
@@ -331,6 +420,26 @@ const Complaints = () => {
 
   useEffect(() => {
     fetchComplaints();
+  }, []);
+
+  useEffect(() => {
+    const updateOrientation = () => {
+      const { width, height } = Dimensions.get("window");
+      setIsLandscape(width > height);
+    };
+
+    // Get initial orientation
+    updateOrientation();
+
+    // Listen for orientation changes
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateOrientation
+    );
+
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   const filteredComplaints = complaints.filter((complaint) => {
@@ -349,35 +458,44 @@ const Complaints = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={fetchComplaints} />
-        }
-      >
-        <View className="flex-1">
-          <View className="container my-6">
+      <View className="flex-1 container my-6">
+        {/* Header - Hidden in landscape */}
+        {!isLandscape && (
+          <View>
             <View className="flex-row justify-between items-center mb-8">
               <View>
                 <Text className="text-2xl font-bold text-gray-800">
                   Complaints
                 </Text>
                 <Text className="text-gray-600">
-                  {filteredComplaints.length} active complaints
+                  {filteredComplaints.length} complaints
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => router.push("/screens/createComplaint")}
-                className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
-              >
-                <MaterialIcons name="add" size={20} color="white" />
-                <Text className="font-medium text-white">New Complaint</Text>
-              </TouchableOpacity>
+              <View className="flex-row gap-2">
+                <TouchableOpacity
+                  onPress={() => setIsCompactMode(!isCompactMode)}
+                  className={`flex-row items-center gap-2 px-4 py-3 rounded-xl ${
+                    isCompactMode ? "bg-blue-600" : "bg-gray-600"
+                  }`}
+                >
+                  <MaterialIcons
+                    name={isCompactMode ? "view-agenda" : "view-compact"}
+                    size={20}
+                    color="white"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => router.push("/screens/createComplaint")}
+                  className="flex-row items-center gap-2 bg-primary px-4 py-3 rounded-xl"
+                >
+                  <MaterialIcons name="add" size={20} color="white" />
+                  <Text className="font-medium text-white">New Complaint</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
-            {/* Filter and Search Section */}
+            {/* Filter and Search Section - Hidden in landscape */}
             <View className="bg-white p-4 rounded-xl shadow-sm mb-6">
-              {/* Search Input */}
               <InputField
                 placeholder="Search by client, reference or description"
                 value={searchText}
@@ -413,45 +531,60 @@ const Complaints = () => {
                 </View>
               </ScrollView>
             </View>
+          </View>
+        )}
 
-            {/* Table View */}
-            <View className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="min-w-full">
-                  <ComplaintTableHeader />
-                  {filteredComplaints.length > 0 ? (
-                    filteredComplaints.map((complaint, index) => (
-                      <ComplaintTableRow
-                        key={complaint.id.toString()}
-                        item={complaint}
-                        index={index}
-                      />
-                    ))
-                  ) : (
-                    <View className="py-12 items-center justify-center bg-white">
-                      <MaterialIcons
-                        name="error-outline"
-                        size={32}
-                        color="#9CA3AF"
-                      />
-                      <Text className="text-gray-500 mt-2 text-center font-medium">
-                        {searchText || selectedStatus !== "All"
-                          ? "No complaints match your filters"
-                          : "No complaints found"}
-                      </Text>
-                      <Text className="text-gray-400 text-sm mt-1 text-center">
-                        {searchText || selectedStatus !== "All"
-                          ? "Try adjusting your search or filters"
-                          : "Create a new complaint to get started"}
-                      </Text>
-                    </View>
-                  )}
-                </View>
+        {/* Table View - Always visible */}
+        <View
+          className={`flex-1 bg-white rounded-xl shadow-sm overflow-hidden ${
+            isLandscape ? "" : "mb-10"
+          }`}
+        >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View>
+              <ComplaintTableHeader isCompact={isCompactMode} />
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={fetchComplaints}
+                  />
+                }
+              >
+                {filteredComplaints.length > 0 ? (
+                  filteredComplaints.map((complaint, index) => (
+                    <ComplaintTableRow
+                      key={complaint._id.toString()}
+                      item={complaint}
+                      index={index}
+                      isCompact={isCompactMode}
+                    />
+                  ))
+                ) : (
+                  <View className="py-12 items-center justify-center bg-white">
+                    <MaterialIcons
+                      name="error-outline"
+                      size={32}
+                      color="#9CA3AF"
+                    />
+                    <Text className="text-gray-500 mt-2 text-center font-medium">
+                      {searchText || selectedStatus !== "All"
+                        ? "No complaints match your filters"
+                        : "No complaints found"}
+                    </Text>
+                    <Text className="text-gray-400 text-sm mt-1 text-center">
+                      {searchText || selectedStatus !== "All"
+                        ? "Try adjusting your search or filters"
+                        : "Create a new complaint to get started"}
+                    </Text>
+                  </View>
+                )}
               </ScrollView>
             </View>
-          </View>
+          </ScrollView>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };

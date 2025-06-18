@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, Dimensions } from "react-native";
 import Svg, { Path, Circle, Line, Text as SvgText } from "react-native-svg";
-import { Dropdown } from "react-native-element-dropdown";
 
 interface DataPoint {
-  created_at: string;
+  createdAt: string;
 }
 
 interface ChartProps {
@@ -25,7 +24,7 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
   const availableYears = useMemo(() => {
     const years = new Set<number>();
     projects.concat(complaints).forEach((item) => {
-      years.add(getYear(item.created_at));
+      years.add(getYear(item.createdAt));
     });
     return Array.from(years).sort((a, b) => a - b);
   }, [projects, complaints]);
@@ -34,8 +33,8 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
   const groupByYearAndMonth = (data: DataPoint[]) => {
     return data.reduce(
       (acc: Record<string, { projects: number; complaints: number }>, item) => {
-        const year = getYear(item.created_at);
-        const month = getMonth(item.created_at);
+        const year = getYear(item.createdAt);
+        const month = getMonth(item.createdAt);
         const key = `${year}-${month}`;
 
         if (!acc[key]) {

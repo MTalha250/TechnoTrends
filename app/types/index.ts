@@ -1,104 +1,66 @@
-type Admin = {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  isDirector: boolean;
-  status: "Pending" | "Approved" | "Rejected";
-  created_at: string;
-  updated_at: string;
-};
-
-type Head = {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  department: "accounts" | "technical" | "it" | "sales" | "store";
-  status: "pending" | "approved" | "rejected";
-  assignedComplaints: Complaint[];
-  assignedProjects: Project[];
-  created_at: string;
-  updated_at: string;
-};
-
 type User = {
-  id: number;
+  _id: string;
   name: string;
   email: string;
   phone: string;
-  head: Head;
+  role: "director" | "admin" | "head" | "user";
+  department?: "accounts" | "technical" | "it" | "sales" | "store";
   status: "Pending" | "Approved" | "Rejected";
-  assignedComplaints: Complaint[];
-  assignedProjects: Project[];
-  created_at: string;
-  updated_at: string;
+  assignedComplaints?: Complaint[];
+  assignedProjects?: Project[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+type Value = {
+  value: string;
+  isEdited: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type Project = {
-  id: number;
+  _id: string;
   clientName: string;
   description: string;
-  poNumber: string;
-  poDate: Date | null;
+  po: Value;
+  quotation: Value;
+  remarks: Value;
   surveyPhotos: string[];
   surveyDate: Date | null;
-  quotationReference: string;
-  quotationDate: Date | null;
-  jcReferences: {
-    jcReference: string;
-    jcDate: Date | null;
-    isJcDateEdited: boolean;
-  }[];
-  dcReferences: {
-    dcReference: string;
-    dcDate: Date | null;
-    isDcDateEdited: boolean;
-  }[];
+  jcReferences: Value[];
+  dcReferences: Value[];
   status: "Pending" | "In Progress" | "Completed" | "Cancelled";
   users: User[];
-  remarks: string;
-  remarksDate: Date | null;
   dueDate: Date | null;
-  createdBy: string;
-  created_at: string;
-  updated_at: string;
+  createdBy: User;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type Complaint = {
-  id: number;
+  _id: string;
   complaintReference: string;
   clientName: string;
   description: string;
-  poNumber: string;
-  poDate: Date | null;
+  po: Value;
   visitDates: Date[];
   dueDate: Date | null;
-  createdBy: string;
+  createdBy: User;
   users: User[];
-  jcReferences: {
-    jcReference: string;
-    jcDate: Date | null;
-    isJcDateEdited: boolean;
-  }[];
-  dcReferences: {
-    dcReference: string;
-    dcDate: Date | null;
-    isDcDateEdited: boolean;
-  }[];
-  quotation: string;
-  quotationDate: Date | null;
+  jcReferences: Value[];
+  dcReferences: Value[];
+  quotation: Value;
   photos: string[];
   priority: "Low" | "Medium" | "High";
-  remarks: string;
-  remarksDate: Date | null;
+  remarks: Value;
   status: "Pending" | "In Progress" | "Completed" | "Cancelled";
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type Invoice = {
-  id: number;
+  _id: string;
   invoiceReference: string;
   invoiceDate: Date | null;
   amount: string;
@@ -107,6 +69,66 @@ type Invoice = {
   dueDate: Date | null;
   project: Project;
   status: "Pending" | "In Progress" | "Completed" | "Cancelled";
-  created_at: string;
-  updated_at: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type CreateProjectRequest = {
+  clientName: string;
+  description: string;
+  po?: { value: string; isEdited: boolean };
+  quotation?: { value: string; isEdited: boolean };
+  remarks?: { value: string; isEdited: boolean };
+  surveyDate?: Date;
+  surveyPhotos?: string[];
+  jcReferences?: Array<{ value: string; isEdited: boolean }>;
+  dcReferences?: Array<{ value: string; isEdited: boolean }>;
+  status?: "Pending" | "In Progress" | "Completed" | "Cancelled";
+  users?: string[];
+  dueDate?: Date;
+};
+
+type CreateComplaintRequest = {
+  complaintReference?: string;
+  clientName: string;
+  description: string;
+  po?: { value: string; isEdited: boolean };
+  visitDates?: Date[];
+  dueDate?: Date;
+  users?: string[];
+  jcReferences?: Array<{ value: string; isEdited: boolean }>;
+  dcReferences?: Array<{ value: string; isEdited: boolean }>;
+  quotation?: { value: string; isEdited: boolean };
+  photos?: string[];
+  priority?: "Low" | "Medium" | "High";
+  remarks?: { value: string; isEdited: boolean };
+  status?: "Pending" | "In Progress" | "Completed" | "Cancelled";
+};
+
+type CreateInvoiceRequest = {
+  invoiceReference: string;
+  invoiceDate?: Date;
+  amount: string;
+  paymentTerms: "Cash" | "Credit";
+  creditDays?: string;
+  dueDate?: Date;
+  project: string;
+  status?: "Pending" | "In Progress" | "Completed" | "Cancelled";
+};
+
+type SignUpRequest = {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+  role: "director" | "admin" | "head" | "user";
+  department?: "accounts" | "technical" | "it" | "sales" | "store";
+};
+
+type LoginRequest = {
+  email: string;
+  password: string;
+  role: "director" | "admin" | "head" | "user";
 };
