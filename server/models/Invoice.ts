@@ -16,7 +16,6 @@ const InvoiceSchema = new Schema<IInvoice>(
   {
     invoiceReference: {
       type: String,
-      unique: true,
       trim: true,
     },
     invoiceDate: {

@@ -65,7 +65,6 @@ const ComplaintSchema = new Schema<IComplaint>(
   {
     complaintReference: {
       type: String,
-      unique: true,
       trim: true,
     },
     clientName: {
