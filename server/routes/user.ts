@@ -23,7 +23,7 @@ router.post("/forgot-password", forgotPassword);
 router.post("/verify-reset-code", verifyResetCode);
 router.post("/update-push-token", verifyToken, updatePushToken);
 router.get("/profile", verifyToken, getUser);
-router.get("/", verifyToken, verifyHead, getUsers);
+router.get("/", verifyToken, getUsers);
 router.put("/profile", verifyToken, updateUser);
 router.get("/pending", verifyToken, verifyAdmin, getPendingUsers);
 router.put("/pending/:id", verifyToken, verifyAdmin, changeUserStatus);

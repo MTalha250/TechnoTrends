@@ -27,7 +27,7 @@ router.post("/", verifyHead, createProject); // Create project (head+ only)
 router.post("/:id/assign-users", verifyHead, assignUsersToProject); // Assign users (head+ only)
 
 // PUT routes
-router.put("/:id", verifyHead, updateProject); // Update project (head+ only)
+router.put("/:id", updateProject); // Update project
 
 // DELETE routes
 router.delete("/:id", verifyAdmin, deleteProject); // Delete project (admin+ only)

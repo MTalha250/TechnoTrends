@@ -29,7 +29,7 @@ router.post("/", verifyHead, createComplaint); // Create complaint (head+ only)
 router.post("/:id/assign-users", verifyAdmin, assignUsersToComplaint); // Assign users (admin+ only)
 
 // PUT routes
-router.put("/:id", verifyHead, updateComplaint); // Update complaint (head+ only)
+router.put("/:id", updateComplaint); // Update complaint
 
 // DELETE routes
 router.delete("/:id", verifyAdmin, deleteComplaint); // Delete complaint (admin+ only)
