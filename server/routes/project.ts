@@ -18,9 +18,9 @@ router.use(verifyToken);
 
 // GET routes
 router.get("/", getProjects); // Get all projects
+router.get("/user", getProjectsByUser); // Get projects by user
 router.get("/status/:status", getProjectsByStatus); // Get projects by status
 router.get("/:id", getProject); // Get single project
-router.get("/user", getProjectsByUser); // Get projects by user
 
 // POST routes
 router.post("/", verifyHead, createProject); // Create project (head+ only)

@@ -19,10 +19,10 @@ router.use(verifyToken);
 
 // GET routes
 router.get("/", getComplaints); // Get all complaints
+router.get("/user", getComplaintsByUser); // Get complaints by user
 router.get("/status/:status", getComplaintsByStatus); // Get complaints by status
 router.get("/priority/:priority", getComplaintsByPriority); // Get complaints by priority
 router.get("/:id", getComplaint); // Get single complaint
-router.get("/user", getComplaintsByUser); // Get complaints by user
 
 // POST routes
 router.post("/", verifyHead, createComplaint); // Create complaint (head+ only)
