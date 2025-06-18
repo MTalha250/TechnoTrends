@@ -9,8 +9,7 @@ import useAuthStore from "@/store/authStore";
 const AdminLayout = () => {
   const { user, role } = useAuthStore();
 
-  if (!user) return <Redirect href="/sign-in" />;
-
+  if (!user || !role) return <Redirect href="/sign-in" />;
   return (
     <Tabs
       screenOptions={{

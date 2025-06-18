@@ -14,7 +14,7 @@ import {
   verifyResetCode,
   updatePushToken,
 } from "../controllers/User";
-import { verifyDirector, verifyHead, verifyToken } from "../middlewares";
+import { verifyAdmin, verifyHead, verifyToken } from "../middlewares";
 
 const router = express.Router();
 router.post("/register", register);
@@ -25,10 +25,10 @@ router.post("/update-push-token", verifyToken, updatePushToken);
 router.get("/profile", verifyToken, getUser);
 router.get("/", verifyToken, verifyHead, getUsers);
 router.put("/profile", verifyToken, updateUser);
-router.get("/pending", verifyToken, verifyDirector, getPendingUsers);
-router.put("/pending/:id", verifyToken, verifyDirector, changeUserStatus);
+router.get("/pending", verifyToken, verifyAdmin, getPendingUsers);
+router.put("/pending/:id", verifyToken, verifyAdmin, changeUserStatus);
 router.put("/reset-password", verifyToken, resetPassword);
-router.get("/approved", verifyToken, verifyDirector, getApprovedUsers);
-router.delete("/:id", verifyToken, verifyDirector, deleteUser);
+router.get("/approved", verifyToken, verifyAdmin, getApprovedUsers);
+router.delete("/:id", verifyToken, verifyAdmin, deleteUser);
 
 export default router;
