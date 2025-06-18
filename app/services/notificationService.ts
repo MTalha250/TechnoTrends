@@ -98,8 +98,14 @@ export class NotificationService {
         body,
         data: data || {},
         sound: "default",
+        ...(Platform.OS === "android" && {
+          color: "#A82F39",
+        }),
+        ...(Platform.OS === "ios" && {
+          badge: 1,
+        }),
       },
-      trigger: null, // Immediate notification
+      trigger: null,
     });
   }
 

@@ -11,10 +11,7 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "UIBackgroundModes": [
-          "background-processing",
-          "background-fetch"
-        ]
+        "UIBackgroundModes": ["background-processing", "background-fetch"]
       },
       "bundleIdentifier": "com.talhaad126.technotrends"
     },
@@ -24,6 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.talhaad126.technotrends",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
