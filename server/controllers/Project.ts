@@ -35,14 +35,63 @@ interface ProjectRequest {
 
 const createInvoiceForProject = async (projectId: string, userId: string) => {
   try {
+    const project = await Project.findById(projectId).populate(
+      "createdBy",
+      "name email"
+    );
+
     const newInvoice = await Invoice.create({
       amount: "0",
       paymentTerms: "Cash",
       project: projectId,
       createdBy: userId,
     });
+    // Send push notification to admins about automatic invoice creation
+    try {
+      await sendNotificationToAdmins(
+        "Invoice Auto-Created - TechnoTrends",
+        `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #A82F39;">Invoice Automatically Created</h2>
+            <p>An invoice has been automatically created due to JC/DC references being added to a project.</p>
+            <div style="background-color: #f0f9ff; padding: 20px; margin: 20px 0; border-radius: 8px;">
+              <h3 style="color: #A82F39; margin: 0 0 15px 0;">Invoice Details:</h3>
+              <p><strong>Project Client:</strong> ${
+                project?.clientName || "Unknown Client"
+              }</p>
+              <p><strong>Invoice Reference:</strong> ${
+                newInvoice.invoiceReference || "Not set"
+              }</p>
+              <p><strong>Amount:</strong> ${newInvoice.amount}</p>
+              <p><strong>Payment Terms:</strong> ${newInvoice.paymentTerms}</p>
+              <p><strong>Status:</strong> ${newInvoice.status}</p>
+              <p><strong>Created At:</strong> ${new Date().toLocaleString()}</p>
+            </div>
+            <p>Please review and update the invoice details in the admin dashboard.</p>
+            <hr style="margin: 30px 0;">
+            <p style="color: #666; font-size: 12px;">
+              This is an automated notification from TechnoTrends.
+            </p>
+          </div>
+        `,
+        "💰 Invoice Auto-Created",
+        `An invoice was automatically created for project: ${
+          project?.clientName || "Unknown Client"
+        }`,
+        {
+          type: "invoice_created",
+          invoiceId: (newInvoice._id as mongoose.Types.ObjectId).toString(),
+          projectId: projectId,
+          clientName: project?.clientName || "Unknown Client",
+        }
+      );
+    } catch (notificationError) {
+      console.error(
+        "Failed to send invoice creation notification:",
+        notificationError
+      );
+    }
 
-    console.log(`Invoice created for project ${projectId}`);
     return newInvoice;
   } catch (error) {
     console.error("Error creating invoice:", error);

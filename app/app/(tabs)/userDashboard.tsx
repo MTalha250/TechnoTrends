@@ -91,12 +91,12 @@ const UserDashboard = () => {
         <FlatList
           data={[
             {
-              title: "Active Projects",
+              title: "Assigned Projects",
               value: summaryData.projects,
               icon: "folder-open",
             },
             {
-              title: "Total Complaints",
+              title: "Assigned Complaints",
               value: summaryData.complaints,
               icon: "report-gmailerrorred",
             },

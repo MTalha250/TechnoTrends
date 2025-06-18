@@ -85,6 +85,7 @@ const InvoiceDetail = () => {
           paymentTerms: invoice?.paymentTerms,
           creditDays: invoice?.creditDays,
           dueDate: invoice?.dueDate,
+          status: invoice?.status,
         },
         {
           headers: {
@@ -334,6 +335,42 @@ const InvoiceDetail = () => {
             placeholder="Enter amount"
             keyboardType="numeric"
           />
+          {editMode ? (
+            <View className="mb-6">
+              <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
+                Status
+              </Text>
+              <Dropdown
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: 12,
+                  borderColor: "#ddd",
+                  borderWidth: 1,
+                  padding: 14,
+                }}
+                placeholderStyle={{ color: "#6b7280" }}
+                selectedTextStyle={{ color: "#374151" }}
+                data={[
+                  { label: "Pending", value: "Pending" },
+                  { label: "In Progress", value: "In Progress" },
+                  { label: "Completed", value: "Completed" },
+                  { label: "Cancelled", value: "Cancelled" },
+                ]}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Status"
+                value={invoice.status}
+                onChange={(item) => handleFieldChange("status", item.value)}
+              />
+            </View>
+          ) : (
+            <InputField
+              label="Status"
+              value={invoice.status}
+              icon="info"
+              readonly
+            />
+          )}
           {editMode ? (
             <View className="mb-6">
               <Text className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-4">
