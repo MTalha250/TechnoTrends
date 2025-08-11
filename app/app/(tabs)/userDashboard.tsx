@@ -23,13 +23,18 @@ const UserDashboard = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [recentComplaints, setRecentComplaints] = useState<
     Partial<Complaint>[]
   >([]);
   const [recentProjects, setRecentProjects] = useState<Partial<Project>[]>([]);
+  const [recentMaintenances, setRecentMaintenances] = useState<
+    Partial<Maintenance>[]
+  >([]);
   const [summaryData, setSummaryData] = useState({
     projects: 0,
     complaints: 0,
+    maintenances: 0,
   });
 
   const fetchDashboardData = async () => {
@@ -46,12 +51,15 @@ const UserDashboard = () => {
 
       setComplaints(response.data.userComplaints || []);
       setProjects(response.data.userProjects || []);
+      setMaintenances(response.data.userMaintenances || []);
 
       setRecentComplaints(response.data.recentComplaints || []);
       setRecentProjects(response.data.recentProjects || []);
+      setRecentMaintenances(response.data.recentMaintenances || []);
       setSummaryData({
         projects: response.data.activeProjects || 0,
         complaints: response.data.activeComplaints || 0,
+        maintenances: response.data.activeMaintenances || 0,
       });
     } catch (error) {
       console.log("Error fetching user dashboard data:", error);
@@ -100,6 +108,11 @@ const UserDashboard = () => {
               value: summaryData.complaints,
               icon: "report-gmailerrorred",
             },
+            {
+              title: "Assigned Maintenances",
+              value: summaryData.maintenances,
+              icon: "build",
+            },
           ]}
           renderItem={({ item }) => (
             <StatCard title={item.title} value={item.value} icon={item.icon} />
@@ -109,7 +122,11 @@ const UserDashboard = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerClassName="mb-8 p-1 gap-4"
         />
-        <Chart projects={projects as any} complaints={complaints as any} />
+        <Chart
+          projects={projects as any}
+          complaints={complaints as any}
+          maintenances={maintenances as any}
+        />
         <View className="my-6 flex-row justify-between items-center">
           <Text className="text-xl font-bold">Recent Projects</Text>
           <TouchableOpacity
@@ -140,9 +157,66 @@ const UserDashboard = () => {
           </TouchableOpacity>
         </View>
 
-        <View className="flex-col gap-4 mb-20">
+        <View className="flex-col gap-4">
           {recentComplaints.map((item) => (
             <ComplaintCard key={item._id} item={item} />
+          ))}
+        </View>
+
+        <View className="my-6 flex-row justify-between items-center">
+          <Text className="text-xl font-bold">Recent Maintenances</Text>
+          <TouchableOpacity
+            className="flex-row items-center gap-2"
+            onPress={() => router.push("/userMaintenances")}
+          >
+            <Text>View All</Text>
+            <View className="animate-bounceX">
+              <MaterialIcons name="arrow-forward" size={20} color="#A82F39" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex-col gap-4 mb-20">
+          {recentMaintenances.map((item) => (
+            <View
+              key={item._id}
+              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
+            >
+              <View className="flex-row justify-between items-start mb-3">
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-gray-800">
+                    {item.clientName}
+                  </Text>
+                  <Text className="text-gray-600 text-sm">
+                    {item.serviceDates?.length || 0} service dates
+                  </Text>
+                </View>
+                <View
+                  className={`px-3 py-1 rounded-full ${
+                    item.status === "Completed"
+                      ? "bg-green-100 text-green-700"
+                      : item.status === "In Progress"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-orange-100 text-orange-700"
+                  }`}
+                >
+                  <Text className="text-xs font-medium">{item.status}</Text>
+                </View>
+              </View>
+              {item.remarks?.value && (
+                <Text className="text-gray-600 text-sm mb-2" numberOfLines={2}>
+                  {item.remarks.value}
+                </Text>
+              )}
+              <TouchableOpacity
+                onPress={() => router.push(`/screens/maintenance/${item._id}`)}
+                className="bg-primary rounded-xl py-2 px-4 self-start"
+              >
+                <Text className="text-white font-medium text-sm">
+                  View Details
+                </Text>
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
       </ScrollView>

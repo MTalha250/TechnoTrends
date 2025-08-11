@@ -21,12 +21,12 @@ const AdminLayout = () => {
         tabBarStyle: Platform.select({
           ios: {
             position: "absolute",
-            paddingHorizontal: 16,
+            paddingHorizontal: 10,
             backgroundColor: "white",
             borderTopWidth: 1,
           },
           default: {
-            paddingHorizontal: 16,
+            paddingHorizontal: 10,
             backgroundColor: "white",
             borderTopWidth: 1,
             height: 60,
@@ -46,7 +46,7 @@ const AdminLayout = () => {
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="view-dashboard-outline"
-              size={28}
+              size={24}
               color={color}
             />
           ),
@@ -60,7 +60,7 @@ const AdminLayout = () => {
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="view-dashboard-outline"
-              size={28}
+              size={24}
               color={color}
             />
           ),
@@ -82,7 +82,7 @@ const AdminLayout = () => {
               : null,
           title: "Projects",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="folder-open" size={28} color={color} />
+            <MaterialIcons name="folder-open" size={24} color={color} />
           ),
         }}
       />
@@ -92,7 +92,7 @@ const AdminLayout = () => {
           href: role === "user" ? "/userProjects" : null,
           title: "Projects",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="folder-open" size={28} color={color} />
+            <MaterialIcons name="folder-open" size={24} color={color} />
           ),
         }}
       />
@@ -114,7 +114,7 @@ const AdminLayout = () => {
           tabBarIcon: ({ color }) => (
             <MaterialIcons
               name="report-gmailerrorred"
-              size={28}
+              size={24}
               color={color}
             />
           ),
@@ -128,9 +128,37 @@ const AdminLayout = () => {
           tabBarIcon: ({ color }) => (
             <MaterialIcons
               name="report-gmailerrorred"
-              size={28}
+              size={24}
               color={color}
             />
+          ),
+        }}
+      />
+
+      {/* Maintenances Tab */}
+      <Tabs.Screen
+        name="maintenances"
+        options={{
+          href:
+            role === "director" ||
+            role === "admin" ||
+            (role === "head" &&
+              (user.department === "technical" || user.department === "it"))
+              ? "/maintenances"
+              : null,
+          title: "Maintenances",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="build" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="userMaintenances"
+        options={{
+          href: role === "user" ? "/userMaintenances" : null,
+          title: "Maintenances",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="build" size={24} color={color} />
           ),
         }}
       />
@@ -148,7 +176,7 @@ const AdminLayout = () => {
               ? "/invoices"
               : null,
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="receipt-long" size={28} color={color} />
+            <MaterialIcons name="receipt-long" size={24} color={color} />
           ),
         }}
       />
@@ -162,7 +190,7 @@ const AdminLayout = () => {
           tabBarIcon: ({ color }) => (
             <MaterialIcons
               name="check-circle-outline"
-              size={28}
+              size={24}
               color={color}
             />
           ),

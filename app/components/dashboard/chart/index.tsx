@@ -9,13 +9,18 @@ interface DataPoint {
 interface ChartProps {
   projects: DataPoint[];
   complaints: DataPoint[];
+  maintenances?: DataPoint[];
 }
 
 // Utility function to get year from date
 const getYear = (date: string) => new Date(date).getFullYear();
 const getMonth = (date: string) => new Date(date).getMonth(); // 0-based (Jan = 0)
 
-const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
+const ActivityChart: React.FC<ChartProps> = ({
+  projects,
+  complaints,
+  maintenances = [],
+}) => {
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear()
   );
@@ -23,28 +28,36 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
   // Get all available years from the data
   const availableYears = useMemo(() => {
     const years = new Set<number>();
-    projects.concat(complaints).forEach((item) => {
-      years.add(getYear(item.createdAt));
-    });
+    projects
+      .concat(complaints)
+      .concat(maintenances)
+      .forEach((item) => {
+        years.add(getYear(item.createdAt));
+      });
     return Array.from(years).sort((a, b) => a - b);
-  }, [projects, complaints]);
+  }, [projects, complaints, maintenances]);
 
   // Group data by year and month
-  const groupByYearAndMonth = (data: DataPoint[]) => {
+  const groupByYearAndMonth = (
+    data: DataPoint[],
+    type: "projects" | "complaints" | "maintenances"
+  ) => {
     return data.reduce(
-      (acc: Record<string, { projects: number; complaints: number }>, item) => {
+      (
+        acc: Record<
+          string,
+          { projects: number; complaints: number; maintenances: number }
+        >,
+        item
+      ) => {
         const year = getYear(item.createdAt);
         const month = getMonth(item.createdAt);
         const key = `${year}-${month}`;
 
         if (!acc[key]) {
-          acc[key] = { projects: 0, complaints: 0 };
+          acc[key] = { projects: 0, complaints: 0, maintenances: 0 };
         }
-        if (data === projects) {
-          acc[key].projects += 1;
-        } else {
-          acc[key].complaints += 1;
-        }
+        acc[key][type] += 1;
 
         return acc;
       },
@@ -54,31 +67,46 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
 
   // Processed data for the selected year
   const processedData = useMemo(() => {
-    const groupedProjects = groupByYearAndMonth(projects);
-    const groupedComplaints = groupByYearAndMonth(complaints);
+    const groupedProjects = groupByYearAndMonth(projects, "projects");
+    const groupedComplaints = groupByYearAndMonth(complaints, "complaints");
+    const groupedMaintenances = groupByYearAndMonth(
+      maintenances,
+      "maintenances"
+    );
     const combinedData: Record<
       string,
-      { projects: number; complaints: number; monthLabel: string }
+      {
+        projects: number;
+        complaints: number;
+        maintenances: number;
+        monthLabel: string;
+      }
     > = {};
 
-    // Combine projects and complaints for each month-year
-    Object.keys(groupedProjects).forEach((key) => {
+    // Get all unique keys from all data sources
+    const allKeys = new Set([
+      ...Object.keys(groupedProjects),
+      ...Object.keys(groupedComplaints),
+      ...Object.keys(groupedMaintenances),
+    ]);
+
+    // Combine projects, complaints, and maintenances for each month-year
+    allKeys.forEach((key) => {
       const [year, month] = key.split("-");
       const monthLabel = new Date(+year, +month).toLocaleString("default", {
         month: "long",
       });
 
       combinedData[key] = {
-        projects: groupedProjects[key].projects,
-        complaints: groupedComplaints[key]
-          ? groupedComplaints[key].complaints
-          : 0,
+        projects: groupedProjects[key]?.projects || 0,
+        complaints: groupedComplaints[key]?.complaints || 0,
+        maintenances: groupedMaintenances[key]?.maintenances || 0,
         monthLabel,
       };
     });
 
     return Object.values(combinedData);
-  }, [projects, complaints, selectedYear]);
+  }, [projects, complaints, maintenances, selectedYear]);
 
   // Chart dimensions
   const screenWidth = Dimensions.get("window").width;
@@ -89,7 +117,9 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
 
   // Calculate scales
   const maxValue = Math.max(
-    ...processedData.map((d) => Math.max(d.projects, d.complaints))
+    ...processedData.map((d) =>
+      Math.max(d.projects, d.complaints, d.maintenances)
+    )
   );
 
   // Helper functions for positioning
@@ -206,6 +236,12 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
           strokeWidth="2"
           fill="none"
         />
+        <Path
+          d={createPath(processedData.map((d) => d.maintenances))}
+          stroke="#4CAF50"
+          strokeWidth="2"
+          fill="none"
+        />
 
         {/* Data points */}
         {processedData.map((item, i) => (
@@ -222,12 +258,18 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
               r="4"
               fill="#F44336"
             />
+            <Circle
+              cx={getX(i)}
+              cy={getY(item.maintenances)}
+              r="4"
+              fill="#4CAF50"
+            />
           </React.Fragment>
         ))}
       </Svg>
 
       {/* Legend */}
-      <View className="flex-row justify-center gap-10 mt-4">
+      <View className="flex-row justify-center gap-6 mt-4">
         <View className="flex-row items-center">
           <View
             style={{
@@ -251,6 +293,18 @@ const ActivityChart: React.FC<ChartProps> = ({ projects, complaints }) => {
             }}
           />
           <Text className="text-gray-600">Complaints</Text>
+        </View>
+        <View className="flex-row items-center">
+          <View
+            style={{
+              backgroundColor: "#4CAF50",
+              width: 10,
+              height: 10,
+              borderRadius: 50,
+              marginRight: 4,
+            }}
+          />
+          <Text className="text-gray-600">Maintenances</Text>
         </View>
       </View>
     </View>

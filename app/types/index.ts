@@ -74,6 +74,29 @@ type Invoice = {
   updatedAt: string;
 };
 
+type ServiceDate = {
+  serviceDate: Date;
+  actualDate: Date | null;
+  jcReference: string;
+  invoiceRef: string;
+  paymentStatus: "Pending" | "Paid" | "Overdue" | "Cancelled";
+  isCompleted: boolean;
+  month: number;
+  year: number;
+};
+
+type Maintenance = {
+  _id: string;
+  clientName: string;
+  remarks: Value;
+  serviceDates: ServiceDate[];
+  users: User[];
+  status: "Pending" | "In Progress" | "Completed" | "Cancelled";
+  createdBy: User;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type CreateProjectRequest = {
   clientName: string;
   description: string;
@@ -114,6 +137,23 @@ type CreateInvoiceRequest = {
   creditDays?: string;
   dueDate?: Date;
   project: string;
+  status?: "Pending" | "In Progress" | "Completed" | "Cancelled";
+};
+
+type CreateMaintenanceRequest = {
+  clientName: string;
+  remarks?: { value: string; isEdited: boolean };
+  serviceDates?: Array<{
+    serviceDate: Date;
+    actualDate?: Date | null;
+    jcReference?: string;
+    invoiceRef?: string;
+    paymentStatus?: "Pending" | "Paid" | "Overdue" | "Cancelled";
+    isCompleted?: boolean;
+    month?: number;
+    year?: number;
+  }>;
+  users?: string[];
   status?: "Pending" | "In Progress" | "Completed" | "Cancelled";
 };
 

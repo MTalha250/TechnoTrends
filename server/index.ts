@@ -9,6 +9,7 @@ import {
   complaintRoutes,
   invoiceRoutes,
   dashboardRoutes,
+  maintenanceRoutes,
 } from "./routes";
 dotenv.config();
 const app = express();
@@ -57,6 +58,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/invoices", invoiceRoutes);
+app.use("/api/maintenances", maintenanceRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.get("/", (req: Request, res: Response) => {
   res.send("Server is running!");

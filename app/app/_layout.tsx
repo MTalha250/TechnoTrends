@@ -81,6 +81,10 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="screens/createMaintenance"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="screens/project/[id]"
           options={{ headerShown: false }}
         />
@@ -90,6 +94,10 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="screens/invoice/[id]"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="screens/maintenance/[id]"
           options={{ headerShown: false }}
         />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
