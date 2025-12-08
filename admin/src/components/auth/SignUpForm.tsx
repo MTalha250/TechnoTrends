@@ -217,7 +217,7 @@ export default function SignUpForm() {
                   </div>
                 </div>
                 <div className="pt-2">
-                  <Button disabled={loading} className="w-full" size="sm">
+                  <Button disabled={loading} className="w-full text-white" size="sm">
                     {loading ? "Creating account..." : "Sign Up"}
                   </Button>
                 </div>

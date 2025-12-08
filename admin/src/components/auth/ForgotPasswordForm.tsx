@@ -161,7 +161,7 @@ export default function ForgotPasswordForm() {
                     />
                   </div>
                   <div>
-                    <Button disabled={loading} className="w-full" size="sm">
+                    <Button disabled={loading} className="w-full text-white" size="sm">
                       {loading ? "Sending..." : "Send Verification Code"}
                     </Button>
                   </div>
@@ -254,7 +254,7 @@ export default function ForgotPasswordForm() {
                     </div>
                   </div>
                   <div>
-                    <Button disabled={loading} className="w-full" size="sm">
+                    <Button disabled={loading} className="w-full text-white" size="sm">
                       {loading ? "Resetting..." : "Reset Password"}
                     </Button>
                   </div>

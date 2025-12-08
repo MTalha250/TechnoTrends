@@ -5,7 +5,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import useAuthStore from "@/store/authStore";
-import { GridIcon } from "../icons/index";
 import {
   ChevronDown,
   Settings,
@@ -14,6 +13,7 @@ import {
   FileText,
   Wrench,
   UserCheck,
+  LayoutDashboard,
 } from "lucide-react";
 
 type NavItem = {
@@ -33,7 +33,7 @@ const AppSidebar: React.FC = () => {
   // Define navigation items with role-based access
   const allNavItems: NavItem[] = [
     {
-      icon: <GridIcon />,
+      icon: <LayoutDashboard size={20} />,
       name: "Dashboard",
       path: "/",
       roles: ["director", "admin", "head", "user"],
@@ -186,11 +186,10 @@ const AppSidebar: React.FC = () => {
           {nav.icon}
         </Link>
         {/* Tooltip */}
-        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+        <span className="absolute left-full top-1/2 -translate-y-1/2 ml-4 px-3 py-1.5 bg-gray-900 dark:bg-gray-700 text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg z-[9999]">
           {nav.name}
-          {/* Arrow */}
-          <div className="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-gray-900 dark:border-r-gray-700"></div>
-        </div>
+          <span className="absolute right-full top-1/2 -translate-y-1/2 border-[6px] border-transparent border-r-gray-900 dark:border-r-gray-700" />
+        </span>
       </li>
     );
   };
@@ -311,7 +310,7 @@ const AppSidebar: React.FC = () => {
   return (
     <>
       {/* Desktop Sidebar - Icon only */}
-      <aside className="fixed hidden lg:flex flex-col top-0 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen w-[80px] z-50 border-r border-gray-200 px-4">
+      <aside className="fixed hidden lg:flex flex-col top-0 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen w-[80px] z-50 border-r border-gray-200 px-4 overflow-visible">
         {/* Logo */}
         <div className="py-6 flex justify-center">
           <Link href="/">
@@ -320,13 +319,20 @@ const AppSidebar: React.FC = () => {
               alt="TechnoTrends Logo"
               width={40}
               height={40}
-              className="object-contain"
+              className="object-contain dark:hidden"
+            />
+            <Image
+              src="/images/logo/logo-icon-white.png"
+              alt="TechnoTrends Logo"
+              width={40}
+              height={40}
+              className="object-contain hidden dark:block"
             />
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto no-scrollbar">
+        <nav className="flex-1 overflow-visible">
           <ul className="flex flex-col items-center gap-3">
             {navItems.map((nav) => renderDesktopMenuItem(nav))}
           </ul>
@@ -343,7 +349,12 @@ const AppSidebar: React.FC = () => {
               <img
                 src="/images/logo/logo.png"
                 alt="TechnoTrends Logo"
-                className="w-44"
+                className="w-44 dark:hidden"
+              />
+              <img
+                src="/images/logo/logo-white.png"
+                alt="TechnoTrends Logo"
+                className="w-44 hidden dark:block"
               />
           </Link>
         <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">

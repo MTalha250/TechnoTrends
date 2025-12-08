@@ -112,7 +112,7 @@ export default function ProjectDetailPage() {
         jcReferences: project.jcReferences,
         dcReferences: project.dcReferences,
         remarks: project.remarks,
-        dueDate: project.dueDate,
+        dueDate: project.dueDate || undefined,
         surveyPhotos: project.surveyPhotos,
       });
       toast.success("Project updated successfully");

@@ -221,7 +221,7 @@ export default function CreateMaintenancePage() {
                           {formatDate(sd.serviceDate)}
                         </p>
                         <p className="text-sm text-emerald-600 dark:text-emerald-400">
-                          {getMonthName(sd.month)} {sd.year}
+                          {sd.month && sd.year ? `${getMonthName(sd.month)} ${sd.year}` : ""}
                         </p>
                       </div>
                     </div>

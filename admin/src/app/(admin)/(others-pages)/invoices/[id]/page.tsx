@@ -85,11 +85,11 @@ export default function InvoiceDetailPage() {
       setSaving(true);
       await updateInvoice(token, id, {
         invoiceReference: invoice.invoiceReference,
-        invoiceDate: invoice.invoiceDate,
+        invoiceDate: invoice.invoiceDate || undefined,
         amount: invoice.amount,
         paymentTerms: invoice.paymentTerms,
         creditDays: invoice.creditDays,
-        dueDate: invoice.dueDate,
+        dueDate: invoice.dueDate || undefined,
         project: invoice.project._id,
         status: invoice.status,
       });

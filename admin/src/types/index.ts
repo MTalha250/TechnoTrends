@@ -207,74 +207,6 @@ export interface UserDashboardStats {
   maintenances: Maintenance[];
 }
 
-// ==================== COMMON TYPES ====================
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-}
-
-// ==================== API RESPONSE TYPES ====================
-
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
-
-export interface ApiError {
-  message: string;
-  status: number;
-}
-
-// ==================== COMPONENT PROP TYPES ====================
-
-export interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  className?: string;
-  showCloseButton?: boolean;
-  isFullscreen?: boolean;
-}
-
-export interface TableProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-export interface TableCellProps {
-  children: React.ReactNode;
-  className?: string;
-  isHeader?: boolean;
-  colSpan?: number;
-  rowSpan?: number;
-}
-
-export interface ComponentCardProps {
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-  desc?: string;
-}
-
-export interface BadgeProps {
-  children: React.ReactNode;
-  variant?: "success" | "error" | "warning" | "info";
-  size?: "sm" | "md" | "lg";
-  className?: string;
-}
-
-export interface ButtonProps {
-  children: React.ReactNode;
-  type?: "button" | "submit" | "reset";
-  disabled?: boolean;
-  className?: string;
-  onClick?: () => void;
-}
-
 // ==================== NAVIGATION TYPES ====================
 
 export interface NavItem {
@@ -285,75 +217,10 @@ export interface NavItem {
   departments?: ("accounts" | "technical" | "it" | "sales" | "store")[];
 }
 
-// ==================== FORM INPUT TYPES ====================
-
-export interface SelectOption {
-  value: string;
-  label: string;
-}
-
-export interface MultiSelectOption {
-  value: string;
-  text: string;
-  selected: boolean;
-}
-
 // ==================== PHOTO UPLOADER TYPES ====================
 
 export interface PhotosUploaderProps {
   addedPhotos: string[];
   maxPhotos: number;
   onChange: (photos: string[]) => void;
-}
-
-// ==================== AUTHENTICATION TYPES ====================
-
-export interface AuthState {
-  token: string | null;
-  user: User | null;
-  role: "director" | "admin" | "head" | "user" | null;
-  isAuthenticated: boolean;
-}
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-  role: "director" | "admin" | "head" | "user";
-}
-
-export interface LoginResponse {
-  message: string;
-  user: User;
-  token: string;
-  role: string;
-}
-
-// ==================== FILTER TYPES ====================
-
-export interface ProjectFilters {
-  status?: "Pending" | "In Progress" | "Completed" | "Cancelled" | "all";
-  search?: string;
-}
-
-export interface ComplaintFilters {
-  status?: "Pending" | "In Progress" | "Completed" | "Cancelled" | "all";
-  priority?: "Low" | "Medium" | "High" | "all";
-  search?: string;
-}
-
-export interface InvoiceFilters {
-  status?: "Pending" | "In Progress" | "Completed" | "Cancelled" | "all";
-  paymentTerms?: "Cash" | "Credit" | "all";
-  search?: string;
-}
-
-export interface MaintenanceFilters {
-  status?: "Pending" | "In Progress" | "Completed" | "Cancelled" | "all";
-  search?: string;
-}
-
-export interface UserFilters {
-  status?: "Pending" | "Approved" | "Rejected" | "all";
-  role?: "director" | "admin" | "head" | "user" | "all";
-  search?: string;
 }

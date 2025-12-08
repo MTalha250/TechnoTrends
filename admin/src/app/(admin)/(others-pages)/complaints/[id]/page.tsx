@@ -116,7 +116,7 @@ export default function ComplaintDetailPage() {
         jcReferences: complaint.jcReferences,
         dcReferences: complaint.dcReferences,
         remarks: complaint.remarks,
-        dueDate: complaint.dueDate,
+        dueDate: complaint.dueDate || undefined,
         photos: complaint.photos,
         priority: complaint.priority,
         visitDates: complaint.visitDates,
