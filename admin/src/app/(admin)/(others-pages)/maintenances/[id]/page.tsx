@@ -63,7 +63,7 @@ export default function MaintenanceDetailPage() {
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
-  const canEdit = role === "director" || role === "admin" || role === "head";
+  const canEdit = role === "director" || role === "admin" || role === "head" || role === "user";
   const canDelete = role === "director" || role === "admin";
   const canAssignUsers = role !== "user";
 

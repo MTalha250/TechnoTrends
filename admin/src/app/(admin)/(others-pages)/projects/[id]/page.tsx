@@ -68,7 +68,7 @@ export default function ProjectDetailPage() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const canEdit = role === "director" || role === "admin" || role === "head";
+  const canEdit = role === "director" || role === "admin" || role === "head" || role === "user";
   const canDelete = role === "director" || role === "admin";
   const canAssignUsers = role !== "user";
 
