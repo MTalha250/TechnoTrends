@@ -19,16 +19,31 @@ app.use(
   cors({
     credentials: true,
     origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      // In development, allow all origins
       if (process.env.NODE_ENV === "development") {
         callback(null, true);
         return;
       }
-      const allowedOrigins = ["*"];
 
-      if (!origin || allowedOrigins.includes(origin)) {
+      // In production, allow specific origins
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://technotrends.vercel.app",
+        // Add your production admin URL here
+      ];
+
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        // Allow all origins in production for now (remove this for stricter security)
+        callback(null, true);
       }
     },
   })
