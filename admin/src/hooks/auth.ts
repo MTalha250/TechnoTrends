@@ -79,7 +79,7 @@ export const updateProfile = async (
       Authorization: `Bearer ${token}`,
     },
   });
-  return data;
+  return data.user;
 };
 
 export const resetPassword = async (
