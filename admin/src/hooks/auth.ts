@@ -41,7 +41,7 @@ export const loginBack = async () => {
     });
 
     const role = localStorage.getItem("role") || data.role;
-    return { user: data, token, role };
+    return { user: data.user, token, role };
   } catch {
     // If token is invalid, clear storage
     localStorage.removeItem("token");

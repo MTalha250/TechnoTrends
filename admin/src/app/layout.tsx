@@ -42,6 +42,7 @@ export default function RootLayout({
         router.push("/signin");
         return;
       }
+      console.log(res.user)
       setUser(res.user);
       setToken(res.token);
       setRole(res.role as "director" | "admin" | "head" | "user");
